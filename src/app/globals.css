@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-obsidian text-ivory font-sans antialiased;
+  }
+
+  * {
+    border-radius: 0;
+  }
+}
+
+@layer utilities {
+  @keyframes goldPulse {
+    0%, 100% { opacity: 0.04; }
+    50%       { opacity: 0.09; }
+  }
+
+  .animate-gold-pulse {
+    animation: goldPulse 5s ease-in-out infinite;
+  }
+}
