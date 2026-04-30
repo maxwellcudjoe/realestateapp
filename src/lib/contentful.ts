@@ -1,10 +1,16 @@
-import { createClient } from 'contentful'
+import { createClient, type ContentfulClientApi } from 'contentful'
 import type { Deal } from '@/types/deal'
 
-const client = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID!,
-  accessToken: process.env.CONTENTFUL_ACCESS_TOKEN!,
-})
+let cachedClient: ContentfulClientApi<undefined> | null = null
+
+function getClient(): ContentfulClientApi<undefined> | null {
+  if (cachedClient) return cachedClient
+  const space = process.env.CONTENTFUL_SPACE_ID
+  const accessToken = process.env.CONTENTFUL_ACCESS_TOKEN
+  if (!space || !accessToken) return null
+  cachedClient = createClient({ space, accessToken })
+  return cachedClient
+}
 
 function normalizeDeal(item: any): Deal {
   const f = item.fields
@@ -27,6 +33,9 @@ function normalizeDeal(item: any): Deal {
 }
 
 export async function getDeals(strategy?: string): Promise<Deal[]> {
+  const client = getClient()
+  if (!client) return []
+
   const query: Record<string, unknown> = {
     content_type: 'deal',
     order: '-sys.createdAt',
@@ -39,6 +48,9 @@ export async function getDeals(strategy?: string): Promise<Deal[]> {
 }
 
 export async function getFeaturedDeal(): Promise<Deal | null> {
+  const client = getClient()
+  if (!client) return null
+
   const response = await client.getEntries({
     content_type: 'deal',
     'fields.featured': true,
