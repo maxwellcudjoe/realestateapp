@@ -1,6 +1,6 @@
 import { Hero }           from '@/components/home/Hero'
 import { WhatWeDo }       from '@/components/home/WhatWeDo'
-import { WhyDreamBuild }  from '@/components/home/WhyDreamBuild'
+import { WhyReveBatir }  from '@/components/home/WhyReveBatir'
 import { HowItWorks }     from '@/components/home/HowItWorks'
 import { FeaturedDeal }   from '@/components/home/FeaturedDeal'
 import { Testimonials }   from '@/components/home/Testimonials'
@@ -21,7 +21,7 @@ export default async function HomePage() {
     <>
       <Hero />
       <WhatWeDo />
-      <WhyDreamBuild />
+      <WhyReveBatir />
       <HowItWorks />
       <FeaturedDeal deal={featuredDeal} />
       <Testimonials />

@@ -20,7 +20,7 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: 'Dream Build Property Group | UK Property Deal Sourcing',
+  title: 'Rêve Bâtir Wealth Ltd | UK Property Deal Sourcing',
   description:
     'Below-market-value property deals, buy-to-let investment, and acquisition support across the UK.',
 }

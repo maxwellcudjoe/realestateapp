@@ -22,7 +22,7 @@ export async function sendEmail({
   html: string
 }) {
   return getClient().emails.send({
-    from: 'Dream Build Property Group <noreply@dreambuildproperty.co.uk>',
+    from: 'Rêve Bâtir Wealth Ltd <noreply@revebatirwealth.co.uk>',
     to,
     subject,
     html,

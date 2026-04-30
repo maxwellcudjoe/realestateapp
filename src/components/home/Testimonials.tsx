@@ -3,7 +3,7 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 const TESTIMONIALS = [
   {
     quote:
-      'Dream Build found us a 14% BMV deal in Leeds that we would never have sourced ourselves. Seamless from start to finish.',
+      'Rêve Bâtir found us a 14% BMV deal in Leeds that we would never have sourced ourselves. Seamless from start to finish.',
     name: 'James H.',
     role: 'BTL Investor · Leeds',
   },

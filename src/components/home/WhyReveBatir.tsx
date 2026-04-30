@@ -7,13 +7,13 @@ const TRUST_SIGNALS = [
   'UK-wide sourcing network covering all major investment regions',
 ]
 
-export function WhyDreamBuild() {
+export function WhyReveBatir() {
   return (
     <section className="bg-obsidian py-24 px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         {/* Left */}
         <div>
-          <SectionLabel className="mb-6">Why Dream Build</SectionLabel>
+          <SectionLabel className="mb-6">Why Rêve Bâtir</SectionLabel>
           <blockquote className="font-serif text-3xl md:text-4xl font-light text-ivory leading-snug mb-10">
             "Most investors don't have time to find the deals.
             <span className="text-gold"> We do.</span>"

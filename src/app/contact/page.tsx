@@ -56,10 +56,10 @@ export default function ContactPage() {
             <div>
               <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-2">Email</p>
               <a
-                href="mailto:hello@dreambuildproperty.co.uk"
+                href="mailto:hello@revebatirwealth.co.uk"
                 className="font-sans text-sm text-stone hover:text-ivory transition-colors"
               >
-                hello@dreambuildproperty.co.uk
+                hello@revebatirwealth.co.uk
               </a>
             </div>
             <div>
@@ -79,7 +79,7 @@ export default function ContactPage() {
                 rel="noopener noreferrer"
                 className="font-sans text-sm text-stone hover:text-ivory transition-colors"
               >
-                Dream Build Property Group
+                Rêve Bâtir Wealth Ltd
               </a>
             </div>
 
