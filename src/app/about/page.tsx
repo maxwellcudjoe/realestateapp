@@ -47,10 +47,10 @@ export default function AboutPage() {
         <div>
           <SectionLabel className="mb-3">Founder</SectionLabel>
           <h2 className="font-serif text-3xl font-light text-ivory mb-5">
-            Rêve Bâtir Wealth Ltd
+            Rêve Bâtir Realty
           </h2>
           <p className="font-sans text-sm font-light text-stone leading-relaxed mb-4">
-            Founded by a property professional with years of experience navigating the UK investment market, Rêve Bâtir Wealth Ltd was created to bridge the gap between motivated sellers and serious investors — with full compliance, transparency, and due diligence at every step.
+            Founded by a property professional with years of experience navigating the UK investment market, Rêve Bâtir Realty was created to bridge the gap between motivated sellers and serious investors — with full compliance, transparency, and due diligence at every step.
           </p>
           <p className="font-sans text-sm font-light text-stone leading-relaxed">
             We work with investors at every stage — from those building their first buy-to-let portfolio to experienced landlords scaling into HMOs and commercial conversions. Every deal we bring to market is one we would be proud to acquire ourselves.

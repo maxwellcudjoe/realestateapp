@@ -14,7 +14,7 @@ export function Logo({ className = '' }: LogoProps) {
           Rêve Bâtir
         </p>
         <p className="font-sans text-[0.5rem] font-medium tracking-[0.28em] uppercase text-gold mt-1">
-          Wealth Ltd
+          Realty
         </p>
       </div>
     </Link>

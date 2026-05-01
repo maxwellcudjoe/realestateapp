@@ -10,7 +10,7 @@ const FOOTER_LINKS = [
 ]
 
 const COMPLIANCE =
-  'Rêve Bâtir Wealth Ltd is registered with HMRC under the Money Laundering Regulations. ICO registered. Company No. [XXXXXXXX]. All deals are sourced for the purposes of introduction only. Rêve Bâtir Wealth Ltd is not authorised or regulated by the Financial Conduct Authority. Property investment involves risk. Past performance is not indicative of future results.'
+  'Rêve Bâtir Realty is registered with HMRC under the Money Laundering Regulations. ICO registered. Company No. [XXXXXXXX]. All deals are sourced for the purposes of introduction only. Rêve Bâtir Realty is not authorised or regulated by the Financial Conduct Authority. Property investment involves risk. Past performance is not indicative of future results.'
 
 export function Footer() {
   return (

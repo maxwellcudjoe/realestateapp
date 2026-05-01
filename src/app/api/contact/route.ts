@@ -47,11 +47,11 @@ export async function POST(req: NextRequest) {
 
     await sendEmail({
       to: d.email,
-      subject: 'We received your enquiry — Rêve Bâtir Wealth Ltd',
+      subject: 'We received your enquiry — Rêve Bâtir Realty',
       html: `
         <p style="font-family:sans-serif">Hi ${d.name},</p>
         <p style="font-family:sans-serif">Thank you for getting in touch. We respond to all enquiries within 24 hours.</p>
-        <p style="font-family:sans-serif">— The Rêve Bâtir Wealth Ltd Team</p>
+        <p style="font-family:sans-serif">— The Rêve Bâtir Realty Team</p>
       `,
     })
 
