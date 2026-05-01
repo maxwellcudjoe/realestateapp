@@ -58,6 +58,26 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Legal sub-nav */}
+        <ul className="flex flex-wrap gap-6 list-none mt-6">
+          <li>
+            <Link
+              href="/privacy"
+              className="font-sans text-[0.55rem] font-medium uppercase tracking-widest text-stone hover:text-gold transition-colors"
+            >
+              Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/terms"
+              className="font-sans text-[0.55rem] font-medium uppercase tracking-widest text-stone hover:text-gold transition-colors"
+            >
+              Terms &amp; Conditions
+            </Link>
+          </li>
+        </ul>
+
         {/* Compliance */}
         <p className="mt-6 font-sans text-[0.5rem] text-[#383838] leading-relaxed max-w-3xl">
           {COMPLIANCE}
