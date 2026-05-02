@@ -27,6 +27,11 @@ function normalizeDeal(item: any): Deal {
     imageUrl: f.image?.fields?.file?.url
       ? `https:${f.image.fields.file.url}`
       : null,
+    galleryUrls: Array.isArray(f.gallery)
+      ? (f.gallery as Array<{ fields?: { file?: { url?: string } } }>)
+          .map((g) => (g?.fields?.file?.url ? `https:${g.fields.file.url}` : null))
+          .filter((url): url is string => Boolean(url))
+      : [],
     featured: f.featured ?? false,
     slug: f.slug,
   }

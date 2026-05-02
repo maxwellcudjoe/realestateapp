@@ -9,6 +9,7 @@ export interface Deal {
   bmvPercentage: number
   sourcingFee: number
   imageUrl: string | null
+  galleryUrls: string[]
   featured: boolean
   slug: string
 }
