@@ -25,7 +25,7 @@ export function DealCard({ deal }: { deal: Deal }) {
             </div>
           )}
           <div className="absolute top-3 right-3 bg-gold text-obsidian font-sans text-xs font-bold px-3 py-1">
-            {Math.round(deal.bmvPercent)}% BMV
+            {Math.round(deal.bmvPercentage)}% BMV
           </div>
           <div className="absolute bottom-3 left-3 border border-carbon bg-charcoal/80 font-sans text-[0.55rem] uppercase tracking-widest text-stone px-2 py-1">
             {deal.strategy}

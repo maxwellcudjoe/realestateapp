@@ -6,7 +6,7 @@ export interface Deal {
   marketValue: number
   purchasePrice: number
   grossYield: number
-  bmvPercent: number
+  bmvPercentage: number
   sourcingFee: number
   imageUrl: string | null
   featured: boolean

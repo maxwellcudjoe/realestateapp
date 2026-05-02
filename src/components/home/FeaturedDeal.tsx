@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 export function FeaturedDeal({ deal }: { deal: Deal | null }) {
   if (!deal) return null
 
-  const bmv = Math.round(deal.bmvPercent)
+  const bmv = Math.round(deal.bmvPercentage)
   const saving = deal.marketValue - deal.purchasePrice
 
   return (

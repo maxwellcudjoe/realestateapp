@@ -22,7 +22,7 @@ function normalizeDeal(item: any): Deal {
     marketValue: f.marketValue,
     purchasePrice: f.purchasePrice,
     grossYield: f.grossYield,
-    bmvPercent: f.bmvPercent,
+    bmvPercentage: f.bmvPercentage,
     sourcingFee: f.sourcingFee,
     imageUrl: f.image?.fields?.file?.url
       ? `https:${f.image.fields.file.url}`
