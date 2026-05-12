@@ -12,6 +12,7 @@ Master index for project knowledge captured in this vault.
 
 | Page | Summary |
 |---|---|
+| [2026-05-12-investor-platform-expansion](Projects/2026-05-12-investor-platform-expansion.md) | Architecture plan for investor onboarding, operations dashboard, and status-tracking notifications — full platform expansion of revebatir.co.uk |
 
 ## Bug Fixes
 
