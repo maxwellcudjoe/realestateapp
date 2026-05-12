@@ -2,6 +2,28 @@
 
 Append-only record of vault updates.
 
+## [2026-05-12] bugfix | Task 19 - Build Verification Fixes
+
+- Created: `obsidian/Bug_Fixes/Task_19_Build_Verification_Fixes.md`
+- Updated: `obsidian/index.md` — Added Task 19 entry to Bug Fixes section
+- Key points: Four build-blocking issues resolved:
+  1. Prisma v7 requires driver adapter — installed @prisma/adapter-mssql, updated prisma.ts and seed-admin.ts
+  2. Edge Runtime + Prisma conflict — split auth config into edge-safe auth.config.ts
+  3. useSearchParams needs Suspense — extracted LoginForm, wrapped in Suspense boundary
+  4. Unused isFuture variable removed from StatusTimeline
+- Result: 33 tests pass, production build succeeds, committed as a3ed785
+- Source: [[2026-05-12-investor-platform-expansion]]
+
+## [2026-05-12] setup | Task 5 - NextAuth v5 Config + Type Augmentation
+
+- Created: `obsidian/Projects/Task_5_NextAuth_v5_Config.md`
+- Created: `src/types/next-auth.d.ts` — Session (id, role) and JWT (id, role) type augmentation
+- Created: `src/lib/auth.ts` — NextAuth config with Credentials provider, Zod validation, bcrypt comparison, JWT callbacks
+- Created: `src/app/api/auth/[...nextauth]/route.ts` — Route handler re-exporting GET and POST from handlers
+- Updated: `obsidian/index.md` — Added Task 5 entry to Projects section
+- Key points: Stateless JWT sessions; Zod safeParse prevents invalid credentials from throwing; signIn page set to /login; prisma singleton from @/lib/prisma; bcrypt.compare against user.passwordHash.
+- Source: [[2026-05-12-investor-platform-expansion]]
+
 ## [2026-05-12] snippet | Task 4 - Azure Blob Storage Helpers
 
 - Created: `obsidian/Snippets/Task_4_Azure_Blob_Storage_Helpers.md`
