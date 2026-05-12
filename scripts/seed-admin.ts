@@ -1,4 +1,5 @@
-import { PrismaClient } from '../src/generated/prisma'
+import { PrismaClient } from '../src/generated/prisma/client'
+import { PrismaMssql } from '@prisma/adapter-mssql'
 import bcrypt from 'bcryptjs'
 
 async function main() {
@@ -10,7 +11,8 @@ async function main() {
     process.exit(1)
   }
 
-  const prisma = new PrismaClient()
+  const adapter = new PrismaMssql(process.env.DATABASE_URL!)
+  const prisma = new PrismaClient({ adapter })
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } })

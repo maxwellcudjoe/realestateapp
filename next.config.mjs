@@ -12,6 +12,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    serverComponentsExternalPackages: ['@prisma/client', '@prisma/adapter-mssql', 'bcryptjs'],
   },
 }
 

@@ -37,7 +37,6 @@ export function StatusTimeline({ currentStatus, history }: Props) {
       {ALL_STAGES.map((stage, i) => {
         const isCompleted = i < currentIndex
         const isCurrent = i === currentIndex
-        const isFuture = i > currentIndex
 
         return (
           <div key={stage.key} className="flex gap-4">
