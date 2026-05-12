@@ -26,9 +26,9 @@
 
 ```
 /onboarding              ← Public multi-step wizard (replaces /register)
-/onboarding/profile      ← Step 1 & 2: Account + personal details
-/onboarding/criteria     ← Step 3: Investor profile
-/onboarding/review       ← Step 4: Review + agreements + submit
+                            Single URL — step number tracked in React state only.
+                            Steps: 1) Account setup  2) Personal details
+                                   3) Investor profile  4) Review + agreements
 
 /login                   ← Shared login page (investor + admin)
 
@@ -53,7 +53,9 @@
 
 ### Existing Routes (unchanged)
 
-`/`, `/about`, `/deals`, `/contact`, `/privacy`, `/terms`, `/register` (deprecated — redirects to `/onboarding`)
+`/`, `/about`, `/deals`, `/contact`, `/privacy`, `/terms`
+
+`/register` → **301 Moved Permanently** to `/onboarding`
 
 ---
 
@@ -182,7 +184,7 @@ SUBMITTED → UNDER_REVIEW → DOCUMENTS_REQUESTED → DOCUMENTS_RECEIVED
 
 **Wizard state:** Held in React state only. No partial persistence. If the tab is closed mid-way, the user starts again. Acceptable for this phase.
 
-**Validation:** Zod schemas for each step, validated client-side on Next/Prev and server-side on submit.
+**Validation:** Zod schemas for each step, validated client-side on Next/Prev and server-side on submit. Step 3 schema enforces `budgetMin < budgetMax` with a `.refine()` check.
 
 ---
 
