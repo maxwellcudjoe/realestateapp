@@ -32,7 +32,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-serif text-2xl text-ivory mb-3">1. Definitions</h2>
             <ul className="list-disc list-inside space-y-2 marker:text-gold">
-              <li><span className="text-ivory">“We”, “us”, “our”, “the Sourcer”</span> — Rêve Bâtir Realty, company number <span className="text-gold">[XXXXXXXX]</span>, registered in England &amp; Wales.</li>
+              <li><span className="text-ivory">“We”, “us”, “our”, “the Sourcer”</span> — Rêve Bâtir Realty, company number <span className="text-gold">17201842</span>, registered in England &amp; Wales.</li>
               <li><span className="text-ivory">“You”, “the Buyer”</span> — the individual or company who registers with us as an investor or instructs us to source a property.</li>
               <li><span className="text-ivory">“Deal”</span> — a specific property opportunity we present to you.</li>
               <li><span className="text-ivory">“Deal Pack”</span> — the document we provide containing property details, financials, comparables, and supporting evidence for a given Deal.</li>
@@ -48,8 +48,8 @@ export default function TermsPage() {
             </p>
             <p className="mt-3">
               Registered office: <span className="text-gold">[Registered office address]</span>.
-              Companies House number: <span className="text-gold">[XXXXXXXX]</span>.
-              ICO data controller registration: <span className="text-gold">[ZXXXXXXX]</span>.
+              Companies House number: <span className="text-gold">17201842</span>.
+              ICO data controller registration: <span className="text-gold">00014027391</span>.
               HMRC AML supervision number: <span className="text-gold">[XML123456]</span>.
             </p>
           </section>

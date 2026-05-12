@@ -10,11 +10,11 @@ const FOOTER_LINKS = [
 ]
 
 const COMPLIANCE =
-  'Rêve Bâtir Realty is registered with HMRC under the Money Laundering Regulations. ICO registered. Company No. [XXXXXXXX]. All deals are sourced for the purposes of introduction only. Rêve Bâtir Realty is not authorised or regulated by the Financial Conduct Authority. Property investment involves risk. Past performance is not indicative of future results.'
+  'Rêve Bâtir Realty is registered with HMRC under the Money Laundering Regulations. ICO Registration Number: 00014027391. Company number 17201842. All deals are sourced for the purposes of introduction only. Rêve Bâtir Realty is not authorised or regulated by the Financial Conduct Authority. Property investment involves risk. Past performance is not indicative of future results.'
 
 export function Footer() {
   return (
-    <footer className="bg-[#070707] border-t border-carbon">
+    <footer className="bg-[#151515] border-t border-carbon">
       <div className="max-w-7xl mx-auto px-8 py-12">
         {/* Top row */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-8 border-b border-carbon">
@@ -79,7 +79,7 @@ export function Footer() {
         </ul>
 
         {/* Compliance */}
-        <p className="mt-6 font-sans text-[0.5rem] text-[#383838] leading-relaxed max-w-3xl">
+        <p className="mt-6 font-sans text-[0.5rem] text-[#6a6a6a] leading-relaxed max-w-3xl">
           {COMPLIANCE}
         </p>
       </div>

@@ -1,0 +1,55 @@
+# obsidian_superpower — Cursor Rules
+
+## Mandatory Rule
+
+Before responding to ANY request — coding, debugging, planning, explanation,
+research, or anything else — follow the obsidian-logging workflow.
+
+Read the full skill file: skills/obsidian-logging/SKILL.md
+
+There are no exceptions. The note comes before the solution, always.
+
+## The 7-Step Workflow
+
+0. Orient first — read obsidian/index.md (what exists), last 10 entries of obsidian/log.md (recent work), scan the active project folder (raw source context)
+1. Classify the task → pick the correct obsidian/ subfolder
+   - Bug/error/crash        → obsidian/Bug_Fixes/
+   - Snippet/function       → obsidian/Snippets/
+   - Project/feature/plan   → obsidian/Projects/
+   - Daily progress/journal → obsidian/Daily_Journal/
+   - Reusable prompt        → obsidian/Prompts/
+   - Concept/research/docs  → obsidian/Knowledge/
+
+2. Read the matching template from obsidian/[FOLDER]/[TEMPLATE].md
+
+3. Fill the note — all frontmatter: title, date, language, status, tags
+
+4. Solve the task — full solution, code, explanation, steps
+
+5. Append the solution into the correct section of the note
+
+6. Update obsidian/index.md — add or revise this page's one-line entry
+
+7. Append to obsidian/log.md — format:
+   ## [YYYY-MM-DD] <operation> | <title>
+   - Created/Updated: obsidian/[FOLDER]/[NOTE].md
+   - Key points: <brief summary>
+
+End every response with: 📁 Save this note to: obsidian/[FOLDER]/[NOTE_TITLE].md
+
+## Vault Structure
+
+obsidian/
+├── index.md       ← read first on every query
+├── log.md         ← append-only, never overwrite
+├── Knowledge/
+├── Projects/
+├── Snippets/
+├── Bug_Fixes/
+├── Prompts/
+└── Daily_Journal/
+
+## Raw Sources
+
+The active project/work folder is the immutable source layer.
+Read from it freely. Never write files outside obsidian/.

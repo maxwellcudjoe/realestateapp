@@ -5,7 +5,7 @@ export function CtaBanner() {
     <section
       className="py-24 px-8 border-t border-b border-gold/10"
       style={{
-        background: 'linear-gradient(135deg, #0f0b03 0%, #1a1200 50%, #0f0b03 100%)',
+        background: 'linear-gradient(135deg, #231b0d 0%, #30240f 50%, #231b0d 100%)',
       }}
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">

@@ -45,15 +45,11 @@ export default function AboutPage() {
         </div>
 
         <div>
-          <SectionLabel className="mb-3">Founder</SectionLabel>
-          <h2 className="font-serif text-3xl font-light text-ivory mb-5">
-            Rêve Bâtir Realty
-          </h2>
           <p className="font-sans text-sm font-light text-stone leading-relaxed mb-4">
-            Founded by a property professional with years of experience navigating the UK investment market, Rêve Bâtir Realty was created to bridge the gap between motivated sellers and serious investors — with full compliance, transparency, and due diligence at every step.
+            The Rêve Bâtir specialises in helping investors access the UK property market with confidence and ease. We work with busy professionals who want to build long-term wealth through property, without the time commitment and complexity that comes with investing. We focus on high-performing buy-to-let and HMOs across England, with returns of 10-12%.
           </p>
           <p className="font-sans text-sm font-light text-stone leading-relaxed">
-            We work with investors at every stage — from those building their first buy-to-let portfolio to experienced landlords scaling into HMOs and commercial conversions. Every deal we bring to market is one we would be proud to acquire ourselves.
+            Our end-to-end service means every stage of the journey is handled by our experienced in-house team - from sourcing and acquisition through to refurbishment, letting and management. The result is a hands-off investment experience, designed to help our clients grow their portfolios while staying focused on their careers, families and lifestyle.
           </p>
         </div>
       </section>

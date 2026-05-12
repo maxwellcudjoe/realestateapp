@@ -24,7 +24,7 @@ export default async function DealsPage({
   return (
     <div className="min-h-screen bg-obsidian pt-[72px]">
       {/* Register banner */}
-      <div className="bg-[#0f0b03] border-b border-gold/10 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-[#231b0d] border-b border-gold/10 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p className="font-sans text-sm font-light text-stone">
           Register to receive <span className="text-gold">deals direct to your inbox</span>
         </p>

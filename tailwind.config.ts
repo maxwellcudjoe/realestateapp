@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        obsidian:  '#0a0a0a',
-        charcoal:  '#111111',
-        carbon:    '#1e1e1e',
+        obsidian:  '#141414',
+        charcoal:  '#1d1d1d',
+        carbon:    '#2a2a2a',
         gold:      '#c9a84c',
         'gold-light': '#e8c96b',
         ivory:     '#f0e8d8',
-        stone:     '#888888',
+        stone:     '#b3b3b3',
       },
       fontFamily: {
         serif: ['var(--font-cormorant)', 'Georgia', 'serif'],

@@ -24,10 +24,10 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-serif text-2xl text-ivory mb-3">1. Who we are</h2>
             <p>
-              Rêve Bâtir Realty (“we”, “us”, “our”) is the data controller for the personal information collected through this website. We are registered in England &amp; Wales under company number <span className="text-gold">[XXXXXXXX]</span>, with registered office at <span className="text-gold">[Registered office address]</span>.
+              Rêve Bâtir Realty (“we”, “us”, “our”) is the data controller for the personal information collected through this website. We are registered in England &amp; Wales under company number <span className="text-gold">17201842</span>, with registered office at <span className="text-gold">[Registered office address]</span>.
             </p>
             <p className="mt-3">
-              We are registered as a data controller with the Information Commissioner’s Office (ICO) under registration number <span className="text-gold">[ZXXXXXXX]</span>, and supervised by HMRC under the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 (registration <span className="text-gold">[XML123456]</span>).
+              We are registered as a data controller with the Information Commissioner’s Office (ICO) under registration number <span className="text-gold">00014027391</span>, and supervised by HMRC under the Money Laundering, Terrorist Financing and Transfer of Funds (Information on the Payer) Regulations 2017 (registration <span className="text-gold">[XML123456]</span>).
             </p>
             <p className="mt-3">
               For any privacy-related question, contact{' '}

@@ -38,3 +38,8 @@ next-env.d.ts
 .env.local
 .superpowers/
 .claude/
+# Obsidian vault
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+*.canvas
