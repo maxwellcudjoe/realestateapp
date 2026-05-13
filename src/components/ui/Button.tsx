@@ -22,7 +22,7 @@ export function Button({
   fullWidth = false,
 }: ButtonProps) {
   const base =
-    'inline-block px-8 py-3.5 text-xs font-semibold uppercase tracking-widest transition-colors duration-200 border'
+    'inline-block px-8 py-3.5 text-xs font-semibold uppercase tracking-widest transition-colors duration-200 border focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold'
 
   const variants = {
     primary:

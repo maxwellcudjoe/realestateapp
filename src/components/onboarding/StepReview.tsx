@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
 
 const LABEL_CLASS = 'font-sans text-[0.6rem] uppercase tracking-widest text-stone'
 const VALUE_CLASS = 'font-sans text-sm text-ivory mt-0.5'
@@ -28,7 +29,7 @@ export function StepReview({
       {/* Summary */}
       <div className="border border-carbon p-6 space-y-4">
         <h3 className="font-serif text-xl text-ivory mb-4">Application Summary</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><p className={LABEL_CLASS}>Email</p><p className={VALUE_CLASS}>{account.email}</p></div>
           <div><p className={LABEL_CLASS}>Name</p><p className={VALUE_CLASS}>{personal.firstName} {personal.lastName}</p></div>
           <div><p className={LABEL_CLASS}>Phone</p><p className={VALUE_CLASS}>{personal.phone}</p></div>
@@ -44,8 +45,8 @@ export function StepReview({
       <div className="space-y-3">
         {([
           ['agreedToAccuracy', 'I confirm the information above is accurate and complete'],
-          ['agreedToTerms', <>I have read and agree to the <Link href="/terms" target="_blank" className="text-gold hover:text-ivory">Terms &amp; Conditions</Link></>],
-          ['agreedToPrivacy', <>I have read and agree to the <Link href="/privacy" target="_blank" className="text-gold hover:text-ivory">Privacy Policy</Link></>],
+          ['agreedToTerms', <>I have read and agree to the <Link href="/terms" target="_blank" className="text-gold hover:text-ivory transition-colors">Terms &amp; Conditions</Link></>],
+          ['agreedToPrivacy', <>I have read and agree to the <Link href="/privacy" target="_blank" className="text-gold hover:text-ivory transition-colors">Privacy Policy</Link></>],
           ['agreedToAge', 'I confirm I am over 18 and have legal authority to purchase UK property'],
         ] as [string, React.ReactNode][]).map(([field, label]) => (
           <label key={field} className="flex items-start gap-3 cursor-pointer group">
@@ -67,17 +68,10 @@ export function StepReview({
       {errors._form && <p className="font-sans text-xs text-red-400">{errors._form[0]}</p>}
 
       <div className="flex justify-between">
-        <button type="button" onClick={onBack} className="px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-carbon text-stone hover:border-stone hover:text-ivory transition-colors">
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={submitting}
-          className="px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors disabled:opacity-50"
-        >
+        <Button onClick={onBack} variant="secondary">← Back</Button>
+        <Button onClick={onSubmit} disabled={submitting}>
           {submitting ? 'Submitting…' : 'Submit Application'}
-        </button>
+        </Button>
       </div>
     </div>
   )

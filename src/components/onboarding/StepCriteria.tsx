@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { stepCriteriaSchema, VALID_STRATEGIES, VALID_BUYER_TYPES } from '@/lib/schemas/onboarding'
+import { Button } from '@/components/ui/Button'
 
 const FIELD_CLASS =
-  'w-full bg-[#1f1f1f] border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold transition-colors'
+  'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
 const LABEL_CLASS =
   'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-2'
 
@@ -94,12 +95,8 @@ export function StepCriteria({ data, onChange, onNext, onBack }: Props) {
         {errors.targetAreas && <p className="font-sans text-xs text-gold mt-1">{errors.targetAreas[0]}</p>}
       </div>
       <div className="flex justify-between">
-        <button type="button" onClick={onBack} className="px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-carbon text-stone hover:border-stone hover:text-ivory transition-colors">
-          ← Back
-        </button>
-        <button type="button" onClick={handleNext} className="px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors">
-          Next →
-        </button>
+        <Button onClick={onBack} variant="secondary">← Back</Button>
+        <Button onClick={handleNext}>Next →</Button>
       </div>
     </div>
   )

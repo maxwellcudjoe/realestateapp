@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DocumentUploadSlot } from '@/components/portal/DocumentUploadSlot'
+import { Button } from '@/components/ui/Button'
 
 const SLOTS = [
   { type: 'PASSPORT', label: 'Proof of Identity', description: 'Passport or driving licence (PDF, JPG, or PNG, max 10 MB)' },
@@ -89,13 +90,9 @@ export default function DocumentsPage() {
       {error && <p className="font-sans text-xs text-red-400 mb-4">{error}</p>}
 
       {allUploaded && (
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full px-8 py-4 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors disabled:opacity-50"
-        >
+        <Button onClick={handleSubmit} disabled={submitting} fullWidth className="py-4">
           {submitting ? 'Submitting…' : 'Submit All Documents'}
-        </button>
+        </Button>
       )}
     </div>
   )

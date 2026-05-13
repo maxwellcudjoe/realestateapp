@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
 
 const ALL_STATUSES = [
   'SUBMITTED', 'UNDER_REVIEW', 'DOCUMENTS_REQUESTED', 'DOCUMENTS_RECEIVED',
   'KYC_APPROVED', 'ACTIVE_INVESTOR', 'DEAL_SENT',
 ]
+
+const FIELD_CLASS =
+  'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
 
 interface Props {
   applicationId: string
@@ -67,7 +71,7 @@ export function StatusPanel({ applicationId, currentStatus, adminNotes: initialN
         <select
           value={newStatus}
           onChange={(e) => setNewStatus(e.target.value)}
-          className="w-full bg-[#1f1f1f] border border-carbon px-3 py-2 font-sans text-sm text-ivory focus:outline-none focus:border-gold"
+          className={FIELD_CLASS}
         >
           {ALL_STATUSES.map((s) => (
             <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
@@ -83,7 +87,7 @@ export function StatusPanel({ applicationId, currentStatus, adminNotes: initialN
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
-          className="w-full bg-[#1f1f1f] border border-carbon px-3 py-2 font-sans text-sm text-ivory focus:outline-none focus:border-gold resize-none"
+          className={`${FIELD_CLASS} resize-none`}
           placeholder="Optional — shown in their status timeline"
         />
       </div>
@@ -96,21 +100,17 @@ export function StatusPanel({ applicationId, currentStatus, adminNotes: initialN
           value={adminNotes}
           onChange={(e) => setAdminNotes(e.target.value)}
           rows={3}
-          className="w-full bg-[#1f1f1f] border border-carbon px-3 py-2 font-sans text-sm text-ivory focus:outline-none focus:border-gold resize-none"
+          className={`${FIELD_CLASS} resize-none`}
           placeholder="Private notes — never shown to investor"
         />
       </div>
 
-      <button
-        onClick={handleUpdate}
-        disabled={saving}
-        className="w-full px-6 py-3 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors disabled:opacity-50"
-      >
+      <Button onClick={handleUpdate} disabled={saving} fullWidth>
         {saving ? 'Updating…' : 'Update Status'}
-      </button>
+      </Button>
 
       {message && (
-        <p className={`font-sans text-xs ${message.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`font-sans text-xs ${message.includes('success') ? 'text-gold' : 'text-red-400'}`}>
           {message}
         </p>
       )}

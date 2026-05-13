@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { stepAccountSchema } from '@/lib/schemas/onboarding'
+import { Button } from '@/components/ui/Button'
 
 const FIELD_CLASS =
-  'w-full bg-[#1f1f1f] border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold transition-colors'
+  'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
 const LABEL_CLASS =
   'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-2'
 
@@ -88,14 +89,11 @@ export function StepAccount({ data, onChange, onNext }: Props) {
           <p className="font-sans text-xs text-gold mt-1">{errors.confirmPassword[0]}</p>
         )}
       </div>
-      <button
-        type="button"
-        onClick={handleNext}
-        disabled={checking}
-        className="self-end px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors disabled:opacity-50"
-      >
-        {checking ? 'Checking…' : 'Next →'}
-      </button>
+      <div className="self-end">
+        <Button onClick={handleNext} disabled={checking}>
+          {checking ? 'Checking…' : 'Next →'}
+        </Button>
+      </div>
     </div>
   )
 }

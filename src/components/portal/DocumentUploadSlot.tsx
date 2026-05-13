@@ -63,7 +63,7 @@ export function DocumentUploadSlot({ type, label, description, existing, onUploa
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="px-6 py-2.5 text-xs font-semibold uppercase tracking-widest border border-carbon text-stone hover:border-gold hover:text-gold transition-colors disabled:opacity-50"
+          className="px-6 py-2.5 text-xs font-semibold uppercase tracking-widest border border-carbon text-stone hover:border-gold hover:text-gold transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
         >
           {uploading ? 'Uploading…' : 'Choose File'}
         </button>

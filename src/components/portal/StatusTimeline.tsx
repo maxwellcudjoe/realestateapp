@@ -82,7 +82,7 @@ export function StatusTimeline({ currentStatus, history }: Props) {
                 {entry.note && (
                   <p className="font-sans text-xs text-stone italic mt-1">&ldquo;{entry.note}&rdquo;</p>
                 )}
-                <p className="font-sans text-[0.55rem] text-[#555] mt-1">
+                <p className="font-sans text-[0.55rem] text-stone/50 mt-1">
                   {new Date(entry.createdAt).toLocaleString('en-GB')}
                 </p>
               </div>

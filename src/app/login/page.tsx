@@ -7,7 +7,7 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 import { Button } from '@/components/ui/Button'
 
 const FIELD_CLASS =
-  'w-full bg-[#1f1f1f] border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold transition-colors'
+  'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
 const LABEL_CLASS =
   'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-2'
 
