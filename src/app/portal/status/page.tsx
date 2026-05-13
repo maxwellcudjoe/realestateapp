@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { StatusTimeline } from '@/components/portal/StatusTimeline'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function PortalStatusPage() {
   const session = await auth()
   if (!session?.user) redirect('/login')

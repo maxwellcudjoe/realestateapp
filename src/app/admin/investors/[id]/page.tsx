@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminInvestorDetailPage({
   params,
 }: {
