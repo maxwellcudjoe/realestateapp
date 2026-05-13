@@ -1,5 +1,14 @@
-import { permanentRedirect } from 'next/navigation'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterPage() {
-  permanentRedirect('/onboarding')
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/onboarding')
+  }, [router])
+
+  return null
 }
