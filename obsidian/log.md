@@ -2,6 +2,17 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.7 — Wizard save/resume
+
+- localStorage key `rb-onboarding-draft-v1` — saves step + personal/compliance/criteria/agreements + email hint
+- Never saves password (security)
+- Restore on mount via useEffect; capped at step 3 so user re-acknowledges agreements on Review
+- "We restored your previous application" gold banner with "start over" link to discard and dismiss button
+- Cleared on successful submit
+- Hydration guard prevents clobber on initial load
+- Build: clean
+- Closes R18
+
 ## [2026-05-17] feature | Task 2.11 — Welcome landing page
 
 - New /portal/welcome page — 4-card "What happens next" explainer (review → KYC → activation → deals)
