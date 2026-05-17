@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { dealStageLabel } from '@/lib/deal-stages'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -59,6 +61,16 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
       },
     }),
   ])
+
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'OFFER_DECIDED',
+    resourceType: 'Offer',
+    resourceId: deal.offer.id,
+    metadata: { dealId, decision, amount: Number(deal.offer.amount) },
+    ipAddress: getClientIp(req),
+  })
 
   // Email investor
   try {

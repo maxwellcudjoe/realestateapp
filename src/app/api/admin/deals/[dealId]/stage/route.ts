@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { VALID_DEAL_STAGES, dealStageLabel } from '@/lib/deal-stages'
 import { sendEmail } from '@/lib/resend'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -92,6 +94,18 @@ export async function PATCH(
       }
     }
   })
+
+  if (stageChanged) {
+    await recordAudit({
+      actorUserId: session.user.id,
+      actorRole: session.user.role,
+      action: 'DEAL_STAGE_CHANGED',
+      resourceType: 'Deal',
+      resourceId: dealId,
+      metadata: { from: deal.stage, to: stage, note: note || null },
+      ipAddress: getClientIp(req),
+    })
+  }
 
   // Email investor on stage change (non-fatal)
   if (stageChanged && deal.application.investorProfile.user.email) {

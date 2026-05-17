@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { profileUpdateSchema } from '@/lib/schemas/profile'
 import { areaLabel } from '@/lib/target-areas'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { parsePhoneNumber } from 'libphonenumber-js'
 
 export async function GET() {
@@ -120,6 +122,15 @@ export async function PATCH(req: NextRequest) {
       data: d.strategies.map((strategy) => ({ investorProfileId: profile.id, strategy })),
     }),
   ])
+
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: 'investor',
+    action: 'PROFILE_UPDATED',
+    resourceType: 'InvestorProfile',
+    resourceId: profile.id,
+    ipAddress: getClientIp(req),
+  })
 
   return NextResponse.json({ success: true })
 }

@@ -380,3 +380,21 @@ model PropertyDocument {
 
   @@index([propertyId, uploadedAt])
 }
+
+/// Task 6.7 — Audit log. Records privileged actions for compliance review.
+model AuditEvent {
+  id            String   @id @default(cuid())
+  actorUserId   String?
+  actorRole     String?  @db.NVarChar(20)
+  action        String   @db.NVarChar(60)
+  resourceType  String   @db.NVarChar(40)
+  resourceId    String?  @db.NVarChar(64)
+  metadata      String?  @db.NVarChar(Max)
+  ipAddress     String?  @db.NVarChar(64)
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([action, createdAt])
+}

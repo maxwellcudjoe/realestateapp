@@ -38,12 +38,20 @@ export default async function AdminInvestorsPage() {
         <h1 className="font-serif text-4xl font-light text-ivory">
           Investor Applications
         </h1>
-        <Link
-          href="/admin/match"
-          className="inline-block px-6 py-3 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors"
-        >
-          Match &amp; post deal &rarr;
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/admin/audit"
+            className="inline-block px-6 py-3 text-xs font-semibold uppercase tracking-widest border border-carbon text-stone hover:border-gold hover:text-gold transition-colors"
+          >
+            Audit log
+          </Link>
+          <Link
+            href="/admin/match"
+            className="inline-block px-6 py-3 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors"
+          >
+            Match &amp; post deal &rarr;
+          </Link>
+        </div>
       </div>
       <InvestorTable investors={investors} />
     </div>

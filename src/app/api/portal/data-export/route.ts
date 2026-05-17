@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { recordAudit } from '@/lib/audit'
 
 /** UK GDPR Article 20 — right to data portability. Returns all data tied to the
  *  user as a machine-readable JSON download. Excludes secrets (passwordHash, totpSecret). */
@@ -92,6 +93,14 @@ export async function GET() {
       ipAddress: a.ipAddress, success: a.success, reason: a.reason, createdAt: a.createdAt,
     })),
   }
+
+  await recordAudit({
+    actorUserId: user.id,
+    actorRole: user.role,
+    action: 'DATA_EXPORTED',
+    resourceType: 'User',
+    resourceId: user.id,
+  })
 
   return new NextResponse(JSON.stringify(data, null, 2), {
     headers: {

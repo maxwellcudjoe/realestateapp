@@ -5,6 +5,7 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 import Link from 'next/link'
 
 const PORTAL_LINKS = [
+  { href: '/portal', label: 'Overview' },
   { href: '/portal/status', label: 'Status' },
   { href: '/portal/documents', label: 'Documents' },
   { href: '/portal/deals', label: 'Deals' },

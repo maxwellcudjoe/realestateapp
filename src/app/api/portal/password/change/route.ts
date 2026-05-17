@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkPasswordBreached } from '@/lib/password'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
@@ -57,6 +59,15 @@ export async function POST(req: NextRequest) {
 
   const passwordHash = await bcrypt.hash(newPassword, 12)
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash } })
+
+  await recordAudit({
+    actorUserId: user.id,
+    actorRole: 'investor',
+    action: 'PASSWORD_CHANGED',
+    resourceType: 'User',
+    resourceId: user.id,
+    ipAddress: getClientIp(req),
+  })
 
   return NextResponse.json({ success: true })
 }

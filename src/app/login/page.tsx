@@ -20,7 +20,7 @@ const VERIFY_ERROR_MESSAGES: Record<string, string> = {
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/portal/status'
+  const callbackUrl = searchParams.get('callbackUrl') || '/portal'
   const verified = searchParams.get('verified') === '1'
   const verifyError = searchParams.get('verifyError')
 
@@ -110,10 +110,10 @@ function LoginForm() {
           if (session?.user?.role === 'admin') {
             router.push('/admin/investors')
           } else {
-            router.push('/portal/status')
+            router.push('/portal')
           }
         } catch {
-          router.push('/portal/status')
+          router.push('/portal')
         }
       }
     }

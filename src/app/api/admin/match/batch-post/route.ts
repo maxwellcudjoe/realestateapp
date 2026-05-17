@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -70,6 +72,15 @@ export async function POST(req: NextRequest) {
       })
     )
   )
+
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'ADMIN_BATCH_POST',
+    resourceType: 'Deal',
+    metadata: { count: apps.length, title: d.title, address: d.address, price: d.askingPrice },
+    ipAddress: getClientIp(req),
+  })
 
   // Fire emails (non-fatal, in parallel)
   const subject = `New deal pack — ${d.title}`

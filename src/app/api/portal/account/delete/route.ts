@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, signOut } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
@@ -87,6 +89,15 @@ export async function POST(req: NextRequest) {
     await tx.passwordResetToken.deleteMany({ where: { userId: user.id } })
     await tx.emailVerificationToken.deleteMany({ where: { userId: user.id } })
     await tx.recoveryCode.deleteMany({ where: { userId: user.id } })
+  })
+
+  await recordAudit({
+    actorUserId: user.id,
+    actorRole: user.role,
+    action: 'ACCOUNT_DELETED',
+    resourceType: 'User',
+    resourceId: user.id,
+    ipAddress: getClientIp(req),
   })
 
   // Sign the user out — non-fatal
