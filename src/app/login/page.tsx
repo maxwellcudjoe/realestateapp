@@ -93,7 +93,13 @@ function LoginForm() {
           {loading ? 'Signing in…' : 'Sign In'}
         </Button>
 
-        <p className="font-sans text-xs text-stone text-center mt-4">
+        <p className="font-sans text-xs text-stone text-center">
+          <a href="/forgot-password" className="text-gold hover:text-ivory transition-colors">
+            Forgot your password?
+          </a>
+        </p>
+
+        <p className="font-sans text-xs text-stone text-center mt-2">
           Don&apos;t have an account?{' '}
           <a href="/onboarding" className="text-gold hover:text-ivory transition-colors">
             Register as an investor
