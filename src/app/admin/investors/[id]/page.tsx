@@ -2,7 +2,10 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
-import { COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn } from '@/lib/compliance'
+import {
+  COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn,
+  experienceLabel, timelineLabel, mortgageStatusLabel,
+} from '@/lib/compliance'
 import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
 import Link from 'next/link'
 
@@ -204,6 +207,45 @@ export default async function AdminInvestorDetailPage({
                 : 'No'}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Experience & Funding panel — Task 2.4 */}
+      <div className="mt-8 border border-carbon p-6">
+        <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Experience & Funding</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Experience</p>
+            <p className="font-sans text-sm text-ivory">{experienceLabel(p.experienceLevel)}</p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Timeline</p>
+            <p className="font-sans text-sm text-ivory">{timelineLabel(p.timelineToBuy)}</p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Referral Source</p>
+            <p className="font-sans text-sm text-ivory">{p.referralSource ?? '—'}</p>
+          </div>
+          {p.buyerType === 'mortgage' && (
+            <>
+              <div>
+                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Mortgage Status</p>
+                <p className="font-sans text-sm text-ivory">{mortgageStatusLabel(p.mortgageStatus)}</p>
+              </div>
+              <div>
+                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Lender / Max LTV</p>
+                <p className="font-sans text-sm text-ivory">
+                  {p.mortgageLender ?? '—'}{typeof p.maxLtv === 'number' ? ` / ${p.maxLtv}%` : ''}
+                </p>
+              </div>
+            </>
+          )}
+          {p.depositAvailable && (
+            <div>
+              <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Deposit Available</p>
+              <p className="font-sans text-sm text-ivory">{fmt(Number(p.depositAvailable))}</p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -11,7 +11,7 @@ const VALUE_CLASS = 'font-sans text-sm text-ivory mt-0.5'
 interface Props {
   account: { email: string }
   personal: { firstName: string; lastName: string; phone: string; addressLine1: string; city: string; postcode: string }
-  criteria: { budgetMin: number; budgetMax: number; strategies: string[]; buyerType: string; targetAreaCodes: string[] }
+  criteria: import('./StepCriteria').CriteriaData
   agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean; agreedToMarketing: boolean }
   onAgreementChange: (field: string, value: boolean) => void
   onTurnstileToken: (token: string) => void

@@ -63,3 +63,42 @@ export function ageOn(dob: Date, on: Date = new Date()): number {
   if (m < 0 || (m === 0 && on.getDate() < dob.getDate())) age--
   return age
 }
+
+// Task 2.4 — Experience / timeline / mortgage / referral
+export const EXPERIENCE_LEVELS = [
+  { value: 'FIRST_TIME', label: 'First-time investor' },
+  { value: 'OWN_1_3', label: 'Own 1–3 properties' },
+  { value: 'OWN_4_10', label: 'Own 4–10 properties' },
+  { value: 'OWN_10_PLUS', label: 'Own 10+ properties' },
+] as const
+
+export const TIMELINE_OPTIONS = [
+  { value: 'IMMEDIATE', label: 'Ready to buy immediately' },
+  { value: 'M_1_3', label: 'Within 1–3 months' },
+  { value: 'M_3_6', label: 'Within 3–6 months' },
+  { value: 'M_6_PLUS', label: '6+ months' },
+  { value: 'EXPLORING', label: 'Just exploring' },
+] as const
+
+export const MORTGAGE_STATUS_OPTIONS = [
+  { value: 'NONE', label: 'No mortgage application yet' },
+  { value: 'AIP', label: 'Agreement in Principle (AIP)' },
+  { value: 'FULL_OFFER', label: 'Full mortgage offer in hand' },
+] as const
+
+export const VALID_EXPERIENCE = new Set(EXPERIENCE_LEVELS.map((e) => e.value)) as Set<string>
+export const VALID_TIMELINE = new Set(TIMELINE_OPTIONS.map((t) => t.value)) as Set<string>
+export const VALID_MORTGAGE_STATUS = new Set(MORTGAGE_STATUS_OPTIONS.map((m) => m.value)) as Set<string>
+
+export function experienceLabel(v: string | null): string {
+  if (!v) return '—'
+  return EXPERIENCE_LEVELS.find((e) => e.value === v)?.label ?? v
+}
+export function timelineLabel(v: string | null): string {
+  if (!v) return '—'
+  return TIMELINE_OPTIONS.find((t) => t.value === v)?.label ?? v
+}
+export function mortgageStatusLabel(v: string | null): string {
+  if (!v) return '—'
+  return MORTGAGE_STATUS_OPTIONS.find((m) => m.value === v)?.label ?? v
+}

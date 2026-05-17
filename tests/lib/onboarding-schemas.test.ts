@@ -78,6 +78,8 @@ describe('stepCriteriaSchema', () => {
       strategies: ['BTL'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester', 'leeds'],
+      experienceLevel: 'OWN_1_3',
+      timelineToBuy: 'M_1_3',
     })
     expect(result.success).toBe(true)
   })
@@ -89,6 +91,8 @@ describe('stepCriteriaSchema', () => {
       strategies: ['BTL'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
+      experienceLevel: 'OWN_1_3',
+      timelineToBuy: 'M_1_3',
     })
     expect(result.success).toBe(false)
   })
@@ -100,6 +104,8 @@ describe('stepCriteriaSchema', () => {
       strategies: ['INVALID'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
+      experienceLevel: 'OWN_1_3',
+      timelineToBuy: 'M_1_3',
     })
     expect(result.success).toBe(false)
   })
@@ -111,6 +117,8 @@ describe('stepCriteriaSchema', () => {
       strategies: [],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
+      experienceLevel: 'OWN_1_3',
+      timelineToBuy: 'M_1_3',
     })
     expect(result.success).toBe(false)
   })
@@ -122,8 +130,24 @@ describe('stepCriteriaSchema', () => {
       strategies: ['BTL', 'HMO', 'FLIP'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
+      experienceLevel: 'OWN_4_10',
+      timelineToBuy: 'IMMEDIATE',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('requires mortgageStatus when buyerType=mortgage', () => {
+    const result = stepCriteriaSchema.safeParse({
+      budgetMin: 100000,
+      budgetMax: 300000,
+      strategies: ['BTL'],
+      buyerType: 'mortgage',
+      targetAreaCodes: ['manchester'],
+      experienceLevel: 'OWN_1_3',
+      timelineToBuy: 'M_1_3',
+      mortgageStatus: '',
+    })
+    expect(result.success).toBe(false)
   })
 })
 
@@ -142,6 +166,11 @@ describe('onboardingSubmitSchema', () => {
     strategies: ['BTL'],
     buyerType: 'cash',
     targetAreaCodes: ['manchester', 'leeds'],
+    experienceLevel: 'OWN_1_3',
+    timelineToBuy: 'M_1_3',
+    mortgageStatus: 'NONE',
+    mortgageLender: '',
+    referralSource: '',
     // Compliance fields
     dateOfBirth: '1990-01-01',
     nationality: 'GB',

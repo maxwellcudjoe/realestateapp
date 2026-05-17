@@ -32,6 +32,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-1-4-aml-data](Projects/2026-05-17-task-1-4-aml-data.md) | Phase 1 Task 1.4 complete — AML data capture (DOB, nationality, tax residency, NI, PEP, source of funds), new StepCompliance wizard step, admin Compliance panel. Closes R4+R5+R6. **Phase 1 done.** |
 | [2026-05-17-task-2-1-structured-target-areas](Projects/2026-05-17-task-2-1-structured-target-areas.md) | Phase 2 Task 2.1 complete — TargetArea model + 54-area catalog + multi-select picker. Unlocks Phase 4 auto-matching. Closes R10. |
 | [2026-05-17-task-2-2-multi-select-strategy](Projects/2026-05-17-task-2-2-multi-select-strategy.md) | Phase 2 Task 2.2 complete — InvestorStrategy model + 5 canonical codes, multi-select checkbox UI, Any/All mismatch removed, legacyToStrategies mapper. Closes R11. |
+| [2026-05-17-task-2-4-experience-funding](Projects/2026-05-17-task-2-4-experience-funding.md) | Phase 2 Task 2.4 complete — experience level, timeline, mortgage status/lender/LTV/deposit, referral source. Closes R12+R13+R14+R15. |
 
 ## Bug Fixes
 

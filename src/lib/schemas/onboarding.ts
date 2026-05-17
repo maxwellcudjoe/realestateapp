@@ -2,6 +2,9 @@ import { z } from 'zod'
 import {
   VALID_COUNTRY_CODES,
   VALID_SOURCE_OF_FUNDS,
+  VALID_EXPERIENCE,
+  VALID_TIMELINE,
+  VALID_MORTGAGE_STATUS,
   NI_NUMBER_REGEX,
   ageOn,
 } from '@/lib/compliance'
@@ -92,10 +95,22 @@ export const stepCriteriaSchema = z
       .min(1, 'Select at least one target area')
       .max(50)
       .refine((arr) => arr.every((c) => VALID_AREA_CODES.has(c)), 'Unknown area selected'),
+    experienceLevel: z.string().refine((v) => VALID_EXPERIENCE.has(v), 'Select your experience level'),
+    timelineToBuy: z.string().refine((v) => VALID_TIMELINE.has(v), 'Select your timeline'),
+    mortgageStatus: z.string().optional().default('NONE')
+      .refine((v) => !v || VALID_MORTGAGE_STATUS.has(v), 'Invalid mortgage status'),
+    mortgageLender: z.string().optional().default(''),
+    maxLtv: z.number().int().min(0).max(100).optional(),
+    depositAvailable: z.number().nonnegative().optional(),
+    referralSource: z.string().max(100).optional().default(''),
   })
   .refine((d) => d.budgetMax > d.budgetMin, {
     message: 'Maximum budget must be greater than minimum budget',
     path: ['budgetMax'],
+  })
+  .refine((d) => d.buyerType !== 'mortgage' || (d.mortgageStatus && d.mortgageStatus !== ''), {
+    message: 'Please indicate your mortgage status',
+    path: ['mortgageStatus'],
   })
 
 export const VALID_BUYER_TYPES = ['cash', 'mortgage'] as const
@@ -123,6 +138,14 @@ export const onboardingSubmitSchema = z
       .min(1, 'Select at least one target area')
       .max(50)
       .refine((arr) => arr.every((c) => VALID_AREA_CODES.has(c)), 'Unknown area selected'),
+    experienceLevel: z.string().refine((v) => VALID_EXPERIENCE.has(v)),
+    timelineToBuy: z.string().refine((v) => VALID_TIMELINE.has(v)),
+    mortgageStatus: z.string().optional().default('NONE')
+      .refine((v) => !v || VALID_MORTGAGE_STATUS.has(v)),
+    mortgageLender: z.string().optional().default(''),
+    maxLtv: z.number().int().min(0).max(100).optional(),
+    depositAvailable: z.number().nonnegative().optional(),
+    referralSource: z.string().max(100).optional().default(''),
     // Compliance fields (Task 1.4)
     dateOfBirth: z.string().refine((s) => !Number.isNaN(Date.parse(s)), 'Invalid date'),
     nationality: z.string().refine((v) => VALID_COUNTRY_CODES.includes(v)),

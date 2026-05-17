@@ -112,6 +112,14 @@ export async function POST(req: NextRequest) {
           sourceOfFunds: d.sourceOfFunds,
           sourceOfFundsDetail: d.sourceOfFunds === 'OTHER' ? d.sourceOfFundsDetail : null,
           complianceCompleted: true,
+          // Experience & funding (Task 2.4)
+          experienceLevel: d.experienceLevel,
+          timelineToBuy: d.timelineToBuy,
+          mortgageStatus: d.buyerType === 'mortgage' ? d.mortgageStatus : null,
+          mortgageLender: d.buyerType === 'mortgage' && d.mortgageLender ? d.mortgageLender : null,
+          maxLtv: d.buyerType === 'mortgage' && typeof d.maxLtv === 'number' ? d.maxLtv : null,
+          depositAvailable: typeof d.depositAvailable === 'number' ? d.depositAvailable : null,
+          referralSource: d.referralSource || null,
         },
       })
 

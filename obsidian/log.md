@@ -2,6 +2,19 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.4 — Experience, timeline, mortgage, referral
+
+- Created: `obsidian/Projects/2026-05-17-task-2-4-experience-funding.md`
+- Schema: +7 fields on InvestorProfile (experienceLevel, timelineToBuy, mortgageStatus, mortgageLender, maxLtv, depositAvailable, referralSource) — all nullable; pushed (4.55s)
+- Lib: 3 new option lists + label helpers in compliance.ts
+- Zod: 7 fields added to stepCriteriaSchema + onboardingSubmitSchema; cross-field refine forces mortgageStatus when buyerType=mortgage
+- UI: StepCriteria extended (no new wizard step) — required selects for experience/timeline, optional referral text, conditional bordered mortgage panel (status/lender/LTV/deposit) when buyerType=mortgage
+- API: persists all fields; nullifies mortgage fields for cash buyers
+- Admin: new "Experience & Funding" panel below Compliance
+- Tests: +1 (mortgage status required); 103/103 pass
+- Build: clean
+- Closes R12+R13+R14+R15
+
 ## [2026-05-17] feature | Task 2.2 — Multi-select strategy + Any/All fix
 
 - Created: `obsidian/Projects/2026-05-17-task-2-2-multi-select-strategy.md`

@@ -102,6 +102,15 @@ model InvestorProfile {
   sourceOfFundsDetail String?   @db.NVarChar(Max)
   complianceCompleted Boolean   @default(false)
 
+  // Experience & funding — Task 2.4
+  experienceLevel     String?   @db.NVarChar(20)   // FIRST_TIME | OWN_1_3 | OWN_4_10 | OWN_10_PLUS
+  timelineToBuy       String?   @db.NVarChar(20)   // IMMEDIATE | M_1_3 | M_3_6 | M_6_PLUS | EXPLORING
+  mortgageStatus      String?   @db.NVarChar(20)   // NONE | AIP | FULL_OFFER
+  mortgageLender      String?   @db.NVarChar(100)
+  maxLtv              Int?
+  depositAvailable    Decimal?  @db.Decimal(12, 2)
+  referralSource      String?   @db.NVarChar(100)
+
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

@@ -50,7 +50,11 @@ const VALID_BODY = {
   strategies: ['BTL'],
   buyerType: 'cash',
   targetAreaCodes: ['manchester', 'leeds'],
-  // Above replaces old targetAreas free-text field
+  experienceLevel: 'OWN_1_3',
+  timelineToBuy: 'M_1_3',
+  mortgageStatus: 'NONE',
+  mortgageLender: '',
+  referralSource: 'Google',
   dateOfBirth: '1990-01-01',
   nationality: 'GB',
   taxResidency: 'GB',
