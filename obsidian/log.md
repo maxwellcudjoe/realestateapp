@@ -2,6 +2,19 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Tasks 3.1 + 3.7 — Deal pipeline + deal-team handoff (Phase 3 kickoff)
+
+- Schema: Deal.stage (default PROPOSED), Deal.dealLeadUserId / solicitorContact / brokerContact; new DealStageHistory model — pushed (9.75s)
+- Lib: `src/lib/deal-stages.ts` — 10 canonical stages (PROPOSED → OFFER_PENDING → OFFER_ACCEPTED → MEMO_OF_SALE → CONVEYANCING → SURVEY → MORTGAGE → EXCHANGED → COMPLETED, + FALLEN_THROUGH terminal failure)
+- API: PATCH /api/admin/deals/[dealId]/stage — admin-only, validates stage, writes DealStageHistory entry on change, emails investor on transition
+- Admin: new /admin/investors/[id]/deals/[dealId] detail page — 2-column layout, pipeline timeline + investor response panel + DealStagePanel form (stage select + note + lead admin select + solicitor/broker free-text)
+- Deals list now shows stage label + links to detail page
+- Investor: new /portal/deals/[dealId] page — current-stage card, pipeline timeline with timestamps + admin notes, "Your Deal Team" card (lead contact / solicitor / broker), original summary at bottom
+- DealCard gets a stage banner once stage moves past PROPOSED with "View Pipeline →" link
+- Closes T1 (per-deal pipeline) + T5 (deal-team handoff card) — the biggest single user-value unlock from the gap analysis
+- Tests: +6 (auth, role, stage validity, deal-not-found, stage change, team-only update); 135/135 pass
+- Build: clean
+
 ## [2026-05-17] feature | Task 2.10 — GDPR data export + account deletion
 
 - Schema: User.deletedAt DateTime? — pushed

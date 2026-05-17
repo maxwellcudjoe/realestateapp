@@ -38,6 +38,7 @@ export default async function PortalDealsPage() {
     askingPrice: Number(d.askingPrice),
     summary: d.summary,
     status: d.status,
+    stage: d.stage,
     createdAt: d.createdAt.toISOString(),
     response: d.response
       ? {

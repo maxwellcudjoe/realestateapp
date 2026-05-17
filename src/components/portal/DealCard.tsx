@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { dealStageLabel } from '@/lib/deal-stages'
 
 const INTENT_OPTIONS = [
   { value: 'ACCEPT', label: "Interested — let's proceed" },
@@ -30,6 +32,7 @@ export interface DealData {
   askingPrice: number
   summary: string | null
   status: string
+  stage: string
   createdAt: string
   response: DealResponseData | null
 }
@@ -135,6 +138,18 @@ export function DealCard({ deal, onMutated }: Props) {
           <p className="font-sans text-base text-gold">{priceFormatted}</p>
         </div>
       </div>
+
+      {deal.stage && deal.stage !== 'PROPOSED' && (
+        <div className="flex items-center justify-between border border-gold/30 bg-gold/5 px-4 py-2">
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/70">Pipeline Stage</p>
+            <p className="font-sans text-sm text-gold">{dealStageLabel(deal.stage)}</p>
+          </div>
+          <Link href={`/portal/deals/${deal.id}`} className="font-sans text-[0.6rem] uppercase tracking-widest text-gold hover:text-ivory transition-colors">
+            View Pipeline →
+          </Link>
+        </div>
+      )}
 
       {deal.summary && (
         <p className="font-sans text-xs text-stone leading-relaxed border-l-2 border-carbon pl-4 italic">

@@ -27,6 +27,7 @@ model User {
   recoveryCodes            RecoveryCode[]
   sentMessages             Message[]            @relation("UserSentMessages")
   postedDeals              Deal[]               @relation("AdminPostedDeals")
+  ledDeals                 Deal[]               @relation("DealLeads")
 }
 
 model RecoveryCode {
@@ -212,7 +213,30 @@ model Deal {
   status         String       @default("OPEN") @db.NVarChar(20)
   createdAt      DateTime     @default(now())
 
+  // Task 3.1 — transaction pipeline
+  stage          String       @default("PROPOSED") @db.NVarChar(30)
+  stageHistory   DealStageHistory[]
+
+  // Task 3.7 — deal team handoff
+  dealLeadUserId    String?
+  dealLeadUser      User?     @relation("DealLeads", fields: [dealLeadUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  solicitorContact  String?   @db.NVarChar(500)
+  brokerContact     String?   @db.NVarChar(500)
+
   response       DealResponse?
+}
+
+model DealStageHistory {
+  id              String   @id @default(cuid())
+  dealId          String
+  deal            Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  fromStage       String?  @db.NVarChar(30)
+  toStage         String   @db.NVarChar(30)
+  changedByUserId String?
+  note            String?  @db.NVarChar(Max)
+  createdAt       DateTime @default(now())
+
+  @@index([dealId, createdAt])
 }
 
 model DealResponse {

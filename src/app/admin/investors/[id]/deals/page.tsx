@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { AdminPostDealForm } from '@/components/admin/AdminPostDealForm'
+import { dealStageLabel } from '@/lib/deal-stages'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -65,15 +66,15 @@ export default async function AdminInvestorDealsPage({
           ) : (
             <div className="space-y-4">
               {app.deals.map((deal) => (
-                <div key={deal.id} className="border border-carbon p-5 space-y-3">
+                <Link key={deal.id} href={`/admin/investors/${params.id}/deals/${deal.id}`} className="block border border-carbon hover:border-gold/40 transition-colors p-5 space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-sans text-sm font-medium text-ivory">{deal.title}</p>
                       <p className="font-sans text-xs text-stone mt-0.5">{deal.address}</p>
                       <p className="font-sans text-xs text-gold mt-1">{fmt(Number(deal.askingPrice))}</p>
                     </div>
-                    <div
-                      className={`flex-shrink-0 px-2 py-1 font-sans text-[0.55rem] uppercase tracking-widest border ${
+                    <div className="text-right space-y-1">
+                      <div className={`inline-block px-2 py-1 font-sans text-[0.55rem] uppercase tracking-widest border ${
                         deal.response
                           ? deal.response.intent === 'ACCEPT'
                             ? 'text-gold border-gold/30 bg-gold/5'
@@ -81,9 +82,12 @@ export default async function AdminInvestorDealsPage({
                             ? 'text-ivory border-carbon'
                             : 'text-stone border-carbon'
                           : 'text-stone/60 border-carbon/50'
-                      }`}
-                    >
-                      {deal.response ? INTENT_DISPLAY[deal.response.intent] : 'Awaiting'}
+                      }`}>
+                        {deal.response ? INTENT_DISPLAY[deal.response.intent] : 'Awaiting'}
+                      </div>
+                      <p className="font-sans text-[0.55rem] uppercase tracking-widest text-gold">
+                        Stage: {dealStageLabel(deal.stage)}
+                      </p>
                     </div>
                   </div>
                   {deal.response?.comment && (
@@ -97,7 +101,7 @@ export default async function AdminInvestorDealsPage({
                       <> · Responded {new Date(deal.response.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</>
                     )}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           )}
