@@ -9,6 +9,7 @@ const PORTAL_LINKS = [
   { href: '/portal/documents', label: 'Documents' },
   { href: '/portal/deals', label: 'Deals' },
   { href: '/portal/messages', label: 'Messages' },
+  { href: '/portal/security', label: 'Security' },
 ]
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {

@@ -20,8 +20,24 @@ model User {
   statusChanges            StatusHistory[]
   passwordResetTokens      PasswordResetToken[]
   emailVerificationTokens  EmailVerificationToken[]
+  loginAttempts            LoginAttempt[]
   sentMessages             Message[]            @relation("UserSentMessages")
   postedDeals              Deal[]               @relation("AdminPostedDeals")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String   @db.NVarChar(255)
+  ipAddress String   @db.NVarChar(64)
+  success   Boolean
+  reason    String?  @db.NVarChar(50)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([userId, createdAt])
 }
 
 model EmailVerificationToken {

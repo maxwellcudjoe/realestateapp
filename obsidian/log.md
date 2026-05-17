@@ -2,6 +2,17 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.7 — Account lockout + login activity log
+
+- Created: `obsidian/Projects/2026-05-17-task-1-7-account-lockout.md`
+- Schema: `LoginAttempt` model (userId nullable, email, ipAddress, success, reason) with 3 composite indexes — pushed to Azure SQL (6.89s)
+- Lib: `src/lib/login-tracking.ts` — isIpLockedOut, recordLoginAttempt (fail-safe), recentAttemptsForUser
+- Auth: NextAuth `authorize()` now checks lockout, records every attempt with reason (no-user, bad-password, unverified, locked-out, success), passes IP via 2nd param
+- Page: `/portal/security` shows last 10 attempts table; Security tab added to portal nav
+- Tests: +8 for tracking lib; 63/63 pass
+- Build: clean (33 pages, +/portal/security)
+- Closes gap X2
+
 ## [2026-05-17] feature | Task 1.5 — Password complexity + HIBP + marketing consent
 
 - Created: `obsidian/Projects/2026-05-17-task-1-5-password-marketing.md`
