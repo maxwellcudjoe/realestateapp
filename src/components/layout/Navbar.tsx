@@ -85,7 +85,7 @@ export function Navbar() {
             href="/login"
             className="font-sans text-[0.6rem] font-medium uppercase tracking-widest text-gold hover:text-ivory transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
           >
-            Investor Login
+            Sign In
           </Link>
           {!isAuthPage && (
             <Button href="/onboarding" variant="primary" className="text-[0.6rem] px-5 py-2.5">
@@ -134,7 +134,7 @@ export function Navbar() {
                 href="/login"
                 className="font-sans text-sm uppercase tracking-widest text-gold hover:text-ivory transition-colors"
               >
-                Investor Login
+                Sign In
               </Link>
               {!isAuthPage && (
                 <Link
