@@ -242,6 +242,24 @@ model Deal {
   offer          Offer?
   messages       Message[]
   documents      DealDocument[]
+  viewings       Viewing[]
+}
+
+model Viewing {
+  id               String    @id @default(cuid())
+  dealId           String
+  deal             Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  investorUserId   String
+  requestedSlot    DateTime
+  alternativeSlot  DateTime?
+  confirmedSlot    DateTime?
+  status           String    @default("REQUESTED") @db.NVarChar(20)  // REQUESTED | CONFIRMED | DECLINED | COMPLETED | CANCELLED
+  investorNote     String?   @db.NVarChar(1000)
+  adminNote        String?   @db.NVarChar(1000)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([dealId, status])
 }
 
 model DealDocument {
