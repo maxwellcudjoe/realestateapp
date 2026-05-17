@@ -89,7 +89,7 @@ export function Navbar() {
           </Link>
           {!isAuthPage && (
             <Button href="/onboarding" variant="primary" className="text-[0.6rem] px-5 py-2.5">
-              Register as Buyer
+              Register as Investor
             </Button>
           )}
         </div>
@@ -141,7 +141,7 @@ export function Navbar() {
                   href="/onboarding"
                   className="inline-block text-center px-8 py-3.5 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors"
                 >
-                  Register as Buyer
+                  Register as Investor
                 </Link>
               )}
             </div>
