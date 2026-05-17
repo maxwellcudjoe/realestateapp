@@ -8,6 +8,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { checkPasswordBreached } from '@/lib/password'
 import { areaLabel } from '@/lib/target-areas'
 import { strategyLabel } from '@/lib/strategies'
+import { parsePhoneNumber } from 'libphonenumber-js'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -75,6 +76,16 @@ export async function POST(req: NextRequest) {
       },
       { status: 422 },
     )
+  }
+
+  // Normalise phone to E.164 (e.g. "07700 900 000" → "+447700900000")
+  try {
+    const parsed = parsePhoneNumber(d.phone, 'GB')
+    if (parsed?.isValid()) {
+      d.phone = parsed.number
+    }
+  } catch {
+    // Validation already passed; defensive fallback only.
   }
 
   try {

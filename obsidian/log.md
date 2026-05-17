@@ -2,6 +2,17 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.6 — E.164 phone validation
+
+- Created: `obsidian/Projects/2026-05-17-task-2-6-phone-e164.md`
+- Dep: libphonenumber-js
+- Zod: isValidPhoneNumber(_, 'GB') refine on stepPersonalSchema + onboardingSubmitSchema
+- API: parsePhoneNumber normalises to E.164 (`+447911123456`) before bcrypt + DB write
+- Library correctly rejects the UK fiction-only 7700-9xxxxxx range
+- Tests: +4 (national, E.164, garbage, too short); 107/107 pass
+- Build: clean
+- Closes R17
+
 ## [2026-05-17] feature | Task 2.4 — Experience, timeline, mortgage, referral
 
 - Created: `obsidian/Projects/2026-05-17-task-2-4-experience-funding.md`

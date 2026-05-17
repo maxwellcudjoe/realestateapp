@@ -44,6 +44,22 @@ describe('stepAccountSchema', () => {
   })
 })
 
+describe('stepPersonalSchema (phone validation)', () => {
+  const base = { firstName: 'J', lastName: 'S', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN' }
+  it('accepts a valid UK mobile in national format', () => {
+    expect(stepPersonalSchema.safeParse({ ...base, phone: '07911 123 456' }).success).toBe(true)
+  })
+  it('accepts a valid UK mobile in E.164', () => {
+    expect(stepPersonalSchema.safeParse({ ...base, phone: '+447911123456' }).success).toBe(true)
+  })
+  it('rejects garbage', () => {
+    expect(stepPersonalSchema.safeParse({ ...base, phone: 'not-a-number' }).success).toBe(false)
+  })
+  it('rejects obviously-wrong UK number', () => {
+    expect(stepPersonalSchema.safeParse({ ...base, phone: '123' }).success).toBe(false)
+  })
+})
+
 describe('stepPersonalSchema', () => {
   it('accepts valid personal data', () => {
     const result = stepPersonalSchema.safeParse({

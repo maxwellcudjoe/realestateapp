@@ -10,6 +10,7 @@ import {
 } from '@/lib/compliance'
 import { VALID_AREA_CODES } from '@/lib/target-areas'
 import { VALID_STRATEGY_CODES } from '@/lib/strategies'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 const passwordSchema = z
   .string()
@@ -33,7 +34,11 @@ export const stepAccountSchema = z
 export const stepPersonalSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
-  phone: z.string().min(7, 'Invalid phone number').max(50),
+  phone: z
+    .string()
+    .min(7, 'Invalid phone number')
+    .max(50)
+    .refine((s) => isValidPhoneNumber(s, 'GB'), 'Enter a valid phone number (e.g. 07700 900 000 or +44 7700 900 000)'),
   addressLine1: z.string().min(1, 'Address is required').max(255),
   city: z.string().min(1, 'City is required').max(100),
   postcode: z.string().min(1, 'Postcode is required').max(20),
@@ -121,7 +126,7 @@ export const onboardingSubmitSchema = z
     password: passwordSchema,
     firstName: z.string().min(1).max(100),
     lastName: z.string().min(1).max(100),
-    phone: z.string().min(7).max(50),
+    phone: z.string().min(7).max(50).refine((s) => isValidPhoneNumber(s, 'GB'), 'Invalid phone number'),
     addressLine1: z.string().min(1).max(255),
     city: z.string().min(1).max(100),
     postcode: z.string().min(1).max(20),
