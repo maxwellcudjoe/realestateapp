@@ -2,6 +2,28 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2 - Admin API GET+POST /api/admin/investors/[id]/deals
+
+- Created: `obsidian/Projects/Task_2_Admin_API_Deals_Endpoint.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- API: `GET /api/admin/investors/[id]/deals` (list deals for investor application), `POST /api/admin/investors/[id]/deals` (create deal, send email notification)
+- Zod schema: title, address, askingPrice (positive number), optional summary
+- Email: styled HTML with deal card (address, title, price in £, summary), CTA link to `/portal/deals`
+- Auth: session required, admin role enforced (401/403 responses)
+- Prisma: creates Deal with postedByUserId, fetchesApplication with investorProfile, sends email non-fatally
+- Committed `ae8cb79` to master
+
+## [2026-05-17] feature | Portal Messaging — investor communication + admin note highlighting
+
+- Created: `obsidian/Projects/portal-messaging-feature.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- Prisma: added `Message` model (applicationId, senderUserId, subject, body); pushed to Azure SQL; regenerated client
+- API: `GET /api/portal/messages` (investor's message history), `POST /api/portal/messages` (save + email admin)
+- UI: `MessageForm` (controlled, subject+body+states), `MessagesClient` (list + form, router.refresh on send), `/portal/messages` server page
+- Portal nav: Messages tab added to layout
+- StatusTimeline: admin notes now gold-accented (`bg-gold/5 border-l-2 border-gold`, "Note from admin" label, ivory italic text)
+- Build: clean (31 pages). Committed `3984893`, pushed to master → Azure deployment triggered
+
 ## [2026-05-12] bugfix | Task 19 - Build Verification Fixes
 
 - Created: `obsidian/Bug_Fixes/Task_19_Build_Verification_Fixes.md`
@@ -72,6 +94,24 @@ Append-only record of vault updates.
 - Updated: `obsidian/index.md` — Added Task 1 entry to Projects section
 - Key points: Installed 72 runtime packages (next-auth@beta, @prisma/client, bcryptjs, @azure/storage-blob, @react-email/components) and 39 dev packages (prisma, @types/bcryptjs). Initialized Prisma with SQL Server datasource. Added postinstall and seed:admin scripts to package.json. Committed with hash a7dfbdc.
 - Source: [[2026-05-12-investor-platform-expansion]]
+
+## [2026-05-17] feature | Investor Deal Feedback — full implementation
+
+- Created: `obsidian/Projects/investor-deal-feedback.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- Prisma: added Deal + DealResponse models; pushed to Azure SQL
+- Admin API: GET+POST /api/admin/investors/[id]/deals
+- Investor API: GET /api/portal/deals, POST+PUT+DELETE /api/portal/deals/[dealId]/response
+- UI: DealCard (4-state), DealsClient, /portal/deals page, /admin/investors/[id]/deals page
+- Emails: investor on deal post, admin on response
+- Nav: Deals tab in portal layout
+- Build: clean (33 pages). Pushed to master → Azure deployment triggered.
+
+## [2026-05-17] setup | Task 1 - Prisma Schema: Add Deal and DealResponse Models
+
+- Created: `obsidian/Projects/Task_1_Prisma_Schema_Deal_Models.md`
+- Updated: `obsidian/index.md` — added Task 1 (Deal Models) entry to Projects section
+- Key points: Added back-relations to User (postedDeals) and Application (deals). Created Deal model with admin poster, application FK, property details (title, address, askingPrice, summary, status). Created DealResponse model with investor intent + optional comment. Pushed schema to Azure SQL (database synced in 5.83s), regenerated Prisma Client (7.8.0). Committed with hash 6e59ee5.
 
 ## [2026-05-17] knowledge | Admin Workflow — Investor Lifecycle
 

@@ -18,6 +18,10 @@ Master index for project knowledge captured in this vault.
 | [2026-05-12-investor-platform-expansion](Projects/2026-05-12-investor-platform-expansion.md) | Architecture plan for investor onboarding, operations dashboard, and status-tracking notifications — full platform expansion of revebatir.co.uk |
 | [Task_5_NextAuth_v5_Config](Projects/Task_5_NextAuth_v5_Config.md) | NextAuth v5 credentials provider with Zod validation, JWT sessions, type augmentation for id + role. |
 | [admin-workflow-ui](Projects/admin-workflow-ui.md) | Guided StatusPanel with stage progress indicator, next-step action buttons, pre-filled notes, and manual override. |
+| [portal-messaging-feature](Projects/portal-messaging-feature.md) | Investor messaging (DB + email), admin note highlighting in timeline, Messages tab in portal nav. |
+| [Task_1_Prisma_Schema_Deal_Models](Projects/Task_1_Prisma_Schema_Deal_Models.md) | Added Deal and DealResponse models to Prisma schema — admins post property deals, investors respond with intent. Pushed to Azure SQL and regenerated Prisma Client. |
+| [Task_2_Admin_API_Deals_Endpoint](Projects/Task_2_Admin_API_Deals_Endpoint.md) | Admin API route GET+POST /api/admin/investors/[id]/deals — list deals and create new deal with investor email notification. |
+| [investor-deal-feedback](Projects/investor-deal-feedback.md) | Full deal feedback feature — admin posts deals, investor CRUD responses, 5 API routes, DealCard 4-state UI, email notifications. |
 
 ## Bug Fixes
 
