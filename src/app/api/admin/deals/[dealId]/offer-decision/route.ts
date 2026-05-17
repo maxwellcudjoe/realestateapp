@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { dealStageLabel } from '@/lib/deal-stages'
 import { recordAudit } from '@/lib/audit'
+import { createNotification } from '@/lib/notifications'
 import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -70,6 +71,14 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
     resourceId: deal.offer.id,
     metadata: { dealId, decision, amount: Number(deal.offer.amount) },
     ipAddress: getClientIp(req),
+  })
+
+  await createNotification({
+    userId: deal.application.investorProfile.userId,
+    type: 'OFFER_DECISION',
+    title: decision === 'ACCEPTED' ? 'Offer accepted by vendor' : 'Offer declined by vendor',
+    body: `${deal.address}${vendorDecisionNote ? ` — ${vendorDecisionNote}` : ''}`,
+    link: `/portal/deals/${dealId}`,
   })
 
   // Email investor

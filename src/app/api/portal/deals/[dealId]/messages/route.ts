@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { createNotification } from '@/lib/notifications'
 import { z } from 'zod'
 
 const sendSchema = z.object({
@@ -90,6 +91,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   // Notify the other side
   try {
     if (isAdmin) {
+      // In-portal notification for the investor
+      await createNotification({
+        userId: deal.application.investorProfile.userId,
+        type: 'MESSAGE',
+        title: `Reply on ${deal.address}`,
+        body: parsed.data.subject,
+        link: `/portal/deals/${dealId}`,
+      })
       await sendEmail({
         to: deal.application.investorProfile.user.email,
         subject: `Reply on ${deal.address}: ${parsed.data.subject}`,

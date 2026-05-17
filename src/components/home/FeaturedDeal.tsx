@@ -66,7 +66,7 @@ export function FeaturedDeal({ deal }: { deal: Deal | null }) {
             Current Opportunities<br />For Serious Investors
           </h2>
           <p className="font-sans text-sm font-light text-stone leading-relaxed mb-8">
-            Every deal we source is independently verified against market comparables, packaged with a full due diligence report, and made available exclusively to registered buyers. No auctions, no inflated prices.
+            Every deal we source is independently verified against market comparables, packaged with a full due diligence report, and made available exclusively to registered investors. No auctions, no inflated prices.
           </p>
           <Link
             href="/deals"

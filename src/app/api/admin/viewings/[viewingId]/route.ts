@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { createNotification } from '@/lib/notifications'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -43,6 +44,16 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ viewingId
       confirmedSlot: confirmedSlot ?? viewing.confirmedSlot,
       adminNote: parsed.data.adminNote || viewing.adminNote,
     },
+  })
+
+  await createNotification({
+    userId: viewing.investorUserId,
+    type: 'VIEWING',
+    title: `Viewing ${parsed.data.status.toLowerCase()} — ${viewing.deal.address}`,
+    body: confirmedSlot
+      ? `Confirmed for ${confirmedSlot.toLocaleString('en-GB')}${parsed.data.adminNote ? ` — ${parsed.data.adminNote}` : ''}`
+      : parsed.data.adminNote || `Status: ${parsed.data.status.toLowerCase()}`,
+    link: `/portal/deals/${viewing.dealId}`,
   })
 
   try {

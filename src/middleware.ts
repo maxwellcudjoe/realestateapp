@@ -17,7 +17,7 @@ export default auth((req) => {
 
   // Non-admin trying to access /admin → redirect to investor portal
   if (pathname.startsWith('/admin') && session.user.role !== 'admin') {
-    return NextResponse.redirect(new URL('/portal/status', req.url))
+    return NextResponse.redirect(new URL('/portal', req.url))
   }
 
   return NextResponse.next()

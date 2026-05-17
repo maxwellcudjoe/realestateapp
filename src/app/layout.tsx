@@ -22,7 +22,7 @@ const montserrat = Montserrat({
 const SITE_URL = 'https://www.revebatir.co.uk'
 const SITE_NAME = 'Rêve Bâtir Realty'
 const SITE_DESCRIPTION =
-  'Below-market-value property deals, buy-to-let investment, and acquisition support across the UK. Verified, compliant, exclusively for registered buyers.'
+  'Below-market-value property deals, buy-to-let investment, and acquisition support across the UK. Verified, compliant, exclusively for registered investors.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

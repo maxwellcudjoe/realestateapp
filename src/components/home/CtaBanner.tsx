@@ -14,7 +14,7 @@ export function CtaBanner() {
             Ready to invest?
           </h2>
           <p className="font-sans text-sm font-light text-stone tracking-wide">
-            Register your buyer criteria today and receive matched deals direct to your inbox.
+            Register your investment criteria today and receive matched deals direct to your inbox.
           </p>
         </div>
         <Button href="/register" className="flex-shrink-0 text-xs px-10 py-4">
