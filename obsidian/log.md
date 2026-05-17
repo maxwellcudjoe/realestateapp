@@ -2,6 +2,20 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.6 — TOTP 2FA + recovery codes + 2-step login
+
+- Created: `obsidian/Projects/2026-05-17-task-1-6-totp-2fa.md`
+- Deps: otplib@13, qrcode (+ @types)
+- Schema: `User.totpSecret`, `User.totpEnabledAt`, new `RecoveryCode` model with bcrypt-hashed codes — pushed to Azure SQL (6.87s)
+- Lib: `src/lib/totp.ts` — otplib v13 functional async API (generateSecret, verify with ±30s epochTolerance), QR via qrcode, recovery code gen/match
+- API: 4 routes under `/api/portal/security/totp/` (enroll, confirm, disable, recovery-codes); new `/api/auth/login-challenge` (stateless probe — does user need TOTP?)
+- Auth: NextAuth authorize() now accepts totpCode; verifies TOTP or burns a single-use recovery code; logs `totp-required` / `bad-totp` / `recovery-code` reasons
+- UI: `/portal/security` gains TotpManager (idle/enrol/codes/disable states with QR display); login page goes 2-step (password field locks once TOTP step appears, autofocus on code)
+- Tests: +11 for TOTP lib; 74/74 pass
+- Build: clean
+- Security: recovery codes single-use + bcrypt-hashed, TOTP secret wiped on disable, disable requires password + code, login-challenge rate-limited + lockout-aware + no enumeration
+- Closes gap X1 (TOTP layer; passkeys deferred to 6.8)
+
 ## [2026-05-17] feature | Task 1.7 — Account lockout + login activity log
 
 - Created: `obsidian/Projects/2026-05-17-task-1-7-account-lockout.md`

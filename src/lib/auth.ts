@@ -4,12 +4,14 @@ import { authConfig } from '@/lib/auth.config'
 import { prisma } from '@/lib/prisma'
 import { isIpLockedOut, recordLoginAttempt } from '@/lib/login-tracking'
 import { getClientIp } from '@/lib/rate-limit'
+import { verifyTotpCode, findMatchingRecoveryCode } from '@/lib/totp'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  totpCode: z.string().optional(),
 })
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -29,7 +31,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
-        const user = await prisma.user.findUnique({ where: { email } })
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: { recoveryCodes: { where: { usedAt: null } } },
+        })
         if (!user) {
           await recordLoginAttempt({ email, ipAddress: ip, success: false, reason: 'no-user' })
           return null
@@ -46,6 +51,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user.emailVerifiedAt && user.role !== 'admin') {
           await recordLoginAttempt({ email, ipAddress: ip, success: false, userId: user.id, reason: 'unverified' })
           return null
+        }
+
+        // TOTP gate — only enforced if user has enabled 2FA
+        if (user.totpEnabledAt && user.totpSecret) {
+          const code = parsed.data.totpCode?.trim() ?? ''
+          if (!code) {
+            await recordLoginAttempt({ email, ipAddress: ip, success: false, userId: user.id, reason: 'totp-required' })
+            return null
+          }
+          const totpOk = await verifyTotpCode(user.totpSecret, code)
+          if (!totpOk) {
+            const recoveryId = await findMatchingRecoveryCode(code, user.recoveryCodes)
+            if (!recoveryId) {
+              await recordLoginAttempt({ email, ipAddress: ip, success: false, userId: user.id, reason: 'bad-totp' })
+              return null
+            }
+            // Recovery code used — burn it
+            await prisma.recoveryCode.update({ where: { id: recoveryId }, data: { usedAt: new Date() } })
+            await recordLoginAttempt({ email, ipAddress: ip, success: true, userId: user.id, reason: 'recovery-code' })
+            return { id: user.id, email: user.email, role: user.role }
+          }
         }
 
         await recordLoginAttempt({ email, ipAddress: ip, success: true, userId: user.id })

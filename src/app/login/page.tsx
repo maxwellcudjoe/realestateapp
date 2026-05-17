@@ -26,6 +26,8 @@ function LoginForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [totpCode, setTotpCode] = useState('')
+  const [needsTotp, setNeedsTotp] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -59,14 +61,39 @@ function LoginForm() {
     setError('')
     setResentMessage('')
 
+    // Step 1: if we haven't yet checked whether TOTP is needed, probe first.
+    if (!needsTotp) {
+      try {
+        const res = await fetch('/api/auth/login-challenge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
+        const json = await res.json().catch(() => ({}))
+        if (json.needsTotp) {
+          setNeedsTotp(true)
+          setLoading(false)
+          return
+        }
+      } catch {
+        // If the probe fails, fall through to signIn and let it decide.
+      }
+    }
+
     const result = await signIn('credentials', {
       email,
       password,
+      totpCode: needsTotp ? totpCode : undefined,
       redirect: false,
     })
 
     if (result?.error) {
-      setError('Invalid email or password. If you just registered, please verify your email first.')
+      if (needsTotp) {
+        setError('That 2FA code did not match. Try again, or use a recovery code.')
+        setTotpCode('')
+      } else {
+        setError('Invalid email or password. If you just registered, please verify your email first.')
+      }
       setLoading(false)
     } else {
       // If no explicit callback, route based on role
@@ -130,8 +157,31 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             className={FIELD_CLASS}
             placeholder="••••••••"
+            disabled={needsTotp}
           />
         </div>
+
+        {needsTotp && (
+          <div>
+            <label className={LABEL_CLASS}>
+              Two-Factor Code
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              autoFocus
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              className={FIELD_CLASS}
+              placeholder="6-digit code or recovery code"
+            />
+            <p className="font-sans text-[0.6rem] text-stone mt-2">
+              Enter the code from your authenticator app, or use a recovery code.
+            </p>
+          </div>
+        )}
 
         {error && (
           <p className="font-sans text-xs text-red-400">{error}</p>
@@ -141,7 +191,7 @@ function LoginForm() {
         )}
 
         <Button type="submit" fullWidth disabled={loading} className="mt-2 py-4">
-          {loading ? 'Signing in…' : 'Sign In'}
+          {loading ? 'Signing in…' : needsTotp ? 'Verify & Sign In' : 'Sign In'}
         </Button>
 
         <p className="font-sans text-xs text-stone text-center">

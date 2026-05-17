@@ -28,6 +28,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-1-3-captcha-rate-limit](Projects/2026-05-17-task-1-3-captcha-rate-limit.md) | Phase 1 Task 1.3 complete — IP rate limit (5/15min) + Turnstile CAPTCHA on /api/onboarding with graceful fallback. Closes R2. |
 | [2026-05-17-task-1-5-password-marketing](Projects/2026-05-17-task-1-5-password-marketing.md) | Phase 1 Task 1.5 complete — password complexity rules, HIBP breach check (k-anonymity), strength meter, separate GDPR marketing consent. Closes R7+R8. |
 | [2026-05-17-task-1-7-account-lockout](Projects/2026-05-17-task-1-7-account-lockout.md) | Phase 1 Task 1.7 complete — LoginAttempt model, IP lockout (5 fails / 15 min), `/portal/security` activity table. Closes X2. |
+| [2026-05-17-task-1-6-totp-2fa](Projects/2026-05-17-task-1-6-totp-2fa.md) | Phase 1 Task 1.6 complete — opt-in TOTP 2FA with QR enrolment, 10 single-use recovery codes, 2-step login flow, /portal/security manager. Closes X1. |
 
 ## Bug Fixes
 

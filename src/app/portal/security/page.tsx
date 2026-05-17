@@ -1,6 +1,8 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
 import { recentAttemptsForUser } from '@/lib/login-tracking'
+import { TotpManager } from '@/components/portal/TotpManager'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,17 +24,30 @@ export default async function PortalSecurityPage() {
   const session = await auth()
   if (!session?.user) redirect('/login')
 
-  const attempts = await recentAttemptsForUser(session.user.id, 10)
+  const [attempts, user] = await Promise.all([
+    recentAttemptsForUser(session.user.id, 10),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { totpEnabledAt: true },
+    }),
+  ])
 
   return (
     <div>
       <h1 className="font-serif text-4xl font-light text-ivory mb-2">Security</h1>
       <p className="font-sans text-sm text-stone mb-12">
-        Recent sign-in activity for your account. Spot something you don&apos;t recognise?{' '}
-        <a href="/forgot-password" className="text-gold hover:text-ivory transition-colors">
-          Reset your password
-        </a>.
+        Manage two-factor authentication and review recent sign-in activity.
       </p>
+
+      <section className="mb-16">
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">
+          Two-Factor Authentication
+        </p>
+        <TotpManager
+          initiallyEnabled={Boolean(user?.totpEnabledAt)}
+          enabledAt={user?.totpEnabledAt?.toISOString() ?? null}
+        />
+      </section>
 
       <section>
         <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">
