@@ -120,6 +120,9 @@ model InvestorProfile {
   vatNumber           String?   @db.NVarChar(20)
   companyAddress      String?   @db.NVarChar(500)
 
+  // Task 6.1 — SumSub applicant id (stored once, reused for all KYC checks)
+  sumsubApplicantId   String?   @db.NVarChar(64)
+
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

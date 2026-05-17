@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DocumentUploadSlot } from '@/components/portal/DocumentUploadSlot'
+import { SumSubKycWidget } from '@/components/portal/SumSubKycWidget'
 import { Button } from '@/components/ui/Button'
 
 const SLOTS = [
@@ -69,31 +70,39 @@ export default function DocumentsPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-4xl font-light text-ivory mb-2">Upload Documents</h1>
+      <h1 className="font-serif text-4xl font-light text-ivory mb-2">Identity Verification</h1>
       <p className="font-sans text-sm text-stone mb-8">
-        Please upload the following documents to complete your KYC verification.
+        Complete your KYC. Use our verified provider for the fastest path (5 min) or upload documents manually below.
       </p>
 
-      <div className="space-y-4 mb-8">
-        {SLOTS.map((slot) => (
-          <DocumentUploadSlot
-            key={slot.type}
-            type={slot.type}
-            label={slot.label}
-            description={slot.description}
-            existing={uploaded[slot.type] ? { fileName: uploaded[slot.type], uploadedAt: '' } : null}
-            onUploaded={(fn) => handleUploaded(slot.type, fn)}
-          />
-        ))}
-      </div>
+      <section className="mb-12">
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Recommended — automated verification</p>
+        <SumSubKycWidget />
+      </section>
 
-      {error && <p className="font-sans text-xs text-red-400 mb-4">{error}</p>}
+      <section>
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Or upload documents manually</p>
+        <div className="space-y-4 mb-8">
+          {SLOTS.map((slot) => (
+            <DocumentUploadSlot
+              key={slot.type}
+              type={slot.type}
+              label={slot.label}
+              description={slot.description}
+              existing={uploaded[slot.type] ? { fileName: uploaded[slot.type], uploadedAt: '' } : null}
+              onUploaded={(fn) => handleUploaded(slot.type, fn)}
+            />
+          ))}
+        </div>
 
-      {allUploaded && (
-        <Button onClick={handleSubmit} disabled={submitting} fullWidth className="py-4">
-          {submitting ? 'Submitting…' : 'Submit All Documents'}
-        </Button>
-      )}
+        {error && <p className="font-sans text-xs text-red-400 mb-4">{error}</p>}
+
+        {allUploaded && (
+          <Button onClick={handleSubmit} disabled={submitting} fullWidth className="py-4">
+            {submitting ? 'Submitting…' : 'Submit All Documents'}
+          </Button>
+        )}
+      </section>
     </div>
   )
 }
