@@ -2,6 +2,14 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] ship | Phase 7B committed + pushed (commit becd637)
+
+- 36 files / +2931 lines committed as `feat: Reve Batir invoicing + Premium tier (Phase 7B)`
+- Pushed to origin/master — Azure SWA deploy triggered
+- Schema migration already applied to Azure SQL pre-push (db push 7.31s)
+- Phase 7 complete (all four tasks shipped across two commits: 86340a4 + becd637)
+- Open follow-ups: env-var setup for bank details + premium pricing on Azure SWA; admin matching premium chip; session-tier propagation; email delay hint for FREE tier
+
 ## [2026-05-17] feature | Tasks 7.3 + 7.4 — Rêve Bâtir invoicing + Premium subscription tier (Phase 7B)
 
 - Created: `obsidian/Projects/2026-05-17-task-7-3-invoicing.md`
