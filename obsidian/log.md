@@ -72,3 +72,9 @@ Append-only record of vault updates.
 - Updated: `obsidian/index.md` — Added Task 1 entry to Projects section
 - Key points: Installed 72 runtime packages (next-auth@beta, @prisma/client, bcryptjs, @azure/storage-blob, @react-email/components) and 39 dev packages (prisma, @types/bcryptjs). Initialized Prisma with SQL Server datasource. Added postinstall and seed:admin scripts to package.json. Committed with hash a7dfbdc.
 - Source: [[2026-05-12-investor-platform-expansion]]
+
+## [2026-05-17] knowledge | Admin Workflow — Investor Lifecycle
+
+- Created: obsidian/Knowledge/admin-workflow-investor-lifecycle.md
+- Updated: obsidian/index.md — added Knowledge entry
+- Documents the full 7-stage investor lifecycle and all admin panel actions

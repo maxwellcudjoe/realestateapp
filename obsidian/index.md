@@ -7,6 +7,7 @@ Master index for project knowledge captured in this vault.
 | Page | Summary |
 |---|---|
 | [2026-05-11-realestate-codebase-understanding](Knowledge/2026-05-11-realestate-codebase-understanding.md) | Architecture, route behavior, data flows, testing posture, and extension points for this repository. |
+| [admin-workflow-investor-lifecycle](Knowledge/admin-workflow-investor-lifecycle.md) | Full admin workflow — 7-stage investor lifecycle from SUBMITTED to DEAL_SENT, with panel descriptions and business rules. |
 
 ## Projects
 
@@ -16,6 +17,7 @@ Master index for project knowledge captured in this vault.
 | [Task_2_Write_Prisma_Schema](Projects/Task_2_Write_Prisma_Schema.md) | Wrote full Prisma schema (5 models: User, InvestorProfile, Application, Document, StatusHistory) with SQL Server compatibility and Prisma v7 datasource config. |
 | [2026-05-12-investor-platform-expansion](Projects/2026-05-12-investor-platform-expansion.md) | Architecture plan for investor onboarding, operations dashboard, and status-tracking notifications — full platform expansion of revebatir.co.uk |
 | [Task_5_NextAuth_v5_Config](Projects/Task_5_NextAuth_v5_Config.md) | NextAuth v5 credentials provider with Zod validation, JWT sessions, type augmentation for id + role. |
+| [admin-workflow-ui](Projects/admin-workflow-ui.md) | Guided StatusPanel with stage progress indicator, next-step action buttons, pre-filled notes, and manual override. |
 
 ## Bug Fixes
 
