@@ -11,7 +11,7 @@ const VALUE_CLASS = 'font-sans text-sm text-ivory mt-0.5'
 interface Props {
   account: { email: string }
   personal: { firstName: string; lastName: string; phone: string; addressLine1: string; city: string; postcode: string }
-  criteria: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreaCodes: string[] }
+  criteria: { budgetMin: number; budgetMax: number; strategies: string[]; buyerType: string; targetAreaCodes: string[] }
   agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean; agreedToMarketing: boolean }
   onAgreementChange: (field: string, value: boolean) => void
   onTurnstileToken: (token: string) => void
@@ -43,7 +43,7 @@ export function StepReview({
           <div><p className={LABEL_CLASS}>Phone</p><p className={VALUE_CLASS}>{personal.phone}</p></div>
           <div><p className={LABEL_CLASS}>Address</p><p className={VALUE_CLASS}>{personal.addressLine1}, {personal.city} {personal.postcode}</p></div>
           <div><p className={LABEL_CLASS}>Budget</p><p className={VALUE_CLASS}>{fmt(criteria.budgetMin)} – {fmt(criteria.budgetMax)}</p></div>
-          <div><p className={LABEL_CLASS}>Strategy</p><p className={VALUE_CLASS}>{criteria.strategy}</p></div>
+          <div><p className={LABEL_CLASS}>Strategies</p><p className={VALUE_CLASS}>{criteria.strategies.join(', ')}</p></div>
           <div><p className={LABEL_CLASS}>Buyer Type</p><p className={VALUE_CLASS}>{criteria.buyerType}</p></div>
           <div className="sm:col-span-2"><p className={LABEL_CLASS}>Target Areas</p><p className={VALUE_CLASS}>{criteria.targetAreaCodes.map(areaLabel).join(', ') || '—'}</p></div>
         </div>

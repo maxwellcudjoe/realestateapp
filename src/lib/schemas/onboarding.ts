@@ -6,6 +6,7 @@ import {
   ageOn,
 } from '@/lib/compliance'
 import { VALID_AREA_CODES } from '@/lib/target-areas'
+import { VALID_STRATEGY_CODES } from '@/lib/strategies'
 
 const passwordSchema = z
   .string()
@@ -80,7 +81,11 @@ export const stepCriteriaSchema = z
   .object({
     budgetMin: z.number().positive('Minimum budget must be positive'),
     budgetMax: z.number().positive('Maximum budget must be positive'),
-    strategy: z.enum(['BTL', 'HMO', 'Flip', 'Any']),
+    strategies: z
+      .array(z.string())
+      .min(1, 'Select at least one strategy')
+      .max(10)
+      .refine((arr) => arr.every((s) => VALID_STRATEGY_CODES.has(s)), 'Unknown strategy selected'),
     buyerType: z.enum(['cash', 'mortgage']),
     targetAreaCodes: z
       .array(z.string())
@@ -93,7 +98,6 @@ export const stepCriteriaSchema = z
     path: ['budgetMax'],
   })
 
-export const VALID_STRATEGIES = ['BTL', 'HMO', 'Flip', 'Any'] as const
 export const VALID_BUYER_TYPES = ['cash', 'mortgage'] as const
 
 export const onboardingSubmitSchema = z
@@ -108,7 +112,11 @@ export const onboardingSubmitSchema = z
     postcode: z.string().min(1).max(20),
     budgetMin: z.number().positive(),
     budgetMax: z.number().positive(),
-    strategy: z.enum(['BTL', 'HMO', 'Flip', 'Any']),
+    strategies: z
+      .array(z.string())
+      .min(1, 'Select at least one strategy')
+      .max(10)
+      .refine((arr) => arr.every((s) => VALID_STRATEGY_CODES.has(s)), 'Unknown strategy selected'),
     buyerType: z.enum(['cash', 'mortgage']),
     targetAreaCodes: z
       .array(z.string())

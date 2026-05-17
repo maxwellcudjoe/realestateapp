@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.2 — Multi-select strategy + Any/All fix
+
+- Created: `obsidian/Projects/2026-05-17-task-2-2-multi-select-strategy.md`
+- Schema: new InvestorStrategy model (investorProfileId, strategy) with @@unique([id, strategy]) + @@index — pushed (5.25s); legacy InvestorProfile.strategy preserved (mirrors first selection)
+- Lib: `src/lib/strategies.ts` — 5 canonical codes (BTL/HMO/FLIP/COMMERCIAL/SERVICED_ACCOM), VALID_STRATEGY_CODES, strategyLabel(), legacyToStrategies() mapper (Any/All → all 5)
+- UI: StepCriteria replaces dropdown with 5-row checkbox group (each with label + description); min 1 enforced
+- API: investorStrategy.createMany in transaction; legacy strategy String mirrored from first selection
+- Admin: chip display + legacyToStrategies fallback for old accounts
+- Tests: +9 (7 strategies lib, 2 schema); 102/102 pass
+- Build: clean
+- Closes R11 — completes matching-data layer alongside 2.1; Phase 4 auto-match query is now trivial
+
 ## [2026-05-17] feature | Task 2.1 — Structured target areas (Phase 2 kickoff)
 
 - Created: `obsidian/Projects/2026-05-17-task-2-1-structured-target-areas.md`

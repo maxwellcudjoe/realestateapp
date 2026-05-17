@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
 import { COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn } from '@/lib/compliance'
+import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +33,7 @@ export default async function AdminInvestorDetailPage({
         include: {
           user: { select: { email: true } },
           structuredAreas: { orderBy: { label: 'asc' } },
+          strategies: true,
         },
       },
       documents: { orderBy: { uploadedAt: 'desc' } },
@@ -61,7 +63,6 @@ export default async function AdminInvestorDetailPage({
             ['Phone', p.phone],
             ['Address', `${p.addressLine1}, ${p.city} ${p.postcode}`],
             ['Budget', `${fmt(Number(p.budgetMin))} – ${fmt(Number(p.budgetMax))}`],
-            ['Strategy', p.strategy],
             ['Buyer Type', p.buyerType],
           ] as [string, string][]).map(([label, value]) => (
             <div key={label}>
@@ -69,6 +70,25 @@ export default async function AdminInvestorDetailPage({
               <p className="font-sans text-sm text-ivory">{value}</p>
             </div>
           ))}
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Strategies</p>
+            {(() => {
+              const codes = p.strategies.length > 0
+                ? p.strategies.map((s) => s.strategy)
+                : legacyToStrategies(p.strategy)
+              return codes.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {codes.map((c) => (
+                    <span key={c} className="bg-gold/10 border border-gold/30 px-2 py-0.5 text-xs text-ivory">
+                      {strategyLabel(c)}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-sans text-sm text-ivory italic">{p.strategy}</p>
+              )
+            })()}
+          </div>
           <div>
             <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Target Areas</p>
             {p.structuredAreas.length > 0 ? (

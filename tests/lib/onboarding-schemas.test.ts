@@ -75,7 +75,7 @@ describe('stepCriteriaSchema', () => {
     const result = stepCriteriaSchema.safeParse({
       budgetMin: 100000,
       budgetMax: 300000,
-      strategy: 'BTL',
+      strategies: ['BTL'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester', 'leeds'],
     })
@@ -86,7 +86,7 @@ describe('stepCriteriaSchema', () => {
     const result = stepCriteriaSchema.safeParse({
       budgetMin: 300000,
       budgetMax: 100000,
-      strategy: 'BTL',
+      strategies: ['BTL'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
     })
@@ -97,11 +97,33 @@ describe('stepCriteriaSchema', () => {
     const result = stepCriteriaSchema.safeParse({
       budgetMin: 100000,
       budgetMax: 300000,
-      strategy: 'INVALID',
+      strategies: ['INVALID'],
       buyerType: 'cash',
       targetAreaCodes: ['manchester'],
     })
     expect(result.success).toBe(false)
+  })
+
+  it('rejects empty strategies array', () => {
+    const result = stepCriteriaSchema.safeParse({
+      budgetMin: 100000,
+      budgetMax: 300000,
+      strategies: [],
+      buyerType: 'cash',
+      targetAreaCodes: ['manchester'],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('accepts multiple strategies', () => {
+    const result = stepCriteriaSchema.safeParse({
+      budgetMin: 100000,
+      budgetMax: 300000,
+      strategies: ['BTL', 'HMO', 'FLIP'],
+      buyerType: 'cash',
+      targetAreaCodes: ['manchester'],
+    })
+    expect(result.success).toBe(true)
   })
 })
 
@@ -117,7 +139,7 @@ describe('onboardingSubmitSchema', () => {
     postcode: 'E1 6AN',
     budgetMin: 100000,
     budgetMax: 300000,
-    strategy: 'BTL',
+    strategies: ['BTL'],
     buyerType: 'cash',
     targetAreaCodes: ['manchester', 'leeds'],
     // Compliance fields

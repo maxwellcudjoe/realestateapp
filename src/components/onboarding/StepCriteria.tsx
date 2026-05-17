@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { stepCriteriaSchema, VALID_STRATEGIES, VALID_BUYER_TYPES } from '@/lib/schemas/onboarding'
+import { stepCriteriaSchema, VALID_BUYER_TYPES } from '@/lib/schemas/onboarding'
+import { STRATEGIES } from '@/lib/strategies'
 import { Button } from '@/components/ui/Button'
 import { TargetAreaPicker } from './TargetAreaPicker'
 
@@ -11,20 +12,20 @@ const LABEL_CLASS =
   'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-2'
 
 interface Props {
-  data: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreaCodes: string[] }
+  data: { budgetMin: number; budgetMax: number; strategies: string[]; buyerType: string; targetAreaCodes: string[] }
   onChange: (data: Props['data']) => void
   onNext: () => void
   onBack: () => void
 }
 
-const STRATEGY_LABELS: Record<string, string> = {
-  BTL: 'Buy To Let (BTL)',
-  HMO: 'HMO',
-  Flip: 'Flip',
-  Any: 'Any Strategy',
-}
-
 export function StepCriteria({ data, onChange, onNext, onBack }: Props) {
+  function toggleStrategy(code: string) {
+    const set = new Set(data.strategies)
+    if (set.has(code)) set.delete(code)
+    else set.add(code)
+    onChange({ ...data, strategies: Array.from(set) })
+  }
+
   const [errors, setErrors] = useState<Record<string, string[]>>({})
 
   function handleNext() {
@@ -65,23 +66,34 @@ export function StepCriteria({ data, onChange, onNext, onBack }: Props) {
           {errors.budgetMax && <p className="font-sans text-xs text-gold mt-1">{errors.budgetMax[0]}</p>}
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label className={LABEL_CLASS}>Preferred Strategy</label>
-          <select value={data.strategy} onChange={(e) => onChange({ ...data, strategy: e.target.value })} className={FIELD_CLASS}>
-            {VALID_STRATEGIES.map((s) => (
-              <option key={s} value={s}>{STRATEGY_LABELS[s]}</option>
-            ))}
-          </select>
+      <div>
+        <label className={LABEL_CLASS}>Investment Strategies (select all that apply)</label>
+        <div className="space-y-2">
+          {STRATEGIES.map((s) => (
+            <label key={s.code} className="flex items-start gap-3 cursor-pointer group p-3 border border-carbon hover:border-gold/40 transition-colors">
+              <input
+                type="checkbox"
+                checked={data.strategies.includes(s.code)}
+                onChange={() => toggleStrategy(s.code)}
+                className="mt-1 accent-gold"
+              />
+              <div>
+                <p className="font-sans text-sm text-ivory">{s.label}</p>
+                <p className="font-sans text-[0.65rem] text-stone mt-0.5">{s.description}</p>
+              </div>
+            </label>
+          ))}
         </div>
-        <div>
-          <label className={LABEL_CLASS}>Buyer Type</label>
-          <select value={data.buyerType} onChange={(e) => onChange({ ...data, buyerType: e.target.value })} className={FIELD_CLASS}>
-            {VALID_BUYER_TYPES.map((t) => (
-              <option key={t} value={t}>{t === 'cash' ? 'Cash Buyer' : 'Mortgage Buyer'}</option>
-            ))}
-          </select>
-        </div>
+        {errors.strategies && <p className="font-sans text-xs text-gold mt-1">{errors.strategies[0]}</p>}
+      </div>
+
+      <div>
+        <label className={LABEL_CLASS}>Buyer Type</label>
+        <select value={data.buyerType} onChange={(e) => onChange({ ...data, buyerType: e.target.value })} className={FIELD_CLASS}>
+          {VALID_BUYER_TYPES.map((t) => (
+            <option key={t} value={t}>{t === 'cash' ? 'Cash Buyer' : 'Mortgage Buyer'}</option>
+          ))}
+        </select>
       </div>
       <div>
         <label className={LABEL_CLASS}>Target Areas</label>

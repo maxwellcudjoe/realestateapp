@@ -47,7 +47,7 @@ const VALID_BODY = {
   postcode: 'E1 6AN',
   budgetMin: 100000,
   budgetMax: 300000,
-  strategy: 'BTL',
+  strategies: ['BTL'],
   buyerType: 'cash',
   targetAreaCodes: ['manchester', 'leeds'],
   // Above replaces old targetAreas free-text field
@@ -77,6 +77,7 @@ describe('POST /api/onboarding', () => {
         statusHistory: { create: vi.fn().mockResolvedValue({ id: 's1' }) },
         emailVerificationToken: { create: vi.fn().mockResolvedValue({ id: 'v1' }) },
         targetArea: { createMany: vi.fn().mockResolvedValue({ count: 2 }) },
+        investorStrategy: { createMany: vi.fn().mockResolvedValue({ count: 1 }) },
       }
       return fn(txMock)
     })

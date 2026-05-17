@@ -7,6 +7,7 @@ import { verifyTurnstile } from '@/lib/turnstile'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { checkPasswordBreached } from '@/lib/password'
 import { areaLabel } from '@/lib/target-areas'
+import { strategyLabel } from '@/lib/strategies'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
           postcode: d.postcode,
           budgetMin: d.budgetMin,
           budgetMax: d.budgetMax,
-          strategy: d.strategy,
+          strategy: d.strategies[0] ?? 'BTL', // Legacy single-strategy mirror (primary = first selected)
           buyerType: d.buyerType,
           targetAreas: legacyTargetAreasText, // Mirror for any unmigrated readers
           marketingConsentAt: d.agreedToMarketing ? new Date() : null,
@@ -121,6 +122,16 @@ export async function POST(req: NextRequest) {
             investorProfileId: profile.id,
             code,
             label: areaLabel(code),
+          })),
+        })
+      }
+
+      // Structured investor strategies — one row per selected
+      if (d.strategies.length > 0) {
+        await tx.investorStrategy.createMany({
+          data: d.strategies.map((strategy) => ({
+            investorProfileId: profile.id,
+            strategy,
           })),
         })
       }
@@ -171,7 +182,7 @@ export async function POST(req: NextRequest) {
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Email</td><td>${d.email}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Phone</td><td>${d.phone}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Budget</td><td>£${d.budgetMin.toLocaleString()} – £${d.budgetMax.toLocaleString()}</td></tr>
-                <tr><td style="padding:6px 16px 6px 0;color:#666">Strategy</td><td>${d.strategy}</td></tr>
+                <tr><td style="padding:6px 16px 6px 0;color:#666">Strategies</td><td>${d.strategies.map(strategyLabel).join(', ')}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Buyer Type</td><td>${d.buyerType}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Areas</td><td>${d.targetAreaCodes.map(areaLabel).join(', ')}</td></tr>
               </table>

@@ -24,7 +24,7 @@ export default function OnboardingPage() {
     niNumber: '', isPep: false, pepDetails: '',
     sourceOfFunds: '', sourceOfFundsDetail: '',
   })
-  const [criteria, setCriteria] = useState<{ budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreaCodes: string[] }>({ budgetMin: 0, budgetMax: 0, strategy: 'BTL', buyerType: 'cash', targetAreaCodes: [] })
+  const [criteria, setCriteria] = useState<{ budgetMin: number; budgetMax: number; strategies: string[]; buyerType: string; targetAreaCodes: string[] }>({ budgetMin: 0, budgetMax: 0, strategies: ['BTL'], buyerType: 'cash', targetAreaCodes: [] })
   const [agreements, setAgreements] = useState({ agreedToTerms: false, agreedToPrivacy: false, agreedToAccuracy: false, agreedToAge: false, agreedToMarketing: false })
 
   function handleAgreement(field: string, value: boolean) {
