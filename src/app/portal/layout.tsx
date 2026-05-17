@@ -8,6 +8,7 @@ const PORTAL_LINKS = [
   { href: '/portal/status', label: 'Status' },
   { href: '/portal/documents', label: 'Documents' },
   { href: '/portal/deals', label: 'Deals' },
+  { href: '/portal/properties', label: 'Properties' },
   { href: '/portal/messages', label: 'Messages' },
   { href: '/portal/profile', label: 'Profile' },
   { href: '/portal/security', label: 'Security' },

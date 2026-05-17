@@ -339,3 +339,44 @@ model DealResponse {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+/// Task 5.1 — Portfolio. Auto-created when a Deal hits COMPLETED.
+model Property {
+  id                       String              @id @default(cuid())
+  userId                   String
+  dealId                   String?             @unique
+  address                  String              @db.NVarChar(255)
+  purchasePrice            Decimal             @db.Decimal(12, 2)
+  completionDate           DateTime
+  propertyType             String?             @db.NVarChar(30)
+  bedrooms                 Int?
+  bathrooms                Int?
+  currentValueEstimate     Decimal?            @db.Decimal(12, 2)
+  currentValueUpdatedAt    DateTime?
+  tenancyStatus            String              @default("VACANT") @db.NVarChar(20)
+  monthlyRent              Decimal?            @db.Decimal(10, 2)
+  tenancyStart             DateTime?
+  tenancyEnd               DateTime?
+  notes                    String?             @db.NVarChar(Max)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+
+  documents                PropertyDocument[]
+
+  @@index([userId, completionDate])
+}
+
+/// Task 5.2 — Per-property document archive (title deeds, EPC, gas safety, EICR, tenancy, etc.).
+model PropertyDocument {
+  id               String   @id @default(cuid())
+  propertyId       String
+  property         Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  uploadedByUserId String
+  type             String   @db.NVarChar(40)
+  fileName         String   @db.NVarChar(255)
+  blobPath         String   @db.NVarChar(500)
+  expiresAt        DateTime?
+  uploadedAt       DateTime @default(now())
+
+  @@index([propertyId, uploadedAt])
+}

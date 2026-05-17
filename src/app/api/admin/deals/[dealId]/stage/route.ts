@@ -39,11 +39,13 @@ export async function PATCH(
       application: {
         include: { investorProfile: { include: { user: true } } },
       },
+      offer: true,
     },
   })
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
 
   const stageChanged = deal.stage !== stage
+  const becameCompleted = stageChanged && stage === 'COMPLETED'
 
   await prisma.$transaction(async (tx) => {
     await tx.deal.update({
@@ -65,6 +67,29 @@ export async function PATCH(
           note: note || null,
         },
       })
+    }
+
+    // Auto-create Property when deal reaches COMPLETED (Task 5.1)
+    if (becameCompleted) {
+      const existing = await tx.property.findUnique({ where: { dealId } })
+      if (!existing) {
+        const purchasePrice = deal.offer?.status === 'ACCEPTED' && deal.offer.amount
+          ? Number(deal.offer.amount)
+          : Number(deal.askingPrice)
+        await tx.property.create({
+          data: {
+            userId: deal.application.investorProfile.userId,
+            dealId: deal.id,
+            address: deal.address,
+            purchasePrice,
+            completionDate: new Date(),
+            propertyType: deal.propertyType,
+            bedrooms: deal.bedrooms,
+            bathrooms: deal.bathrooms,
+            monthlyRent: deal.rentalAppraisalMonthly,
+          },
+        })
+      }
     }
   })
 
