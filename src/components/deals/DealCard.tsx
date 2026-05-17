@@ -5,6 +5,7 @@ import Image from 'next/image'
 import type { Deal } from '@/types/deal'
 import { RequestPackModal } from './RequestPackModal'
 import { PhotoGallery } from './PhotoGallery'
+import { SaveDealButton } from './SaveDealButton'
 
 export function DealCard({ deal }: { deal: Deal }) {
   const [packModalOpen, setPackModalOpen] = useState(false)
@@ -84,6 +85,10 @@ export function DealCard({ deal }: { deal: Deal }) {
           >
             Request Full Pack
           </button>
+
+          <div className="mt-3">
+            <SaveDealButton contentfulEntryId={deal.id} title={deal.title} slug={deal.slug} />
+          </div>
         </div>
       </div>
 

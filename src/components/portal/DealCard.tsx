@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { dealStageLabel } from '@/lib/deal-stages'
 import { propertyTypeLabel, tenureLabel, computeGrossYield, epcRatingColor } from '@/lib/property'
+import { FavouriteToggle } from './FavouriteToggle'
 
 const INTENT_OPTIONS = [
   { value: 'ACCEPT', label: "Interested — let's proceed" },
@@ -43,6 +44,7 @@ export interface DealData {
   epcRating?: string | null
   rentalAppraisalMonthly?: number | null
   floorAreaSqft?: number | null
+  favourited?: boolean
 }
 
 interface Props {
@@ -141,9 +143,12 @@ export function DealCard({ deal, onMutated }: Props) {
           <h3 className="font-serif text-xl font-light text-ivory">{deal.title}</h3>
           <p className="font-sans text-xs text-stone mt-0.5">{deal.address}</p>
         </div>
-        <div className="text-right flex-shrink-0">
-          <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/60 mb-1">Asking Price</p>
-          <p className="font-sans text-base text-gold">{priceFormatted}</p>
+        <div className="text-right flex-shrink-0 flex items-start gap-3">
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/60 mb-1">Asking Price</p>
+            <p className="font-sans text-base text-gold">{priceFormatted}</p>
+          </div>
+          <FavouriteToggle dealId={deal.id} initiallyFavourited={deal.favourited ?? false} />
         </div>
       </div>
 

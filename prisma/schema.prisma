@@ -243,6 +243,32 @@ model Deal {
   messages       Message[]
   documents      DealDocument[]
   viewings       Viewing[]
+  favourites     DealFavourite[]
+}
+
+model DealFavourite {
+  id        String   @id @default(cuid())
+  dealId    String
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([dealId, userId])
+  @@index([userId, createdAt])
+}
+
+/// Task 4.1 — "Save this deal" from public Contentful pages.
+model ContentfulDealInterest {
+  id                 String   @id @default(cuid())
+  userId             String
+  contentfulEntryId  String   @db.NVarChar(64)
+  title              String?  @db.NVarChar(255)
+  slug               String?  @db.NVarChar(255)
+  note               String?  @db.NVarChar(1000)
+  createdAt          DateTime @default(now())
+
+  @@unique([userId, contentfulEntryId])
+  @@index([contentfulEntryId])
 }
 
 model Viewing {

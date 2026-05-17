@@ -18,7 +18,7 @@ export default async function PortalDealsPage() {
             include: {
               deals: {
                 orderBy: { createdAt: 'desc' },
-                include: { response: true },
+                include: { response: true, favourites: { where: { userId: session.user.id }, select: { id: true } } },
               },
             },
           },
@@ -47,6 +47,7 @@ export default async function PortalDealsPage() {
     epcRating: d.epcRating,
     rentalAppraisalMonthly: d.rentalAppraisalMonthly ? Number(d.rentalAppraisalMonthly) : null,
     floorAreaSqft: d.floorAreaSqft,
+    favourited: d.favourites.length > 0,
     response: d.response
       ? {
           id: d.response.id,
