@@ -73,16 +73,26 @@ export function StatusTimeline({ currentStatus, history }: Props) {
       {history.length > 0 && (
         <div className="border-t border-carbon pt-8 mt-4">
           <h3 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Activity Log</h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[...history].reverse().map((entry) => (
-              <div key={entry.id} className="border-l-2 border-carbon pl-4">
+              <div
+                key={entry.id}
+                className={`pl-4 border-l-2 ${entry.note ? 'border-gold/40' : 'border-carbon'}`}
+              >
                 <p className="font-sans text-xs text-stone">
                   Status changed to <span className="text-ivory">{entry.toStatus.replace(/_/g, ' ')}</span>
                 </p>
                 {entry.note && (
-                  <p className="font-sans text-xs text-stone italic mt-1">&ldquo;{entry.note}&rdquo;</p>
+                  <div className="mt-3 py-3 px-4 bg-gold/5 border-l-2 border-gold">
+                    <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-1.5">
+                      Note from admin
+                    </p>
+                    <p className="font-sans text-xs text-ivory/90 italic leading-relaxed">
+                      &ldquo;{entry.note}&rdquo;
+                    </p>
+                  </div>
                 )}
-                <p className="font-sans text-[0.55rem] text-stone/50 mt-1">
+                <p className="font-sans text-[0.55rem] text-stone/50 mt-2">
                   {new Date(entry.createdAt).toLocaleString('en-GB')}
                 </p>
               </div>

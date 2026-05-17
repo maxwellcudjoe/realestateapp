@@ -18,6 +18,7 @@ model User {
   investorProfile     InvestorProfile?
   statusChanges       StatusHistory[]
   passwordResetTokens PasswordResetToken[]
+  sentMessages        Message[]            @relation("UserSentMessages")
 }
 
 model PasswordResetToken {
@@ -62,6 +63,7 @@ model Application {
 
   documents     Document[]
   statusHistory StatusHistory[]
+  messages      Message[]
 }
 
 model Document {
@@ -85,4 +87,15 @@ model StatusHistory {
   changedByUser   User?       @relation(fields: [changedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   note            String?     @db.NVarChar(Max)
   createdAt       DateTime    @default(now())
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  senderUserId  String
+  senderUser    User        @relation("UserSentMessages", fields: [senderUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subject       String      @db.NVarChar(255)
+  body          String      @db.NVarChar(Max)
+  createdAt     DateTime    @default(now())
 }
