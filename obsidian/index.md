@@ -30,6 +30,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-1-7-account-lockout](Projects/2026-05-17-task-1-7-account-lockout.md) | Phase 1 Task 1.7 complete — LoginAttempt model, IP lockout (5 fails / 15 min), `/portal/security` activity table. Closes X2. |
 | [2026-05-17-task-1-6-totp-2fa](Projects/2026-05-17-task-1-6-totp-2fa.md) | Phase 1 Task 1.6 complete — opt-in TOTP 2FA with QR enrolment, 10 single-use recovery codes, 2-step login flow, /portal/security manager. Closes X1. |
 | [2026-05-17-task-1-4-aml-data](Projects/2026-05-17-task-1-4-aml-data.md) | Phase 1 Task 1.4 complete — AML data capture (DOB, nationality, tax residency, NI, PEP, source of funds), new StepCompliance wizard step, admin Compliance panel. Closes R4+R5+R6. **Phase 1 done.** |
+| [2026-05-17-task-2-1-structured-target-areas](Projects/2026-05-17-task-2-1-structured-target-areas.md) | Phase 2 Task 2.1 complete — TargetArea model + 54-area catalog + multi-select picker. Unlocks Phase 4 auto-matching. Closes R10. |
 
 ## Bug Fixes
 

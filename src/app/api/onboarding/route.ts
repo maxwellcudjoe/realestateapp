@@ -6,6 +6,7 @@ import { verificationEmailHtml } from '@/lib/emails/verification'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { checkPasswordBreached } from '@/lib/password'
+import { areaLabel } from '@/lib/target-areas'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -83,6 +84,8 @@ export async function POST(req: NextRequest) {
         data: { email: d.email, passwordHash, role: 'investor' },
       })
 
+      const legacyTargetAreasText = d.targetAreaCodes.map(areaLabel).join(', ')
+
       const profile = await tx.investorProfile.create({
         data: {
           userId: user.id,
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
           budgetMax: d.budgetMax,
           strategy: d.strategy,
           buyerType: d.buyerType,
-          targetAreas: d.targetAreas,
+          targetAreas: legacyTargetAreasText, // Mirror for any unmigrated readers
           marketingConsentAt: d.agreedToMarketing ? new Date() : null,
           // Compliance / AML
           dateOfBirth: new Date(d.dateOfBirth),
@@ -110,6 +113,17 @@ export async function POST(req: NextRequest) {
           complianceCompleted: true,
         },
       })
+
+      // Structured target areas — one row per selected code
+      if (d.targetAreaCodes.length > 0) {
+        await tx.targetArea.createMany({
+          data: d.targetAreaCodes.map((code) => ({
+            investorProfileId: profile.id,
+            code,
+            label: areaLabel(code),
+          })),
+        })
+      }
 
       const application = await tx.application.create({
         data: { investorProfileId: profile.id, status: 'SUBMITTED' },
@@ -159,7 +173,7 @@ export async function POST(req: NextRequest) {
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Budget</td><td>£${d.budgetMin.toLocaleString()} – £${d.budgetMax.toLocaleString()}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Strategy</td><td>${d.strategy}</td></tr>
                 <tr><td style="padding:6px 16px 6px 0;color:#666">Buyer Type</td><td>${d.buyerType}</td></tr>
-                <tr><td style="padding:6px 16px 6px 0;color:#666">Areas</td><td>${d.targetAreas}</td></tr>
+                <tr><td style="padding:6px 16px 6px 0;color:#666">Areas</td><td>${d.targetAreaCodes.map(areaLabel).join(', ')}</td></tr>
               </table>
               <p><a href="${process.env.NEXTAUTH_URL}/admin/investors">View in dashboard →</a></p>
             </div>

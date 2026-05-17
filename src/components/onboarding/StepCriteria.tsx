@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { stepCriteriaSchema, VALID_STRATEGIES, VALID_BUYER_TYPES } from '@/lib/schemas/onboarding'
 import { Button } from '@/components/ui/Button'
+import { TargetAreaPicker } from './TargetAreaPicker'
 
 const FIELD_CLASS =
   'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
@@ -10,7 +11,7 @@ const LABEL_CLASS =
   'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-2'
 
 interface Props {
-  data: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreas: string }
+  data: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreaCodes: string[] }
   onChange: (data: Props['data']) => void
   onNext: () => void
   onBack: () => void
@@ -84,15 +85,11 @@ export function StepCriteria({ data, onChange, onNext, onBack }: Props) {
       </div>
       <div>
         <label className={LABEL_CLASS}>Target Areas</label>
-        <input
-          type="text"
-          required
-          value={data.targetAreas}
-          onChange={(e) => onChange({ ...data, targetAreas: e.target.value })}
-          className={FIELD_CLASS}
-          placeholder="Manchester, Leeds, Sheffield"
+        <TargetAreaPicker
+          value={data.targetAreaCodes}
+          onChange={(codes) => onChange({ ...data, targetAreaCodes: codes })}
         />
-        {errors.targetAreas && <p className="font-sans text-xs text-gold mt-1">{errors.targetAreas[0]}</p>}
+        {errors.targetAreaCodes && <p className="font-sans text-xs text-gold mt-1">{errors.targetAreaCodes[0]}</p>}
       </div>
       <div className="flex justify-between">
         <Button onClick={onBack} variant="secondary">← Back</Button>

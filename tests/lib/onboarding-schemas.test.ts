@@ -77,7 +77,7 @@ describe('stepCriteriaSchema', () => {
       budgetMax: 300000,
       strategy: 'BTL',
       buyerType: 'cash',
-      targetAreas: 'Manchester, Leeds',
+      targetAreaCodes: ['manchester', 'leeds'],
     })
     expect(result.success).toBe(true)
   })
@@ -88,7 +88,7 @@ describe('stepCriteriaSchema', () => {
       budgetMax: 100000,
       strategy: 'BTL',
       buyerType: 'cash',
-      targetAreas: 'Manchester',
+      targetAreaCodes: ['manchester'],
     })
     expect(result.success).toBe(false)
   })
@@ -99,7 +99,7 @@ describe('stepCriteriaSchema', () => {
       budgetMax: 300000,
       strategy: 'INVALID',
       buyerType: 'cash',
-      targetAreas: 'Manchester',
+      targetAreaCodes: ['manchester'],
     })
     expect(result.success).toBe(false)
   })
@@ -119,7 +119,7 @@ describe('onboardingSubmitSchema', () => {
     budgetMax: 300000,
     strategy: 'BTL',
     buyerType: 'cash',
-    targetAreas: 'Manchester, Leeds',
+    targetAreaCodes: ['manchester', 'leeds'],
     // Compliance fields
     dateOfBirth: '1990-01-01',
     nationality: 'GB',

@@ -2,6 +2,20 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.1 — Structured target areas (Phase 2 kickoff)
+
+- Created: `obsidian/Projects/2026-05-17-task-2-1-structured-target-areas.md`
+- Schema: new TargetArea model (investorProfileId, code, label) with @@unique([id, code]) + @@index(code) — pushed (5.14s); legacy InvestorProfile.targetAreas preserved
+- Lib: `src/lib/target-areas.ts` — 54 curated UK areas across 7 groups (London zones, NW, Yorkshire & NE, Midlands, S & SW, Wales, Scotland, NI)
+- UI: new TargetAreaPicker — selected chips at top, search input, grouped checkbox list with sticky headers
+- Wizard: StepCriteria replaces text input with picker, switches state to targetAreaCodes[]
+- Review + admin: chip display of selected areas (admin falls back to legacy string for old accounts)
+- API: targetArea.createMany within the onboarding transaction; legacy targetAreas string mirrored with joined labels
+- Zod: targetAreaCodes array with min 1, max 50, valid-codes refine
+- Tests: +5 for target-areas catalog; fixtures updated; 93/93 pass
+- Build: clean
+- Closes R10 — unlocks Phase 4 auto-matching
+
 ## [2026-05-17] feature | Task 1.4 — AML data capture + admin Compliance panel
 
 - Created: `obsidian/Projects/2026-05-17-task-1-4-aml-data.md`

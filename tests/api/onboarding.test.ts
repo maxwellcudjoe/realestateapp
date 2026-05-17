@@ -49,7 +49,8 @@ const VALID_BODY = {
   budgetMax: 300000,
   strategy: 'BTL',
   buyerType: 'cash',
-  targetAreas: 'Manchester, Leeds',
+  targetAreaCodes: ['manchester', 'leeds'],
+  // Above replaces old targetAreas free-text field
   dateOfBirth: '1990-01-01',
   nationality: 'GB',
   taxResidency: 'GB',
@@ -75,6 +76,7 @@ describe('POST /api/onboarding', () => {
         application: { create: vi.fn().mockResolvedValue({ id: 'a1' }) },
         statusHistory: { create: vi.fn().mockResolvedValue({ id: 's1' }) },
         emailVerificationToken: { create: vi.fn().mockResolvedValue({ id: 'v1' }) },
+        targetArea: { createMany: vi.fn().mockResolvedValue({ count: 2 }) },
       }
       return fn(txMock)
     })

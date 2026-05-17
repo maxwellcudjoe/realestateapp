@@ -5,6 +5,7 @@ import {
   NI_NUMBER_REGEX,
   ageOn,
 } from '@/lib/compliance'
+import { VALID_AREA_CODES } from '@/lib/target-areas'
 
 const passwordSchema = z
   .string()
@@ -81,7 +82,11 @@ export const stepCriteriaSchema = z
     budgetMax: z.number().positive('Maximum budget must be positive'),
     strategy: z.enum(['BTL', 'HMO', 'Flip', 'Any']),
     buyerType: z.enum(['cash', 'mortgage']),
-    targetAreas: z.string().min(1, 'Please enter at least one target area').max(500),
+    targetAreaCodes: z
+      .array(z.string())
+      .min(1, 'Select at least one target area')
+      .max(50)
+      .refine((arr) => arr.every((c) => VALID_AREA_CODES.has(c)), 'Unknown area selected'),
   })
   .refine((d) => d.budgetMax > d.budgetMin, {
     message: 'Maximum budget must be greater than minimum budget',
@@ -105,7 +110,11 @@ export const onboardingSubmitSchema = z
     budgetMax: z.number().positive(),
     strategy: z.enum(['BTL', 'HMO', 'Flip', 'Any']),
     buyerType: z.enum(['cash', 'mortgage']),
-    targetAreas: z.string().min(1).max(500),
+    targetAreaCodes: z
+      .array(z.string())
+      .min(1, 'Select at least one target area')
+      .max(50)
+      .refine((arr) => arr.every((c) => VALID_AREA_CODES.has(c)), 'Unknown area selected'),
     // Compliance fields (Task 1.4)
     dateOfBirth: z.string().refine((s) => !Number.isNaN(Date.parse(s)), 'Invalid date'),
     nationality: z.string().refine((v) => VALID_COUNTRY_CODES.includes(v)),

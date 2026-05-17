@@ -29,7 +29,10 @@ export default async function AdminInvestorDetailPage({
     where: { id: params.id },
     include: {
       investorProfile: {
-        include: { user: { select: { email: true } } },
+        include: {
+          user: { select: { email: true } },
+          structuredAreas: { orderBy: { label: 'asc' } },
+        },
       },
       documents: { orderBy: { uploadedAt: 'desc' } },
       statusHistory: { orderBy: { createdAt: 'asc' } },
@@ -60,13 +63,26 @@ export default async function AdminInvestorDetailPage({
             ['Budget', `${fmt(Number(p.budgetMin))} – ${fmt(Number(p.budgetMax))}`],
             ['Strategy', p.strategy],
             ['Buyer Type', p.buyerType],
-            ['Target Areas', p.targetAreas],
           ] as [string, string][]).map(([label, value]) => (
             <div key={label}>
               <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">{label}</p>
               <p className="font-sans text-sm text-ivory">{value}</p>
             </div>
           ))}
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Target Areas</p>
+            {p.structuredAreas.length > 0 ? (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {p.structuredAreas.map((a) => (
+                  <span key={a.id} className="bg-gold/10 border border-gold/30 px-2 py-0.5 text-xs text-ivory">
+                    {a.label}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="font-sans text-sm text-ivory italic">{p.targetAreas || '—'}</p>
+            )}
+          </div>
         </div>
 
         <div className="border border-carbon p-6">
