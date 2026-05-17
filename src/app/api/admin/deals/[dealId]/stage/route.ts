@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { VALID_DEAL_STAGES, dealStageLabel } from '@/lib/deal-stages'
 import { sendEmail } from '@/lib/resend'
 import { recordAudit } from '@/lib/audit'
+import { createNotification } from '@/lib/notifications'
 import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -104,6 +105,13 @@ export async function PATCH(
       resourceId: dealId,
       metadata: { from: deal.stage, to: stage, note: note || null },
       ipAddress: getClientIp(req),
+    })
+    await createNotification({
+      userId: deal.application.investorProfile.userId,
+      type: 'DEAL_STAGE',
+      title: `Deal moved to ${dealStageLabel(stage)}`,
+      body: `${deal.address}${note ? ` — ${note}` : ''}`,
+      link: `/portal/deals/${dealId}`,
     })
   }
 

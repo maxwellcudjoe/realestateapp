@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { recordAudit } from '@/lib/audit'
+import { createNotification } from '@/lib/notifications'
 import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -90,6 +91,14 @@ export async function POST(
     resourceId: params.id,
     metadata: { from: oldStatus, to: newStatus, note: note || null },
     ipAddress: getClientIp(req),
+  })
+
+  await createNotification({
+    userId: app.investorProfile.userId,
+    type: 'KYC_STATUS',
+    title: EMAIL_SUBJECTS[newStatus] ?? `Application status: ${newStatus}`,
+    body: note || '',
+    link: '/portal/status',
   })
 
   try {

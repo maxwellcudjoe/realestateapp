@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { recordAudit } from '@/lib/audit'
+import { createNotification } from '@/lib/notifications'
 import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
@@ -39,10 +40,10 @@ export async function POST(req: NextRequest) {
   }
   const d = parsed.data
 
-  // Resolve recipient emails up front so we can email after the transaction
+  // Resolve recipient emails + userIds up front so we can email + notify after the transaction
   const apps = await prisma.application.findMany({
     where: { id: { in: d.applicationIds }, status: 'ACTIVE_INVESTOR' },
-    include: { investorProfile: { include: { user: { select: { email: true } } } } },
+    include: { investorProfile: { include: { user: { select: { id: true, email: true } } } } },
   })
   if (apps.length === 0) {
     return NextResponse.json({ error: 'No eligible recipients found' }, { status: 400 })
@@ -82,7 +83,17 @@ export async function POST(req: NextRequest) {
     ipAddress: getClientIp(req),
   })
 
-  // Fire emails (non-fatal, in parallel)
+  // Notifications + emails — both non-fatal, in parallel
+  await Promise.all(apps.map((app) =>
+    createNotification({
+      userId: app.investorProfile.user.id,
+      type: 'DEAL_POSTED',
+      title: `New deal pack: ${d.title}`,
+      body: `${d.address} · £${d.askingPrice.toLocaleString('en-GB')}`,
+      link: '/portal/deals',
+    })
+  ))
+
   const subject = `New deal pack — ${d.title}`
   const priceFmt = `£${d.askingPrice.toLocaleString('en-GB')}`
   const portalUrl = `${process.env.NEXTAUTH_URL}/portal/deals`

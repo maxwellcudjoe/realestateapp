@@ -407,3 +407,17 @@ model AuditEvent {
   @@index([resourceType, resourceId])
   @@index([action, createdAt])
 }
+
+/// Task 6.4 — Notifications centre.
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    @db.NVarChar(40)
+  title       String    @db.NVarChar(255)
+  body        String    @db.NVarChar(Max)
+  link        String?   @db.NVarChar(500)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
