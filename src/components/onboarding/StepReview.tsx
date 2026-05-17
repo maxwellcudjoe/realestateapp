@@ -11,7 +11,7 @@ interface Props {
   account: { email: string }
   personal: { firstName: string; lastName: string; phone: string; addressLine1: string; city: string; postcode: string }
   criteria: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreas: string }
-  agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean }
+  agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean; agreedToMarketing: boolean }
   onAgreementChange: (field: string, value: boolean) => void
   onTurnstileToken: (token: string) => void
   turnstileToken: string
@@ -55,6 +55,7 @@ export function StepReview({
           ['agreedToTerms', <>I have read and agree to the <Link href="/terms" target="_blank" className="text-gold hover:text-ivory transition-colors">Terms &amp; Conditions</Link></>],
           ['agreedToPrivacy', <>I have read and agree to the <Link href="/privacy" target="_blank" className="text-gold hover:text-ivory transition-colors">Privacy Policy</Link></>],
           ['agreedToAge', 'I confirm I am over 18 and have legal authority to purchase UK property'],
+          ['agreedToMarketing', <span key="marketing-label" className="text-stone/70">I&apos;d like to receive deal alerts and market updates (optional — you can unsubscribe at any time)</span>],
         ] as [string, React.ReactNode][]).map(([field, label]) => (
           <label key={field} className="flex items-start gap-3 cursor-pointer group">
             <input

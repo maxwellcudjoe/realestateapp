@@ -1,9 +1,17 @@
 import { z } from 'zod'
 
+const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[a-z]/, 'Password must include a lowercase letter')
+  .regex(/[A-Z]/, 'Password must include an uppercase letter')
+  .regex(/\d/, 'Password must include a number')
+  .regex(/[^A-Za-z0-9]/, 'Password must include a symbol')
+
 export const stepAccountSchema = z
   .object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -39,7 +47,7 @@ export const VALID_BUYER_TYPES = ['cash', 'mortgage'] as const
 export const onboardingSubmitSchema = z
   .object({
     email: z.string().email(),
-    password: z.string().min(8),
+    password: passwordSchema,
     firstName: z.string().min(1).max(100),
     lastName: z.string().min(1).max(100),
     phone: z.string().min(7).max(50),
@@ -59,6 +67,7 @@ export const onboardingSubmitSchema = z
     }),
     agreedToAccuracy: z.literal(true),
     agreedToAge: z.literal(true),
+    agreedToMarketing: z.boolean().optional().default(false),
   })
   .refine((d) => d.budgetMax > d.budgetMin, {
     message: 'Maximum budget must exceed minimum',

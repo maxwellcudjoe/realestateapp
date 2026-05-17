@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { checkPasswordBreached } from '@/lib/password'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
 const schema = z.object({
   token: z.string().min(1),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[a-z]/, 'Password must include a lowercase letter')
+    .regex(/[A-Z]/, 'Password must include an uppercase letter')
+    .regex(/\d/, 'Password must include a number')
+    .regex(/[^A-Za-z0-9]/, 'Password must include a symbol'),
 })
 
 export async function POST(req: NextRequest) {
@@ -23,6 +30,14 @@ export async function POST(req: NextRequest) {
   }
 
   const { token, password } = parsed.data
+
+  const breach = await checkPasswordBreached(password)
+  if (breach.pwned) {
+    return NextResponse.json(
+      { error: `This password has appeared in ${breach.count.toLocaleString()} known data breaches. Please choose a different one.` },
+      { status: 400 },
+    )
+  }
 
   const resetToken = await prisma.passwordResetToken.findUnique({
     where: { token },

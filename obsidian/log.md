@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.5 — Password complexity + HIBP + marketing consent
+
+- Created: `obsidian/Projects/2026-05-17-task-1-5-password-marketing.md`
+- Schema: `InvestorProfile.marketingConsentAt DateTime?` — pushed to Azure SQL (8.29s)
+- Lib: `src/lib/password.ts` — checkPasswordComplexity, passwordStrength, checkPasswordBreached (HIBP k-anonymity, fail-safe)
+- Zod: passwordSchema requires upper+lower+digit+symbol+8chars; reused at /api/onboarding and /api/auth/reset-password
+- UI: PasswordStrengthMeter (4-bar ramp) on StepAccount; optional marketing checkbox on StepReview (muted styling, not blocking)
+- API: HIBP check before bcrypt; marketingConsentAt persisted (timestamp or null)
+- Tests: +10 (9 password lib, 1 schema, test fixtures updated to use complex passwords)
+- Build: clean (32 pages)
+- Closes gaps R7 (separate marketing consent) + R8 (stronger password)
+
 ## [2026-05-17] feature | Task 1.3 — CAPTCHA + rate limit on /api/onboarding
 
 - Created: `obsidian/Projects/2026-05-17-task-1-3-captcha-rate-limit.md`

@@ -26,6 +26,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-close-all-gaps-plan](Projects/2026-05-17-close-all-gaps-plan.md) | 6-phase, ~12-week sequenced plan to close all 40+ buyer-journey gaps. Schema diffs, files affected, AC, and risk notes per task. |
 | [2026-05-17-task-1-2-email-verification](Projects/2026-05-17-task-1-2-email-verification.md) | Phase 1 Task 1.2 complete — email verification + verify-before-sign-in. EmailVerificationToken model, /verify-email-sent page, login banner, NextAuth gate. Closes R1+R3. |
 | [2026-05-17-task-1-3-captcha-rate-limit](Projects/2026-05-17-task-1-3-captcha-rate-limit.md) | Phase 1 Task 1.3 complete — IP rate limit (5/15min) + Turnstile CAPTCHA on /api/onboarding with graceful fallback. Closes R2. |
+| [2026-05-17-task-1-5-password-marketing](Projects/2026-05-17-task-1-5-password-marketing.md) | Phase 1 Task 1.5 complete — password complexity rules, HIBP breach check (k-anonymity), strength meter, separate GDPR marketing consent. Closes R7+R8. |
 
 ## Bug Fixes
 

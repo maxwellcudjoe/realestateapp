@@ -19,7 +19,7 @@ export default function OnboardingPage() {
   const [account, setAccount] = useState({ email: '', password: '', confirmPassword: '' })
   const [personal, setPersonal] = useState({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '' })
   const [criteria, setCriteria] = useState({ budgetMin: 0, budgetMax: 0, strategy: 'BTL', buyerType: 'cash', targetAreas: '' })
-  const [agreements, setAgreements] = useState({ agreedToTerms: false, agreedToPrivacy: false, agreedToAccuracy: false, agreedToAge: false })
+  const [agreements, setAgreements] = useState({ agreedToTerms: false, agreedToPrivacy: false, agreedToAccuracy: false, agreedToAge: false, agreedToMarketing: false })
 
   function handleAgreement(field: string, value: boolean) {
     setAgreements((a) => ({ ...a, [field]: value }))

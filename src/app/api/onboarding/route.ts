@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/resend'
 import { verificationEmailHtml } from '@/lib/emails/verification'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { checkPasswordBreached } from '@/lib/password'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
@@ -59,6 +60,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // HIBP breach check (k-anonymity — password never sent to HIBP)
+  const breach = await checkPasswordBreached(d.password)
+  if (breach.pwned) {
+    return NextResponse.json(
+      {
+        errors: {
+          password: [
+            `This password has appeared in ${breach.count.toLocaleString()} known data breaches. Please choose a different password.`,
+          ],
+        },
+      },
+      { status: 422 },
+    )
+  }
+
   try {
     const passwordHash = await bcrypt.hash(d.password, 12)
 
@@ -81,6 +97,7 @@ export async function POST(req: NextRequest) {
           strategy: d.strategy,
           buyerType: d.buyerType,
           targetAreas: d.targetAreas,
+          marketingConsentAt: d.agreedToMarketing ? new Date() : null,
         },
       })
 

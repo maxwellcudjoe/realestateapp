@@ -10,8 +10,8 @@ describe('stepAccountSchema', () => {
   it('accepts valid account data', () => {
     const result = stepAccountSchema.safeParse({
       email: 'jane@example.com',
-      password: 'securepass',
-      confirmPassword: 'securepass',
+      password: 'Securepass1!',
+      confirmPassword: 'Securepass1!',
     })
     expect(result.success).toBe(true)
   })
@@ -19,8 +19,8 @@ describe('stepAccountSchema', () => {
   it('rejects mismatched passwords', () => {
     const result = stepAccountSchema.safeParse({
       email: 'jane@example.com',
-      password: 'securepass',
-      confirmPassword: 'different',
+      password: 'Securepass1!',
+      confirmPassword: 'Different1!',
     })
     expect(result.success).toBe(false)
   })
@@ -30,6 +30,15 @@ describe('stepAccountSchema', () => {
       email: 'jane@example.com',
       password: '1234567',
       confirmPassword: '1234567',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects password without a symbol', () => {
+    const result = stepAccountSchema.safeParse({
+      email: 'jane@example.com',
+      password: 'Securepass1',
+      confirmPassword: 'Securepass1',
     })
     expect(result.success).toBe(false)
   })
@@ -99,7 +108,7 @@ describe('stepCriteriaSchema', () => {
 describe('onboardingSubmitSchema', () => {
   const VALID = {
     email: 'jane@example.com',
-    password: 'securepass',
+    password: 'Securepass1!',
     firstName: 'Jane',
     lastName: 'Smith',
     phone: '+447700000000',

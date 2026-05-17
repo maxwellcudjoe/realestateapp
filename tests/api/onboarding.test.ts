@@ -14,6 +14,19 @@ vi.mock('@/lib/resend', () => ({
   sendEmail: vi.fn().mockResolvedValue({ id: 'mock-id' }),
 }))
 
+vi.mock('@/lib/password', () => ({
+  checkPasswordBreached: vi.fn().mockResolvedValue({ pwned: false, count: 0 }),
+}))
+
+vi.mock('@/lib/turnstile', () => ({
+  verifyTurnstile: vi.fn().mockResolvedValue({ ok: true }),
+}))
+
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockReturnValue({ ok: true, remaining: 4, resetAt: Date.now() + 60000 }),
+  getClientIp: vi.fn().mockReturnValue('1.2.3.4'),
+}))
+
 vi.mock('bcryptjs', () => ({
   default: { hash: vi.fn().mockResolvedValue('$2a$12$hashed') },
 }))
@@ -25,7 +38,7 @@ async function getHandler() {
 
 const VALID_BODY = {
   email: 'jane@example.com',
-  password: 'securepass',
+  password: 'Securepass1!',
   firstName: 'Jane',
   lastName: 'Smith',
   phone: '+447700000000',

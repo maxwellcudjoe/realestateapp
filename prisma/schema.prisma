@@ -45,22 +45,23 @@ model PasswordResetToken {
 }
 
 model InvestorProfile {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName    String   @db.NVarChar(100)
-  lastName     String   @db.NVarChar(100)
-  phone        String   @db.NVarChar(50)
-  addressLine1 String   @db.NVarChar(255)
-  city         String   @db.NVarChar(100)
-  postcode     String   @db.NVarChar(20)
-  budgetMin    Decimal  @db.Decimal(12, 2)
-  budgetMax    Decimal  @db.Decimal(12, 2)
-  strategy     String   @db.NVarChar(20)
-  buyerType    String   @db.NVarChar(20)
-  targetAreas  String   @db.NVarChar(Max)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName           String    @db.NVarChar(100)
+  lastName            String    @db.NVarChar(100)
+  phone               String    @db.NVarChar(50)
+  addressLine1        String    @db.NVarChar(255)
+  city                String    @db.NVarChar(100)
+  postcode            String    @db.NVarChar(20)
+  budgetMin           Decimal   @db.Decimal(12, 2)
+  budgetMax           Decimal   @db.Decimal(12, 2)
+  strategy            String    @db.NVarChar(20)
+  buyerType           String    @db.NVarChar(20)
+  targetAreas         String    @db.NVarChar(Max)
+  marketingConsentAt  DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   application Application?
 }
