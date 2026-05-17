@@ -2,6 +2,15 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.11 — Welcome landing page
+
+- New /portal/welcome page — 4-card "What happens next" explainer (review → KYC → activation → deals)
+- Login page detects ?verified=1 query param and routes just-verified users to /portal/welcome instead of /portal/status
+- Two CTAs: Continue to portal + Review my profile
+- No schema changes — uses existing verify-on-login flow signal
+- Build: clean
+- Closes R19
+
 ## [2026-05-17] feature | Task 2.8 — Profile-edit page
 
 - API: GET + PATCH /api/portal/profile (Zod-validated subset)

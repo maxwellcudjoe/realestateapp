@@ -95,6 +95,9 @@ function LoginForm() {
         setError('Invalid email or password. If you just registered, please verify your email first.')
       }
       setLoading(false)
+    } else if (verified) {
+      // Just-verified users land on the welcome page once.
+      router.push('/portal/welcome')
     } else {
       // If no explicit callback, route based on role
       if (searchParams.get('callbackUrl')) {
