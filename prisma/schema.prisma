@@ -217,6 +217,17 @@ model Deal {
   status         String       @default("OPEN") @db.NVarChar(20)
   createdAt      DateTime     @default(now())
 
+  // Task 4.3 — Richer deal cards (structured property data)
+  bedrooms                Int?
+  bathrooms               Int?
+  propertyType            String?  @db.NVarChar(30)
+  tenure                  String?  @db.NVarChar(20)
+  epcRating               String?  @db.NVarChar(2)
+  rentalAppraisalMonthly  Decimal? @db.Decimal(10, 2)
+  floorAreaSqft           Int?
+  areaCode                String?  @db.NVarChar(30)
+  strategyTag             String?  @db.NVarChar(30)
+
   // Task 3.1 — transaction pipeline
   stage          String       @default("PROPOSED") @db.NVarChar(30)
   stageHistory   DealStageHistory[]

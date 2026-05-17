@@ -40,6 +40,13 @@ export default async function PortalDealsPage() {
     status: d.status,
     stage: d.stage,
     createdAt: d.createdAt.toISOString(),
+    bedrooms: d.bedrooms,
+    bathrooms: d.bathrooms,
+    propertyType: d.propertyType,
+    tenure: d.tenure,
+    epcRating: d.epcRating,
+    rentalAppraisalMonthly: d.rentalAppraisalMonthly ? Number(d.rentalAppraisalMonthly) : null,
+    floorAreaSqft: d.floorAreaSqft,
     response: d.response
       ? {
           id: d.response.id,

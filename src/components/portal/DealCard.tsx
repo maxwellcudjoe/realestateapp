@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { dealStageLabel } from '@/lib/deal-stages'
+import { propertyTypeLabel, tenureLabel, computeGrossYield, epcRatingColor } from '@/lib/property'
 
 const INTENT_OPTIONS = [
   { value: 'ACCEPT', label: "Interested — let's proceed" },
@@ -35,6 +36,13 @@ export interface DealData {
   stage: string
   createdAt: string
   response: DealResponseData | null
+  bedrooms?: number | null
+  bathrooms?: number | null
+  propertyType?: string | null
+  tenure?: string | null
+  epcRating?: string | null
+  rentalAppraisalMonthly?: number | null
+  floorAreaSqft?: number | null
 }
 
 interface Props {
@@ -150,6 +158,30 @@ export function DealCard({ deal, onMutated }: Props) {
           </Link>
         </div>
       )}
+
+      {/* Stats grid — only renders if any structured data present */}
+      {(deal.bedrooms != null || deal.bathrooms != null || deal.propertyType || deal.tenure || deal.epcRating || deal.rentalAppraisalMonthly != null) && (() => {
+        const yield_ = computeGrossYield(deal.rentalAppraisalMonthly ?? null, deal.askingPrice)
+        const stats: Array<[string, React.ReactNode]> = []
+        if (deal.bedrooms != null) stats.push(['Beds', deal.bedrooms])
+        if (deal.bathrooms != null) stats.push(['Baths', deal.bathrooms])
+        if (deal.propertyType) stats.push(['Type', propertyTypeLabel(deal.propertyType)])
+        if (deal.tenure) stats.push(['Tenure', tenureLabel(deal.tenure)])
+        if (deal.floorAreaSqft != null) stats.push(['Sqft', deal.floorAreaSqft.toLocaleString('en-GB')])
+        if (deal.epcRating) stats.push(['EPC', <span key="epc" className={epcRatingColor(deal.epcRating)}>{deal.epcRating}</span>])
+        if (deal.rentalAppraisalMonthly != null) stats.push(['Rent', `£${deal.rentalAppraisalMonthly.toLocaleString('en-GB')}/mo`])
+        if (yield_) stats.push(['Yield', <span key="y" className="text-gold">{yield_.toFixed(1)}%</span>])
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 border-y border-carbon py-3">
+            {stats.map(([label, value]) => (
+              <div key={label}>
+                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/60">{label}</p>
+                <p className="font-sans text-sm text-ivory">{value}</p>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {deal.summary && (
         <p className="font-sans text-xs text-stone leading-relaxed border-l-2 border-carbon pl-4 italic">

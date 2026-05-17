@@ -9,6 +9,14 @@ const dealSchema = z.object({
   address: z.string().min(1).max(255),
   askingPrice: z.number().positive(),
   summary: z.string().optional(),
+  // Task 4.3 — optional structured property data
+  bedrooms: z.number().int().min(0).max(50).optional(),
+  bathrooms: z.number().int().min(0).max(50).optional(),
+  propertyType: z.string().max(30).optional(),
+  tenure: z.string().max(20).optional(),
+  epcRating: z.string().max(2).optional(),
+  rentalAppraisalMonthly: z.number().nonnegative().optional(),
+  floorAreaSqft: z.number().int().nonnegative().optional(),
 })
 
 export async function GET(
@@ -60,6 +68,13 @@ export async function POST(
       address: parsed.data.address,
       askingPrice: parsed.data.askingPrice,
       summary: parsed.data.summary,
+      bedrooms: parsed.data.bedrooms ?? null,
+      bathrooms: parsed.data.bathrooms ?? null,
+      propertyType: parsed.data.propertyType || null,
+      tenure: parsed.data.tenure || null,
+      epcRating: parsed.data.epcRating || null,
+      rentalAppraisalMonthly: parsed.data.rentalAppraisalMonthly ?? null,
+      floorAreaSqft: parsed.data.floorAreaSqft ?? null,
     },
   })
 

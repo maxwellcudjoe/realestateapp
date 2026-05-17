@@ -10,6 +10,15 @@ const schema = z.object({
   address: z.string().min(1).max(255),
   askingPrice: z.number().positive(),
   summary: z.string().max(5000).optional().default(''),
+  bedrooms: z.number().int().min(0).max(50).optional(),
+  bathrooms: z.number().int().min(0).max(50).optional(),
+  propertyType: z.string().max(30).optional(),
+  tenure: z.string().max(20).optional(),
+  epcRating: z.string().max(2).optional(),
+  rentalAppraisalMonthly: z.number().nonnegative().optional(),
+  floorAreaSqft: z.number().int().nonnegative().optional(),
+  areaCode: z.string().max(30).optional(),
+  strategyTag: z.string().max(30).optional(),
 })
 
 /** Fan-out: create a Deal row for each selected investor application + send email. */
@@ -48,6 +57,15 @@ export async function POST(req: NextRequest) {
           address: d.address,
           askingPrice: d.askingPrice,
           summary: d.summary || null,
+          bedrooms: d.bedrooms ?? null,
+          bathrooms: d.bathrooms ?? null,
+          propertyType: d.propertyType || null,
+          tenure: d.tenure || null,
+          epcRating: d.epcRating || null,
+          rentalAppraisalMonthly: d.rentalAppraisalMonthly ?? null,
+          floorAreaSqft: d.floorAreaSqft ?? null,
+          areaCode: d.areaCode || null,
+          strategyTag: d.strategyTag || null,
         },
       })
     )
