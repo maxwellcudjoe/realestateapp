@@ -19,6 +19,7 @@ model User {
   statusChanges       StatusHistory[]
   passwordResetTokens PasswordResetToken[]
   sentMessages        Message[]            @relation("UserSentMessages")
+  postedDeals         Deal[]               @relation("AdminPostedDeals")
 }
 
 model PasswordResetToken {
@@ -64,6 +65,7 @@ model Application {
   documents     Document[]
   statusHistory StatusHistory[]
   messages      Message[]
+  deals         Deal[]
 }
 
 model Document {
@@ -98,4 +100,30 @@ model Message {
   subject       String      @db.NVarChar(255)
   body          String      @db.NVarChar(Max)
   createdAt     DateTime    @default(now())
+}
+
+model Deal {
+  id             String       @id @default(cuid())
+  applicationId  String
+  application    Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  postedByUserId String
+  postedByUser   User         @relation("AdminPostedDeals", fields: [postedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  title          String       @db.NVarChar(255)
+  address        String       @db.NVarChar(255)
+  askingPrice    Decimal      @db.Decimal(12, 2)
+  summary        String?      @db.NVarChar(Max)
+  status         String       @default("OPEN") @db.NVarChar(20)
+  createdAt      DateTime     @default(now())
+
+  response       DealResponse?
+}
+
+model DealResponse {
+  id        String   @id @default(cuid())
+  dealId    String   @unique
+  deal      Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  intent    String   @db.NVarChar(30)
+  comment   String?  @db.NVarChar(Max)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
