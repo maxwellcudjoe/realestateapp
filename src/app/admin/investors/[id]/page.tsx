@@ -7,6 +7,7 @@ import {
   experienceLabel, timelineLabel, mortgageStatusLabel, entityTypeLabel,
 } from '@/lib/compliance'
 import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
+import { DocumentReviewRow } from '@/components/admin/DocumentReviewRow'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -122,25 +123,26 @@ export default async function AdminInvestorDetailPage({
 
         <div className="border border-carbon p-6">
           <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">KYC Documents</h2>
+          {app.kycExpiresAt && (
+            <p className={`font-sans text-[0.6rem] mb-3 ${app.kycExpiresAt < new Date() ? 'text-red-400' : app.kycExpiresAt.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000 ? 'text-amber-400' : 'text-stone'}`}>
+              KYC {app.kycExpiresAt < new Date() ? 'expired' : 'expires'} {app.kycExpiresAt.toLocaleDateString('en-GB')}
+            </p>
+          )}
           {app.documents.length === 0 ? (
             <p className="font-sans text-xs text-stone">No documents uploaded yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {app.documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between border-b border-carbon/50 pb-2">
-                  <div>
-                    <p className="font-sans text-xs text-ivory">{doc.type.replace(/_/g, ' ')}</p>
-                    <p className="font-sans text-[0.55rem] text-stone">{doc.fileName}</p>
-                  </div>
-                  <a
-                    href={`/api/admin/documents/${doc.id}/url`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-sans text-[0.6rem] uppercase tracking-widest text-gold hover:text-ivory transition-colors"
-                  >
-                    View
-                  </a>
-                </div>
+                <DocumentReviewRow
+                  key={doc.id}
+                  docId={doc.id}
+                  type={doc.type}
+                  fileName={doc.fileName}
+                  reviewStatus={doc.reviewStatus}
+                  reviewNote={doc.reviewNote}
+                  reviewedAt={doc.reviewedAt?.toISOString() ?? null}
+                  expiresAt={doc.expiresAt?.toISOString() ?? null}
+                />
               ))}
             </div>
           )}

@@ -157,6 +157,9 @@ model Application {
   investorProfile   InvestorProfile @relation(fields: [investorProfileId], references: [id], onDelete: Cascade)
   status            String          @default("SUBMITTED") @db.NVarChar(30)
   adminNotes        String?         @db.NVarChar(Max)
+  // Task 6.2 — KYC re-review cycle (UK MLR 2017: typically 18 months)
+  kycCompletedAt    DateTime?
+  kycExpiresAt      DateTime?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
@@ -167,14 +170,20 @@ model Application {
 }
 
 model Document {
-  id            String      @id @default(cuid())
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  type          String      @db.NVarChar(30)
-  fileName      String      @db.NVarChar(255)
-  blobPath      String      @db.NVarChar(500)
-  uploadedAt    DateTime    @default(now())
-  reviewStatus  String      @default("PENDING") @db.NVarChar(20)
+  id               String      @id @default(cuid())
+  applicationId    String
+  application      Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type             String      @db.NVarChar(30)
+  fileName         String      @db.NVarChar(255)
+  blobPath         String      @db.NVarChar(500)
+  uploadedAt       DateTime    @default(now())
+  // Task 6.3 — per-doc review actions
+  reviewStatus     String      @default("PENDING") @db.NVarChar(20)
+  reviewedByUserId String?
+  reviewedAt       DateTime?
+  reviewNote       String?     @db.NVarChar(1000)
+  // Task 6.2 — doc-level expiry (passports, POA staleness)
+  expiresAt        DateTime?
 }
 
 model StatusHistory {

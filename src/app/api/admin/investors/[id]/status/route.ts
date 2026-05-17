@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const VALID_STATUSES = [
@@ -56,6 +58,14 @@ export async function POST(
 
   const updateData: any = { status: newStatus }
   if (adminNotes !== undefined) updateData.adminNotes = adminNotes
+  // Task 6.2 — stamp KYC completion + expiry when admin marks KYC_APPROVED
+  if (newStatus === 'KYC_APPROVED' && oldStatus !== 'KYC_APPROVED') {
+    const now = new Date()
+    updateData.kycCompletedAt = now
+    const expires = new Date(now)
+    expires.setMonth(expires.getMonth() + 18)
+    updateData.kycExpiresAt = expires
+  }
 
   await prisma.application.update({
     where: { id: params.id },
@@ -70,6 +80,16 @@ export async function POST(
       changedByUserId: session.user.id,
       note: note || null,
     },
+  })
+
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'APPLICATION_STATUS_CHANGED',
+    resourceType: 'Application',
+    resourceId: params.id,
+    metadata: { from: oldStatus, to: newStatus, note: note || null },
+    ipAddress: getClientIp(req),
   })
 
   try {
