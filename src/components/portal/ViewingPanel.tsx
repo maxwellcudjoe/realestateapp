@@ -102,6 +102,7 @@ export function ViewingPanel({ dealId, isAdmin }: Props) {
                 <p className="font-sans text-xs text-gold/80 italic mt-1">Reply: &ldquo;{v.adminNote}&rdquo;</p>
               )}
               {isAdmin && v.status === 'REQUESTED' && <AdminDecide viewingId={v.id} onDone={load} suggested={v.requestedSlot} />}
+              {isAdmin && v.status === 'CONFIRMED' && <AdminCompleteOrCancel viewingId={v.id} onDone={load} />}
             </li>
           ))}
         </ul>
@@ -130,6 +131,42 @@ export function ViewingPanel({ dealId, isAdmin }: Props) {
           </Button>
         </form>
       )}
+    </div>
+  )
+}
+
+function AdminCompleteOrCancel({ viewingId, onDone }: { viewingId: string; onDone: () => void }) {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  async function update(status: 'COMPLETED' | 'CANCELLED') {
+    if (status === 'CANCELLED' && !confirm('Cancel this confirmed viewing? The investor will be notified.')) return
+    setError(''); setSubmitting(true)
+    try {
+      const res = await fetch(`/api/admin/viewings/${viewingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) setError(json.error ?? 'Failed')
+      else await onDone()
+    } catch {
+      setError('Network error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-carbon flex items-center gap-4">
+      <Button type="button" onClick={() => update('COMPLETED')} disabled={submitting}>
+        {submitting ? 'Saving…' : 'Mark as completed'}
+      </Button>
+      <button type="button" onClick={() => update('CANCELLED')} disabled={submitting} className="font-sans text-xs uppercase tracking-widest text-stone hover:text-red-400 transition-colors disabled:opacity-50">
+        Cancel viewing
+      </button>
+      {error && <p className="font-sans text-xs text-red-400">{error}</p>}
     </div>
   )
 }

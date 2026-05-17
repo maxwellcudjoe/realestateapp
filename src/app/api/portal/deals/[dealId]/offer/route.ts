@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { hasActiveProofOfFunds } from '@/lib/proof-of-funds'
 import { z } from 'zod'
 
 const offerSchema = z.object({
@@ -52,6 +53,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   const deal = await getDealForUser(dealId, session.user.id)
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
   if (deal.offer) return NextResponse.json({ error: 'An offer already exists for this deal. Use update.' }, { status: 409 })
+
+  const pofOk = await hasActiveProofOfFunds(deal.applicationId)
+  if (!pofOk) {
+    return NextResponse.json(
+      { error: 'Upload a recent proof of funds (bank statement or mortgage AIP within 6 months) before submitting an offer.', code: 'POF_REQUIRED' },
+      { status: 403 },
+    )
+  }
 
   const d = parsed.data
   await prisma.$transaction([

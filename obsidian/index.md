@@ -10,6 +10,7 @@ Master index for project knowledge captured in this vault.
 | [admin-workflow-investor-lifecycle](Knowledge/admin-workflow-investor-lifecycle.md) | Full admin workflow — 7-stage investor lifecycle from SUBMITTED to DEAL_SENT, with panel descriptions and business rules. |
 | [2026-05-17-buyer-journey-gap-analysis](Knowledge/2026-05-17-buyer-journey-gap-analysis.md) | Comprehensive gap analysis of the buyer journey — registration, KYC, deal response, post-acceptance, portfolio. ~40 gaps across 6 phases with severity + 6-phase roadmap. |
 | [2026-05-17-handoff-prompt](Knowledge/2026-05-17-handoff-prompt.md) | Handoff prompt for next session — 36-commit summary, phase status, external setup pending, deferred work (6.8 Passkeys), key files, mandatory workflow notes. |
+| [2026-05-17-post-viewing-flow-and-money-handling](Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md) | Process-gap analysis + locked product decisions: solicitor-only money flow, Rêve Bâtir invoices for sourcing/success/subscription fees. Proposes Phase 7 build. |
 
 ## Projects
 
@@ -37,6 +38,9 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-2-6-phone-e164](Projects/2026-05-17-task-2-6-phone-e164.md) | Phase 2 Task 2.6 complete — libphonenumber-js validation, E.164 normalisation on store. Closes R17. |
 | _(Task 2.9 — password change in portal)_ | New PasswordChangeForm + POST /api/portal/password/change on /portal/security. Closes R21. (Inline-logged) |
 | _(Task 2.8 — profile-edit page)_ | New /portal/profile with full sectioned form, locked AML core, atomic strategy/area replacement. Closes R20 + lets legacy users self-serve their compliance data. (Inline-logged) |
+| [2026-05-17-phase-7-plan](Projects/2026-05-17-phase-7-plan.md) | Phase 7 plan — Post-viewing handoff + Rêve Bâtir invoicing. Two shippable units: 7A (no-schema UX) + 7B (Invoice + Subscription + 48h Premium gate). Decisions locked: solicitor-only money, three fee types, manual sourcing trigger, % success on COMPLETED, uniform pricing. |
+| [2026-05-17-task-7-1-post-viewing-handoff](Projects/2026-05-17-task-7-1-post-viewing-handoff.md) | Phase 7 Task 7.1 — Admin Mark-completed/Cancel buttons on CONFIRMED viewings + investor PostViewingPrompt banner above OfferForm. Scope reduced after finding offer POST already auto-advances stage. 8 viewing API tests. |
+| [2026-05-17-task-7-2-proof-of-funds-gate](Projects/2026-05-17-task-7-2-proof-of-funds-gate.md) | Phase 7 Task 7.2 — PROOF_OF_FUNDS doc type (6-month freshness), new `/api/portal/proof-of-funds` upload route, server-side gate on viewing-request and offer POST (`POF_REQUIRED` code), ProofOfFundsGate UI banner. 16 new tests. |
 
 ## Bug Fixes
 

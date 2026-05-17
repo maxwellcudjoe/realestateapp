@@ -7,6 +7,9 @@ import { FinancialSummary } from '@/components/portal/FinancialSummary'
 import { DealMessageThread } from '@/components/portal/DealMessageThread'
 import { DealDocumentRoom } from '@/components/portal/DealDocumentRoom'
 import { ViewingPanel } from '@/components/portal/ViewingPanel'
+import { PostViewingPrompt } from '@/components/portal/PostViewingPrompt'
+import { ProofOfFundsGate } from '@/components/portal/ProofOfFundsGate'
+import { hasActiveProofOfFunds, getMostRecentProofOfFunds } from '@/lib/proof-of-funds'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -23,6 +26,7 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
       dealLeadUser: { select: { email: true } },
       response: true,
       offer: true,
+      viewings: { orderBy: { createdAt: 'desc' } },
       application: { include: { investorProfile: { select: { taxResidency: true, entityType: true } } } },
     },
   })
@@ -31,6 +35,25 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
   const fmt = (n: number) => `£${Number(n).toLocaleString('en-GB')}`
   const timeline = visibleStagesForTimeline(deal.stage)
   const historyByStage = new Map(deal.stageHistory.map((h) => [h.toStage, h]))
+
+  // Surface the post-viewing prompt when (a) the investor accepted the deal, (b) hasn't
+  // submitted an offer yet, and (c) has a viewing that has actually happened
+  // (status=COMPLETED, or CONFIRMED with a slot in the past).
+  const now = new Date()
+  const recentViewing = deal.viewings.find((v) => {
+    if (v.status === 'COMPLETED') return true
+    if (v.status === 'CONFIRMED' && v.confirmedSlot && v.confirmedSlot < now) return true
+    return false
+  })
+  const showPostViewingPrompt = Boolean(
+    recentViewing && deal.response?.intent === 'ACCEPT' && !deal.offer,
+  )
+
+  // PoF gate — block viewings + offers without a fresh proof-of-funds doc
+  const [pofFresh, pofDoc] = await Promise.all([
+    hasActiveProofOfFunds(deal.applicationId),
+    getMostRecentProofOfFunds(deal.applicationId),
+  ])
 
   return (
     <div>
@@ -49,8 +72,21 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
         </div>
       </section>
 
+      {!pofFresh && (
+        <ProofOfFundsGate
+          staleDoc={pofDoc ? { fileName: pofDoc.fileName, uploadedAt: pofDoc.uploadedAt.toISOString() } : null}
+        />
+      )}
+
+      {showPostViewingPrompt && recentViewing && (
+        <PostViewingPrompt
+          address={deal.address}
+          viewingDate={(recentViewing.confirmedSlot ?? recentViewing.requestedSlot).toISOString()}
+        />
+      )}
+
       {deal.response?.intent === 'ACCEPT' && (
-        <section className="mb-12">
+        <section id="offer-section" className="mb-12">
           <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Your Offer</p>
           <div className="border border-carbon p-5">
             <OfferForm

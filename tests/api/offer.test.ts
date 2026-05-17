@@ -6,6 +6,7 @@ const mockFindUnique = vi.fn()
 const mockTransaction = vi.fn()
 const mockOfferCreate = vi.fn()
 const mockOfferUpdate = vi.fn()
+const mockHasPof = vi.fn()
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
@@ -17,6 +18,7 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
+vi.mock('@/lib/proof-of-funds', () => ({ hasActiveProofOfFunds: mockHasPof }))
 
 async function getPortalHandlers() {
   return await import('@/app/api/portal/deals/[dealId]/offer/route')
@@ -41,11 +43,12 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
     mockFindFirst.mockResolvedValue({
-      id: 'd1', stage: 'PROPOSED', title: 'X', address: 'Y',
+      id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
       offer: null,
-      application: { investorProfile: { firstName: 'Jane' } },
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
     })
     mockTransaction.mockResolvedValue([])
+    mockHasPof.mockResolvedValue(true)
   })
 
   it('rejects unauthenticated', async () => {
@@ -76,6 +79,16 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
     const res = await POST(req(VALID), ctx())
     expect(res.status).toBe(200)
     expect(mockTransaction).toHaveBeenCalled()
+  })
+
+  it('rejects offer when no fresh proof of funds is on file', async () => {
+    mockHasPof.mockResolvedValue(false)
+    const { POST } = await getPortalHandlers()
+    const res = await POST(req(VALID), ctx())
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.code).toBe('POF_REQUIRED')
+    expect(mockTransaction).not.toHaveBeenCalled()
   })
 })
 

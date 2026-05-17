@@ -2,6 +2,50 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Tasks 7.1 + 7.2 — Post-viewing handoff + Proof-of-funds gate (Phase 7A)
+
+- Created: `obsidian/Projects/2026-05-17-task-7-1-post-viewing-handoff.md`
+- Created: `obsidian/Projects/2026-05-17-task-7-2-proof-of-funds-gate.md`
+- Updated: `obsidian/index.md` — added both task entries
+- **Task 7.1**: ViewingPanel gains `AdminCompleteOrCancel` for CONFIRMED state (Mark as completed / Cancel viewing); new `PostViewingPrompt` banner above OfferForm with smooth-scroll-to-offer button; investor deal page now queries `viewings` and renders prompt when intent=ACCEPT + recent viewing + no offer yet. Scope reduced: discovered offer POST already auto-advances PROPOSED→OFFER_PENDING (no admin banner needed).
+- **Task 7.2**: New `src/lib/proof-of-funds.ts` (6-month freshness, helpers), new `POST /api/portal/proof-of-funds` upload route (works regardless of app status, replaces existing), server-side `POF_REQUIRED` gate on viewing-request + offer-submit endpoints, new `ProofOfFundsGate` UI banner with stale-doc messaging.
+- Tests: +16 (10 PoF lib, 5 viewing POST incl. PoF gate, 1 offer PoF gate); 229/229 pass
+- Build: clean — new `/api/portal/proof-of-funds` route compiled
+- No schema changes (Document.type was free-string already — `PROOF_OF_FUNDS` is a new value)
+- Next: commit + push 7A, then start Task 7.3 (Invoice + Subscription schema)
+
+## [2026-05-17] plan | Phase 7 — Post-viewing handoff + Rêve Bâtir invoicing
+
+- Created: `obsidian/Projects/2026-05-17-phase-7-plan.md`
+- Updated: `obsidian/index.md` — added Phase 7 plan entry
+- Sequence locked (per owner):
+  - **7A** ships first (no schema): Task 7.1 post-viewing handoff + Task 7.2 PoF gate
+  - **7B** ships second (schema migration): Task 7.3 Invoice model (admin issue / investor view / PDF) + Task 7.4 Subscription + Premium tier (48h preview gate, manual renewal generator)
+- Schema sketched: Invoice (RB-YYYY-NNNN, DRAFT→SENT→PAID→VOID, bank reference, PDF blob), Subscription (monthly/annual, nextRenewalAt), User.tier (FREE|PREMIUM), Deal.publishedAt
+- Env vars added to setup checklist: REVE_BATIR_SUCCESS_FEE_PCT, REVE_BATIR_PREMIUM_MONTHLY|ANNUAL, bank details for PDF
+- TodoWrite seeded with 13 tasks across both slices
+- Next: start Task 7.1 (post-viewing handoff) — ViewingPanel + investor offer-prompt card + admin auto-stage banner
+
+## [2026-05-17] decision | Solicitor-only money flow + Rêve Bâtir invoices (sourcing/success/subscription)
+
+- Updated: `obsidian/Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md` — added "Product decisions (locked)" header + revised plan
+- Updated: `obsidian/index.md` — refreshed summary
+- Owner decided: (1) no Stripe/GoCardless — all conveyancing money via solicitor client accounts; (2) Rêve Bâtir charges sourcing + success + subscription fees, so Invoice model is required scope (not optional).
+- Phase 7 proposed: post-viewing handoff (~1d) → proof-of-funds gate (~½d) → Invoice model + admin/investor UI + PDF (~2-3d) → Subscription recurring engine (~1-2d)
+- Out: reservation-fee capture, payment processor integration
+- Blocked on: 4 structural questions (subscription tier, sourcing fee shape, success fee shape, per-investor overrides) — asked owner next
+
+## [2026-05-17] query | Post-viewing flow & money handling — gap analysis
+
+- Created: `obsidian/Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md`
+- Updated: `obsidian/index.md` — added Knowledge entry
+- Question from owner: what happens after viewing CONFIRMED, and where do money transactions live?
+- Findings:
+  - **Gap A — post-viewing dead-zone**: viewing CONFIRMED → silence. `ViewingPanel` AdminDecide controls only render for REQUESTED. No prompt to investor to make an offer. No link between Viewing.status and Deal.stage advancement. Offer submission doesn't auto-advance stage. Biggest UX cliff in journey.
+  - **Gap B — no money handling**: no Stripe/payments anywhere. `Offer.depositPercent` is commitment-only, `FinancialSummary` is a calculator. All cash flows off-platform via solicitors. Missing: reservation/holding fee, Rêve Bâtir's own invoicing, proof-of-funds gate.
+- Recommendation: tackle Gap A (~1 day, no money risk) before any payment work. Two product decisions needed: (1) does the platform take money? (2) are there Rêve Bâtir fees?
+- Source files: `prisma/schema.prisma:286-301` (Viewing), `src/lib/deal-stages.ts`, viewing API routes, ViewingPanel, FinancialSummary, OfferForm
+
 ## [2026-05-17] feature | Tasks 3.1 + 3.7 — Deal pipeline + deal-team handoff (Phase 3 kickoff)
 
 - Schema: Deal.stage (default PROPOSED), Deal.dealLeadUserId / solicitorContact / brokerContact; new DealStageHistory model — pushed (9.75s)
