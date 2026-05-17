@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { DealStagePanel } from '@/components/admin/DealStagePanel'
+import { OfferDecisionPanel } from '@/components/admin/OfferDecisionPanel'
 import { DEAL_STAGES } from '@/lib/deal-stages'
 import Link from 'next/link'
 
@@ -25,6 +26,7 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
         response: true,
         stageHistory: { orderBy: { createdAt: 'asc' } },
         dealLeadUser: { select: { id: true, email: true } },
+        offer: true,
       },
     }),
     prisma.user.findMany({ where: { role: 'admin' }, select: { id: true, email: true }, orderBy: { email: 'asc' } }),
@@ -81,6 +83,26 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
                   <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Investor Response</p>
                   <p className="font-sans text-sm text-ivory">{INTENT_LABEL[deal.response.intent] ?? deal.response.intent}</p>
                   {deal.response.comment && <p className="font-sans text-xs text-stone italic mt-1">&ldquo;{deal.response.comment}&rdquo;</p>}
+                </div>
+              )}
+              {deal.offer && (
+                <div className="mt-3 pt-3 border-t border-carbon/60">
+                  <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Investor Offer</p>
+                  <p className="font-sans text-sm text-ivory">
+                    {fmt(Number(deal.offer.amount))} · {deal.offer.depositPercent}% deposit · {deal.offer.financingSource.toLowerCase()}
+                  </p>
+                  <p className="font-sans text-[0.55rem] text-stone mt-0.5">
+                    {deal.offer.status === 'PENDING' ? 'Pending vendor decision' : `Vendor: ${deal.offer.status.toLowerCase()}`}
+                    {' · '}submitted {deal.offer.submittedAt.toLocaleDateString('en-GB')}
+                    {deal.offer.targetExchangeDate && <> · target exchange {deal.offer.targetExchangeDate.toLocaleDateString('en-GB')}</>}
+                  </p>
+                  {deal.offer.conditions && (
+                    <p className="font-sans text-xs text-stone italic mt-1 whitespace-pre-line border-l-2 border-gold/30 pl-3">{deal.offer.conditions}</p>
+                  )}
+                  {deal.offer.vendorDecisionNote && (
+                    <p className="font-sans text-xs text-stone italic mt-2">Decision note: &ldquo;{deal.offer.vendorDecisionNote}&rdquo;</p>
+                  )}
+                  <OfferDecisionPanel dealId={deal.id} pending={deal.offer.status === 'PENDING'} />
                 </div>
               )}
             </div>

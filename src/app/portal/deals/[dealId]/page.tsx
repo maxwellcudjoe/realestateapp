@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { dealStageLabel, dealStageDescription, visibleStagesForTimeline } from '@/lib/deal-stages'
+import { OfferForm } from '@/components/portal/OfferForm'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +18,7 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
       stageHistory: { orderBy: { createdAt: 'asc' } },
       dealLeadUser: { select: { email: true } },
       response: true,
+      offer: true,
     },
   })
   if (!deal) redirect('/portal/deals')
@@ -41,6 +43,28 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
           <p className="font-sans text-xs text-stone mt-1">{dealStageDescription(deal.stage)}</p>
         </div>
       </section>
+
+      {deal.response?.intent === 'ACCEPT' && (
+        <section className="mb-12">
+          <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Your Offer</p>
+          <div className="border border-carbon p-5">
+            <OfferForm
+              dealId={deal.id}
+              askingPrice={Number(deal.askingPrice)}
+              existingOffer={deal.offer ? {
+                amount: Number(deal.offer.amount),
+                depositPercent: deal.offer.depositPercent,
+                financingSource: deal.offer.financingSource,
+                targetExchangeDate: deal.offer.targetExchangeDate?.toISOString() ?? null,
+                conditions: deal.offer.conditions,
+                status: deal.offer.status,
+                vendorDecisionNote: deal.offer.vendorDecisionNote,
+                submittedAt: deal.offer.submittedAt.toISOString(),
+              } : null}
+            />
+          </div>
+        </section>
+      )}
 
       <section className="mb-12">
         <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Pipeline</p>

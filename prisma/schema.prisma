@@ -224,6 +224,7 @@ model Deal {
   brokerContact     String?   @db.NVarChar(500)
 
   response       DealResponse?
+  offer          Offer?
 }
 
 model DealStageHistory {
@@ -237,6 +238,21 @@ model DealStageHistory {
   createdAt       DateTime @default(now())
 
   @@index([dealId, createdAt])
+}
+
+model Offer {
+  id                 String   @id @default(cuid())
+  dealId             String   @unique
+  deal               Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  amount             Decimal  @db.Decimal(12, 2)
+  depositPercent     Int
+  financingSource    String   @db.NVarChar(20)  // CASH | MORTGAGE | MIXED
+  targetExchangeDate DateTime?
+  conditions         String?  @db.NVarChar(Max) // free text — bullet conditions
+  status             String   @default("PENDING") @db.NVarChar(20)  // PENDING | ACCEPTED | REJECTED | WITHDRAWN
+  vendorDecisionNote String?  @db.NVarChar(Max)
+  submittedAt        DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model DealResponse {
