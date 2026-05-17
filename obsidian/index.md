@@ -9,6 +9,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-11-realestate-codebase-understanding](Knowledge/2026-05-11-realestate-codebase-understanding.md) | Architecture, route behavior, data flows, testing posture, and extension points for this repository. |
 | [admin-workflow-investor-lifecycle](Knowledge/admin-workflow-investor-lifecycle.md) | Full admin workflow — 7-stage investor lifecycle from SUBMITTED to DEAL_SENT, with panel descriptions and business rules. |
 | [2026-05-17-buyer-journey-gap-analysis](Knowledge/2026-05-17-buyer-journey-gap-analysis.md) | Comprehensive gap analysis of the buyer journey — registration, KYC, deal response, post-acceptance, portfolio. ~40 gaps across 6 phases with severity + 6-phase roadmap. |
+| [2026-05-17-handoff-prompt](Knowledge/2026-05-17-handoff-prompt.md) | Handoff prompt for next session — 36-commit summary, phase status, external setup pending, deferred work (6.8 Passkeys), key files, mandatory workflow notes. |
 
 ## Projects
 
