@@ -46,6 +46,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
+        if (user.deletedAt) {
+          await recordLoginAttempt({ email, ipAddress: ip, success: false, userId: user.id, reason: 'deleted' })
+          return null
+        }
+
         // Gate sign-in on verified email. Admin role is always allowed —
         // admins are seeded server-side and never go through the wizard.
         if (!user.emailVerifiedAt && user.role !== 'admin') {

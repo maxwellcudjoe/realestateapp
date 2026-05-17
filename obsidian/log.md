@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.10 — GDPR data export + account deletion
+
+- Schema: User.deletedAt DateTime? — pushed
+- Auth: NextAuth authorize() rejects users with deletedAt set; logs reason `deleted`
+- API: GET /api/portal/data-export — returns downloadable JSON of all personal records (account, profile, application, status history, docs, messages, deals, last 100 login attempts); excludes secrets (passwordHash, totpSecret)
+- API: POST /api/portal/account/delete — requires password + literal "DELETE" confirmation; soft-deletes by anonymising User + InvestorProfile (preserves audit-required records for UK MLR 7-year retention); clears tokens + 2FA + recovery codes; signs user out
+- Admin accounts cannot self-delete (403)
+- UI: DataAndDeletion component on /portal/security with "Download my data" link + danger-styled delete flow
+- Tests: +7 (delete: auth/confirm/admin-block/wrong-password; export: 401/404/success); 129/129 pass
+- Build: clean
+- Closes R22
+
 ## [2026-05-17] feature | Task 2.3 — Buyer entity / SPV support
 
 - Schema: +5 fields on InvestorProfile (entityType, companyName, companyNumber, vatNumber, companyAddress) — entityType defaults to INDIVIDUAL — pushed (4.50s)

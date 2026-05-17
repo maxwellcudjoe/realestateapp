@@ -15,6 +15,7 @@ model User {
   emailVerifiedAt DateTime?
   totpSecret      String?   @db.NVarChar(255)
   totpEnabledAt   DateTime?
+  deletedAt       DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

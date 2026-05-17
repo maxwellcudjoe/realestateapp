@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { recentAttemptsForUser } from '@/lib/login-tracking'
 import { TotpManager } from '@/components/portal/TotpManager'
 import { PasswordChangeForm } from '@/components/portal/PasswordChangeForm'
+import { DataAndDeletion } from '@/components/portal/DataAndDeletion'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,6 +56,13 @@ export default async function PortalSecurityPage() {
           Change Password
         </p>
         <PasswordChangeForm />
+      </section>
+
+      <section className="mb-16">
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">
+          Your Data
+        </p>
+        <DataAndDeletion />
       </section>
 
       <section>
