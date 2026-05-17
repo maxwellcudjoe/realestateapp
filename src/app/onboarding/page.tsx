@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { WizardProgress } from '@/components/onboarding/WizardProgress'
 import { StepAccount } from '@/components/onboarding/StepAccount'
@@ -52,14 +51,8 @@ export default function OnboardingPage() {
         return
       }
 
-      // Auto sign-in after successful registration
-      await signIn('credentials', {
-        email: account.email,
-        password: account.password,
-        redirect: false,
-      })
-
-      router.push('/portal/status')
+      // Email verification required before sign-in — redirect to "check your inbox" page.
+      router.push(`/verify-email-sent?email=${encodeURIComponent(account.email)}`)
     } catch {
       setSubmitErrors({ _form: ['Network error. Please try again.'] })
       setSubmitting(false)

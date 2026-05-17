@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { onboardingSubmitSchema } from '@/lib/schemas/onboarding'
 import { sendEmail } from '@/lib/resend'
+import { verificationEmailHtml } from '@/lib/emails/verification'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
   let body: unknown
@@ -69,25 +71,27 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      return { user, application }
+      const verificationToken = crypto.randomBytes(32).toString('hex')
+      await tx.emailVerificationToken.create({
+        data: {
+          userId: user.id,
+          token: verificationToken,
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24 hours
+        },
+      })
+
+      return { user, application, verificationToken }
     })
+
+    const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email/${result.verificationToken}`
 
     // Send emails (non-blocking — don't fail the request if email fails)
     try {
       await Promise.all([
         sendEmail({
           to: result.user.email,
-          subject: 'Application received — Rêve Bâtir Realty',
-          html: `
-            <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#f0e8d8;padding:40px">
-              <h1 style="color:#c9a84c;font-size:24px;font-weight:300">Application Received</h1>
-              <p>Dear ${d.firstName},</p>
-              <p>Thank you for registering with Rêve Bâtir Realty. We have received your investor application and our team will review it within 48 hours.</p>
-              <p>You can track your application status at any time by logging into your <a href="${process.env.NEXTAUTH_URL}/portal/status" style="color:#c9a84c">investor portal</a>.</p>
-              <hr style="border:none;border-top:1px solid #1e1e1e;margin:24px 0"/>
-              <p style="font-size:12px;color:#888">Rêve Bâtir Realty — Property Deal Sourcing</p>
-            </div>
-          `,
+          subject: 'Verify your email — Rêve Bâtir Realty',
+          html: verificationEmailHtml({ firstName: d.firstName, verifyUrl }),
         }),
         sendEmail({
           to: process.env.RESEND_TO_EMAIL!,

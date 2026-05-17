@@ -2,6 +2,21 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.2 — Email verification + verify-before-sign-in
+
+- Created: `obsidian/Projects/2026-05-17-task-1-2-email-verification.md`
+- Schema: `User.emailVerifiedAt DateTime?` + new `EmailVerificationToken` model — pushed to Azure SQL (5.22s)
+- Backfill: `scripts/backfill-email-verified.ts` grandfathered 5 existing users
+- Email template: `src/lib/emails/verification.ts` (24h link)
+- API: `POST /api/auth/verify-email/request` (resend, no enumeration), `GET /api/auth/verify-email/[token]` (consume → /login?verified=1)
+- Page: `/verify-email-sent` with resend button
+- Auth: NextAuth `authorize()` rejects unverified users (admins exempt)
+- Onboarding: removed auto sign-in; redirects to /verify-email-sent
+- Login: success banner, error banner, "Resend it" inline link
+- Tests: 4 new for verify-email request endpoint; total 33/33 pass
+- Build: clean (32 pages, +/verify-email-sent)
+- Closes gaps R1 (email verification) + R3 (verify-before-sign-in)
+
 ## [2026-05-17] plan | Close-All-Gaps Implementation Plan
 
 - Created: `obsidian/Projects/2026-05-17-close-all-gaps-plan.md`

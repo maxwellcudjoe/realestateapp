@@ -24,6 +24,7 @@ Master index for project knowledge captured in this vault.
 | [Task_2_Admin_API_Deals_Endpoint](Projects/Task_2_Admin_API_Deals_Endpoint.md) | Admin API route GET+POST /api/admin/investors/[id]/deals — list deals and create new deal with investor email notification. |
 | [investor-deal-feedback](Projects/investor-deal-feedback.md) | Full deal feedback feature — admin posts deals, investor CRUD responses, 5 API routes, DealCard 4-state UI, email notifications. |
 | [2026-05-17-close-all-gaps-plan](Projects/2026-05-17-close-all-gaps-plan.md) | 6-phase, ~12-week sequenced plan to close all 40+ buyer-journey gaps. Schema diffs, files affected, AC, and risk notes per task. |
+| [2026-05-17-task-1-2-email-verification](Projects/2026-05-17-task-1-2-email-verification.md) | Phase 1 Task 1.2 complete — email verification + verify-before-sign-in. EmailVerificationToken model, /verify-email-sent page, login banner, NextAuth gate. Closes R1+R3. |
 
 ## Bug Fixes
 

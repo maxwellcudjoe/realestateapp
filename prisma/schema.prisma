@@ -8,18 +8,30 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique @db.NVarChar(255)
-  passwordHash String   @db.NVarChar(100)
-  role         String   @default("investor") @db.NVarChar(20)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(cuid())
+  email           String    @unique @db.NVarChar(255)
+  passwordHash    String    @db.NVarChar(100)
+  role            String    @default("investor") @db.NVarChar(20)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  investorProfile     InvestorProfile?
-  statusChanges       StatusHistory[]
-  passwordResetTokens PasswordResetToken[]
-  sentMessages        Message[]            @relation("UserSentMessages")
-  postedDeals         Deal[]               @relation("AdminPostedDeals")
+  investorProfile          InvestorProfile?
+  statusChanges            StatusHistory[]
+  passwordResetTokens      PasswordResetToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  sentMessages             Message[]            @relation("UserSentMessages")
+  postedDeals              Deal[]               @relation("AdminPostedDeals")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique @db.NVarChar(255)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model PasswordResetToken {

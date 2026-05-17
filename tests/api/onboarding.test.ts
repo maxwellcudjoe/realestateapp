@@ -53,6 +53,7 @@ describe('POST /api/onboarding', () => {
         investorProfile: { create: vi.fn().mockResolvedValue({ id: 'p1' }) },
         application: { create: vi.fn().mockResolvedValue({ id: 'a1' }) },
         statusHistory: { create: vi.fn().mockResolvedValue({ id: 's1' }) },
+        emailVerificationToken: { create: vi.fn().mockResolvedValue({ id: 'v1' }) },
       }
       return fn(txMock)
     })
