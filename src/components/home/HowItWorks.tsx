@@ -3,8 +3,8 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 const STEPS = [
   {
     num: '01',
-    title: 'Register as a Buyer',
-    body: 'Complete the investor registration form with your contact details and preferences.',
+    title: 'Register as an Investor',
+    body: 'Complete the investor registration form with your contact details and compliance information.',
   },
   {
     num: '02',

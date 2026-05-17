@@ -230,6 +230,21 @@ model Deal {
   response       DealResponse?
   offer          Offer?
   messages       Message[]
+  documents      DealDocument[]
+}
+
+model DealDocument {
+  id               String   @id @default(cuid())
+  dealId           String
+  deal             Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  uploadedByUserId String
+  type             String   @db.NVarChar(40)
+  fileName         String   @db.NVarChar(255)
+  blobPath         String   @db.NVarChar(500)
+  visibility       String   @default("INVESTOR") @db.NVarChar(20)
+  uploadedAt       DateTime @default(now())
+
+  @@index([dealId, uploadedAt])
 }
 
 model DealStageHistory {

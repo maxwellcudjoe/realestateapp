@@ -83,7 +83,7 @@ export default function AboutPage() {
         <p className="font-serif text-2xl font-light text-ivory">
           Ready to start your investment journey?
         </p>
-        <Button href="/register">Register as a Buyer</Button>
+        <Button href="/register">Register as an Investor</Button>
       </section>
     </div>
   )

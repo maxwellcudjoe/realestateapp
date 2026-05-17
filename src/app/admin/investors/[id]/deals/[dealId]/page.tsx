@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { DealStagePanel } from '@/components/admin/DealStagePanel'
 import { OfferDecisionPanel } from '@/components/admin/OfferDecisionPanel'
 import { DealMessageThread } from '@/components/portal/DealMessageThread'
+import { DealDocumentRoom } from '@/components/portal/DealDocumentRoom'
 import { DEAL_STAGES } from '@/lib/deal-stages'
 import Link from 'next/link'
 
@@ -121,6 +122,11 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
               admins={admins}
             />
           </div>
+        </div>
+
+        <div className="mt-8 border border-carbon p-6">
+          <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Documents</h2>
+          <DealDocumentRoom dealId={deal.id} isAdmin={true} />
         </div>
 
         <div className="mt-8 border border-carbon p-6">
