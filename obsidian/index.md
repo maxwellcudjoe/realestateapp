@@ -34,6 +34,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-2-2-multi-select-strategy](Projects/2026-05-17-task-2-2-multi-select-strategy.md) | Phase 2 Task 2.2 complete — InvestorStrategy model + 5 canonical codes, multi-select checkbox UI, Any/All mismatch removed, legacyToStrategies mapper. Closes R11. |
 | [2026-05-17-task-2-4-experience-funding](Projects/2026-05-17-task-2-4-experience-funding.md) | Phase 2 Task 2.4 complete — experience level, timeline, mortgage status/lender/LTV/deposit, referral source. Closes R12+R13+R14+R15. |
 | [2026-05-17-task-2-6-phone-e164](Projects/2026-05-17-task-2-6-phone-e164.md) | Phase 2 Task 2.6 complete — libphonenumber-js validation, E.164 normalisation on store. Closes R17. |
+| _(Task 2.9 — password change in portal)_ | New PasswordChangeForm + POST /api/portal/password/change on /portal/security. Closes R21. (Inline-logged) |
 
 ## Bug Fixes
 

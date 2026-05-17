@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { recentAttemptsForUser } from '@/lib/login-tracking'
 import { TotpManager } from '@/components/portal/TotpManager'
+import { PasswordChangeForm } from '@/components/portal/PasswordChangeForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,13 @@ export default async function PortalSecurityPage() {
           initiallyEnabled={Boolean(user?.totpEnabledAt)}
           enabledAt={user?.totpEnabledAt?.toISOString() ?? null}
         />
+      </section>
+
+      <section className="mb-16">
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">
+          Change Password
+        </p>
+        <PasswordChangeForm />
       </section>
 
       <section>

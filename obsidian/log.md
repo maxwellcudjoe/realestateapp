@@ -2,6 +2,14 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.9 — Password change page in portal
+
+- API: POST /api/portal/password/change — requires current password, rejects same-as-new, applies full complexity rules + HIBP breach check, bcrypt(12)
+- UI: PasswordChangeForm on /portal/security (below 2FA section), strength meter, confirm field
+- Tests: +4 (auth gate, same-as-new, weak password, wrong current); 111/111 pass
+- Build: clean
+- Closes R21
+
 ## [2026-05-17] feature | Task 2.6 — E.164 phone validation
 
 - Created: `obsidian/Projects/2026-05-17-task-2-6-phone-e164.md`
