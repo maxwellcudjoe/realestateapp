@@ -5,7 +5,9 @@ import {
   VALID_EXPERIENCE,
   VALID_TIMELINE,
   VALID_MORTGAGE_STATUS,
+  VALID_ENTITY_TYPES,
   NI_NUMBER_REGEX,
+  COMPANY_NUMBER_REGEX,
   ageOn,
 } from '@/lib/compliance'
 import { VALID_AREA_CODES } from '@/lib/target-areas'
@@ -31,18 +33,32 @@ export const stepAccountSchema = z
     path: ['confirmPassword'],
   })
 
-export const stepPersonalSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(100),
-  lastName: z.string().min(1, 'Last name is required').max(100),
-  phone: z
-    .string()
-    .min(7, 'Invalid phone number')
-    .max(50)
-    .refine((s) => isValidPhoneNumber(s, 'GB'), 'Enter a valid phone number (e.g. 07700 900 000 or +44 7700 900 000)'),
-  addressLine1: z.string().min(1, 'Address is required').max(255),
-  city: z.string().min(1, 'City is required').max(100),
-  postcode: z.string().min(1, 'Postcode is required').max(20),
-})
+export const stepPersonalSchema = z
+  .object({
+    firstName: z.string().min(1, 'First name is required').max(100),
+    lastName: z.string().min(1, 'Last name is required').max(100),
+    phone: z
+      .string()
+      .min(7, 'Invalid phone number')
+      .max(50)
+      .refine((s) => isValidPhoneNumber(s, 'GB'), 'Enter a valid phone number (e.g. 07700 900 000 or +44 7700 900 000)'),
+    addressLine1: z.string().min(1, 'Address is required').max(255),
+    city: z.string().min(1, 'City is required').max(100),
+    postcode: z.string().min(1, 'Postcode is required').max(20),
+    // Buyer entity (Task 2.3)
+    entityType: z.string().refine((v) => VALID_ENTITY_TYPES.has(v), 'Select buyer type'),
+    companyName: z.string().max(200).optional().default(''),
+    companyNumber: z.string().max(20).optional().default(''),
+    vatNumber: z.string().max(20).optional().default(''),
+    companyAddress: z.string().max(500).optional().default(''),
+  })
+  .refine((d) => d.entityType === 'INDIVIDUAL' || d.companyName.trim().length >= 2, {
+    message: 'Company name is required', path: ['companyName'],
+  })
+  .refine((d) => d.entityType !== 'LTD_COMPANY' || !d.companyNumber || COMPANY_NUMBER_REGEX.test(d.companyNumber.replace(/\s+/g, '').toUpperCase()), {
+    message: 'Companies House number must be 8 digits or 2 letters + 6 digits (e.g. 12345678, SC123456)',
+    path: ['companyNumber'],
+  })
 
 export const stepComplianceSchema = z
   .object({
@@ -130,6 +146,11 @@ export const onboardingSubmitSchema = z
     addressLine1: z.string().min(1).max(255),
     city: z.string().min(1).max(100),
     postcode: z.string().min(1).max(20),
+    entityType: z.string().refine((v) => VALID_ENTITY_TYPES.has(v)),
+    companyName: z.string().max(200).optional().default(''),
+    companyNumber: z.string().max(20).optional().default(''),
+    vatNumber: z.string().max(20).optional().default(''),
+    companyAddress: z.string().max(500).optional().default(''),
     budgetMin: z.number().positive(),
     budgetMax: z.number().positive(),
     strategies: z
@@ -185,6 +206,12 @@ export const onboardingSubmitSchema = z
   .refine((d) => d.sourceOfFunds !== 'OTHER' || d.sourceOfFundsDetail.trim().length >= 5, {
     message: 'Please describe your source of funds',
     path: ['sourceOfFundsDetail'],
+  })
+  .refine((d) => d.entityType === 'INDIVIDUAL' || d.companyName.trim().length >= 2, {
+    message: 'Company name is required', path: ['companyName'],
+  })
+  .refine((d) => d.entityType !== 'LTD_COMPANY' || !d.companyNumber || COMPANY_NUMBER_REGEX.test(d.companyNumber.replace(/\s+/g, '').toUpperCase()), {
+    message: 'Invalid Companies House number', path: ['companyNumber'],
   })
 
 export type StepAccountData = z.infer<typeof stepAccountSchema>

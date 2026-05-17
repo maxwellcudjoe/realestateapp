@@ -10,7 +10,7 @@ const VALUE_CLASS = 'font-sans text-sm text-ivory mt-0.5'
 
 interface Props {
   account: { email: string }
-  personal: { firstName: string; lastName: string; phone: string; addressLine1: string; city: string; postcode: string }
+  personal: import('./StepPersonal').PersonalData
   criteria: import('./StepCriteria').CriteriaData
   agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean; agreedToMarketing: boolean }
   onAgreementChange: (field: string, value: boolean) => void

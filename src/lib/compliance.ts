@@ -102,3 +102,25 @@ export function mortgageStatusLabel(v: string | null): string {
   if (!v) return '—'
   return MORTGAGE_STATUS_OPTIONS.find((m) => m.value === v)?.label ?? v
 }
+
+// Task 2.3 — Buyer entity types
+export const ENTITY_TYPES = [
+  { value: 'INDIVIDUAL', label: 'Individual' },
+  { value: 'LTD_COMPANY', label: 'Limited Company (Ltd / SPV)' },
+  { value: 'LLP', label: 'LLP (Limited Liability Partnership)' },
+  { value: 'TRUST', label: 'Trust' },
+] as const
+
+export const VALID_ENTITY_TYPES: Set<string> = new Set(ENTITY_TYPES.map((e) => e.value))
+
+export function entityTypeLabel(v: string | null | undefined): string {
+  if (!v) return 'Individual'
+  return ENTITY_TYPES.find((e) => e.value === v)?.label ?? v
+}
+
+/** UK Companies House number: 8 chars — 8 digits, OR 2 letters + 6 digits (e.g. SC123456, NI123456). */
+export const COMPANY_NUMBER_REGEX = /^([0-9]{8}|[A-Z]{2}[0-9]{6})$/
+
+export function looksLikeCompanyNumber(s: string): boolean {
+  return COMPANY_NUMBER_REGEX.test(s.replace(/\s+/g, '').toUpperCase())
+}

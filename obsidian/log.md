@@ -2,6 +2,19 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.3 — Buyer entity / SPV support
+
+- Schema: +5 fields on InvestorProfile (entityType, companyName, companyNumber, vatNumber, companyAddress) — entityType defaults to INDIVIDUAL — pushed (4.50s)
+- 4 entity types: INDIVIDUAL | LTD_COMPANY | LLP | TRUST
+- Lib: ENTITY_TYPES catalog + COMPANY_NUMBER_REGEX (8 digits OR 2 letters + 6 digits, e.g. SC123456 / NI123456) + helpers
+- UI: StepPersonal now starts with "Buying as" select; when non-individual, shows bordered Entity Details panel (company name, Companies House number, VAT number, registered address); personal block reframed as "lead contact / director"
+- Zod: cross-field refines — company name required for non-individual, Companies House number must match regex when provided for LTD_COMPANY
+- API: persists all 5 fields; nullifies them for INDIVIDUAL; normalises company/VAT numbers to uppercase no-whitespace
+- Admin: investor name header now shows entity-type chip + company name + #number + VAT (if non-individual)
+- Tests: +4 (Ltd with valid number, Scottish prefix, missing name rejected, malformed number rejected); 122/122 pass
+- Build: clean
+- Closes R9
+
 ## [2026-05-17] feature | Task 2.7 — Wizard save/resume
 
 - localStorage key `rb-onboarding-draft-v1` — saves step + personal/compliance/criteria/agreements + email hint

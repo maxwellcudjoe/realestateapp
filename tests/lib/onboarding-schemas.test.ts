@@ -45,7 +45,7 @@ describe('stepAccountSchema', () => {
 })
 
 describe('stepPersonalSchema (phone validation)', () => {
-  const base = { firstName: 'J', lastName: 'S', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN' }
+  const base = { firstName: 'J', lastName: 'S', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN', entityType: 'INDIVIDUAL', companyName: '', companyNumber: '', vatNumber: '', companyAddress: '' }
   it('accepts a valid UK mobile in national format', () => {
     expect(stepPersonalSchema.safeParse({ ...base, phone: '07911 123 456' }).success).toBe(true)
   })
@@ -69,8 +69,50 @@ describe('stepPersonalSchema', () => {
       addressLine1: '123 Main St',
       city: 'London',
       postcode: 'E1 6AN',
+      entityType: 'INDIVIDUAL',
+      companyName: '', companyNumber: '', vatNumber: '', companyAddress: '',
     })
     expect(result.success).toBe(true)
+  })
+
+  it('accepts a Ltd company with valid Companies House number', () => {
+    const result = stepPersonalSchema.safeParse({
+      firstName: 'Jane', lastName: 'Smith',
+      phone: '+447700000000', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN',
+      entityType: 'LTD_COMPANY', companyName: 'Smith Property Ltd',
+      companyNumber: '12345678', vatNumber: '', companyAddress: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts a Ltd company with Scottish prefix', () => {
+    const result = stepPersonalSchema.safeParse({
+      firstName: 'Jane', lastName: 'Smith',
+      phone: '+447700000000', addressLine1: '1 A St', city: 'Edinburgh', postcode: 'EH1 1AA',
+      entityType: 'LTD_COMPANY', companyName: 'Smith Property Ltd',
+      companyNumber: 'SC123456', vatNumber: '', companyAddress: '',
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects Ltd company with missing company name', () => {
+    const result = stepPersonalSchema.safeParse({
+      firstName: 'Jane', lastName: 'Smith',
+      phone: '+447700000000', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN',
+      entityType: 'LTD_COMPANY', companyName: '',
+      companyNumber: '12345678', vatNumber: '', companyAddress: '',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects Ltd company with malformed Companies House number', () => {
+    const result = stepPersonalSchema.safeParse({
+      firstName: 'Jane', lastName: 'Smith',
+      phone: '+447700000000', addressLine1: '1 A St', city: 'London', postcode: 'E1 6AN',
+      entityType: 'LTD_COMPANY', companyName: 'Smith Property Ltd',
+      companyNumber: '123', vatNumber: '', companyAddress: '',
+    })
+    expect(result.success).toBe(false)
   })
 
   it('rejects empty first name', () => {
@@ -81,6 +123,8 @@ describe('stepPersonalSchema', () => {
       addressLine1: '123 Main St',
       city: 'London',
       postcode: 'E1 6AN',
+      entityType: 'INDIVIDUAL',
+      companyName: '', companyNumber: '', vatNumber: '', companyAddress: '',
     })
     expect(result.success).toBe(false)
   })
@@ -187,6 +231,11 @@ describe('onboardingSubmitSchema', () => {
     mortgageStatus: 'NONE',
     mortgageLender: '',
     referralSource: '',
+    entityType: 'INDIVIDUAL',
+    companyName: '',
+    companyNumber: '',
+    vatNumber: '',
+    companyAddress: '',
     // Compliance fields
     dateOfBirth: '1990-01-01',
     nationality: 'GB',

@@ -14,7 +14,7 @@ const DRAFT_KEY = 'rb-onboarding-draft-v1'
 
 interface Draft {
   step: number
-  personal: { firstName: string; lastName: string; phone: string; addressLine1: string; city: string; postcode: string }
+  personal: import('@/components/onboarding/StepPersonal').PersonalData
   compliance: { dateOfBirth: string; nationality: string; taxResidency: string; niNumber: string; isPep: boolean; pepDetails: string; sourceOfFunds: string; sourceOfFundsDetail: string }
   criteria: import('@/components/onboarding/StepCriteria').CriteriaData
   agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean; agreedToMarketing: boolean }
@@ -43,7 +43,10 @@ export default function OnboardingPage() {
   const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   const [account, setAccount] = useState({ email: '', password: '', confirmPassword: '' })
-  const [personal, setPersonal] = useState({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '' })
+  const [personal, setPersonal] = useState<import('@/components/onboarding/StepPersonal').PersonalData>({
+    firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '',
+    entityType: 'INDIVIDUAL', companyName: '', companyNumber: '', vatNumber: '', companyAddress: '',
+  })
   const [compliance, setCompliance] = useState({
     dateOfBirth: '', nationality: 'GB', taxResidency: 'GB',
     niNumber: '', isPep: false, pepDetails: '',
@@ -92,7 +95,7 @@ export default function OnboardingPage() {
     clearDraft()
     setDraftRestored(false)
     setStep(0)
-    setPersonal({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '' })
+    setPersonal({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '', entityType: 'INDIVIDUAL', companyName: '', companyNumber: '', vatNumber: '', companyAddress: '' })
     setCompliance({ dateOfBirth: '', nationality: 'GB', taxResidency: 'GB', niNumber: '', isPep: false, pepDetails: '', sourceOfFunds: '', sourceOfFundsDetail: '' })
     setCriteria({ budgetMin: 0, budgetMax: 0, strategies: ['BTL'], buyerType: 'cash', targetAreaCodes: [], experienceLevel: '', timelineToBuy: '', mortgageStatus: 'NONE', mortgageLender: '', maxLtv: undefined, depositAvailable: undefined, referralSource: '' })
     setAgreements({ agreedToTerms: false, agreedToPrivacy: false, agreedToAccuracy: false, agreedToAge: false, agreedToMarketing: false })

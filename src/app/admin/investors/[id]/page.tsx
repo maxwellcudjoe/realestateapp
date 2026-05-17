@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
 import {
   COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn,
-  experienceLabel, timelineLabel, mortgageStatusLabel,
+  experienceLabel, timelineLabel, mortgageStatusLabel, entityTypeLabel,
 } from '@/lib/compliance'
 import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
 import Link from 'next/link'
@@ -54,9 +54,21 @@ export default async function AdminInvestorDetailPage({
       <Link href="/admin/investors" className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors mb-4 inline-block">
         ← Back to List
       </Link>
-      <h1 className="font-serif text-4xl font-light text-ivory mb-8">
-        {p.firstName} {p.lastName}
-      </h1>
+      <div className="mb-8">
+        <h1 className="font-serif text-4xl font-light text-ivory">
+          {p.firstName} {p.lastName}
+        </h1>
+        {p.entityType !== 'INDIVIDUAL' && (
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <span className="font-sans text-[0.55rem] uppercase tracking-widest text-gold bg-gold/10 border border-gold/30 px-2 py-0.5">
+              {entityTypeLabel(p.entityType)}
+            </span>
+            {p.companyName && <span className="font-sans text-sm text-stone">— {p.companyName}</span>}
+            {p.companyNumber && <span className="font-sans text-xs text-stone font-mono">#{p.companyNumber}</span>}
+            {p.vatNumber && <span className="font-sans text-xs text-stone">VAT {p.vatNumber}</span>}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="border border-carbon p-6 space-y-3">

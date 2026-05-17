@@ -111,6 +111,13 @@ model InvestorProfile {
   depositAvailable    Decimal?  @db.Decimal(12, 2)
   referralSource      String?   @db.NVarChar(100)
 
+  // Buyer entity — Task 2.3 (Ltd company / LLP / Trust support)
+  entityType          String    @default("INDIVIDUAL") @db.NVarChar(20)   // INDIVIDUAL | LTD_COMPANY | LLP | TRUST
+  companyName         String?   @db.NVarChar(200)
+  companyNumber       String?   @db.NVarChar(20)
+  vatNumber           String?   @db.NVarChar(20)
+  companyAddress      String?   @db.NVarChar(500)
+
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

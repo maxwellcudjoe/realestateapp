@@ -131,6 +131,12 @@ export async function POST(req: NextRequest) {
           maxLtv: d.buyerType === 'mortgage' && typeof d.maxLtv === 'number' ? d.maxLtv : null,
           depositAvailable: typeof d.depositAvailable === 'number' ? d.depositAvailable : null,
           referralSource: d.referralSource || null,
+          // Buyer entity (Task 2.3)
+          entityType: d.entityType,
+          companyName: d.entityType === 'INDIVIDUAL' ? null : (d.companyName || null),
+          companyNumber: d.entityType === 'INDIVIDUAL' ? null : (d.companyNumber?.replace(/\s+/g, '').toUpperCase() || null),
+          vatNumber: d.entityType === 'INDIVIDUAL' ? null : (d.vatNumber?.replace(/\s+/g, '').toUpperCase() || null),
+          companyAddress: d.entityType === 'INDIVIDUAL' ? null : (d.companyAddress || null),
         },
       })
 
