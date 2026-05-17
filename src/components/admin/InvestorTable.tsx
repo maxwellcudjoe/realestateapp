@@ -70,7 +70,7 @@ export function InvestorTable({ investors }: { investors: Investor[] }) {
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-carbon">
-              {['Name', 'Email', 'Strategy', 'Budget', 'Status', 'Submitted'].map((h) => (
+              {['Name', 'Email', 'Strategy', 'Budget', 'Status', 'Submitted', ''].map((h) => (
                 <th key={h} className="font-sans text-[0.6rem] uppercase tracking-widest text-stone pb-3 pr-4 whitespace-nowrap">
                   {h}
                 </th>
@@ -79,22 +79,40 @@ export function InvestorTable({ investors }: { investors: Investor[] }) {
           </thead>
           <tbody>
             {filtered.map((inv) => (
-              <tr key={inv.applicationId} className="border-b border-carbon/50 hover:bg-charcoal/50 transition-colors">
+              <tr key={inv.applicationId} className="border-b border-carbon/50 hover:bg-charcoal/50 transition-colors cursor-pointer group">
                 <td className="py-3 pr-4 whitespace-nowrap">
-                  <Link href={`/admin/investors/${inv.applicationId}`} className="font-sans text-sm text-ivory hover:text-gold transition-colors">
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="font-sans text-sm text-ivory group-hover:text-gold transition-colors">
                     {inv.name}
                   </Link>
                 </td>
-                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">{inv.email}</td>
-                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">{inv.strategy}</td>
-                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">{fmt(inv.budgetMin)} – {fmt(inv.budgetMax)}</td>
+                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="block">{inv.email}</Link>
+                </td>
+                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="block">{inv.strategy}</Link>
+                </td>
+                <td className="py-3 pr-4 font-sans text-xs text-stone whitespace-nowrap">
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="block">{fmt(inv.budgetMin)} – {fmt(inv.budgetMax)}</Link>
+                </td>
                 <td className="py-3 pr-4">
-                  <span className={`inline-block px-2 py-0.5 text-[0.55rem] uppercase tracking-widest border ${STATUS_COLORS[inv.status] || 'border-stone text-stone'}`}>
-                    {inv.status.replace(/_/g, ' ')}
-                  </span>
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="block">
+                    <span className={`inline-block px-2 py-0.5 text-[0.55rem] uppercase tracking-widest border ${STATUS_COLORS[inv.status] || 'border-stone text-stone'}`}>
+                      {inv.status.replace(/_/g, ' ')}
+                    </span>
+                  </Link>
                 </td>
                 <td className="py-3 font-sans text-xs text-stone whitespace-nowrap">
-                  {new Date(inv.createdAt).toLocaleDateString('en-GB')}
+                  <Link href={`/admin/investors/${inv.applicationId}`} className="block">
+                    {new Date(inv.createdAt).toLocaleDateString('en-GB')}
+                  </Link>
+                </td>
+                <td className="py-3 pl-4 whitespace-nowrap">
+                  <Link
+                    href={`/admin/investors/${inv.applicationId}`}
+                    className="font-sans text-[0.6rem] uppercase tracking-widest text-gold hover:text-ivory transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    Manage →
+                  </Link>
                 </td>
               </tr>
             ))}
