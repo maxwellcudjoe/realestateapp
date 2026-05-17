@@ -2,6 +2,28 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] plan | Close-All-Gaps Implementation Plan
+
+- Created: `obsidian/Projects/2026-05-17-close-all-gaps-plan.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- 6-phase plan (~10–12 weeks single-dev) covering all 40+ gaps from the buyer-journey analysis
+- Phase 1 (compliance/security): email verification, CAPTCHA, AML data, 2FA, lockout, delete legacy /api/register
+- Phase 2 (onboarding): structured targetAreas, multi-select strategy, SPV fields, profile-edit, GDPR
+- Phase 3 (deal transaction): per-deal pipeline, structured Offer model, doc room, per-deal messaging — closes the post-acceptance hole
+- Phase 4 (matching): public↔portal bridge, favourites, rich deal cards, viewings, auto-match engine
+- Phase 5 (portfolio): Property model, doc archive, metrics dashboard
+- Phase 6 (KYC modernisation + cross-cutting): Onfido/SumSub, audit log, notifications centre, passkeys
+- 5 "quick wins" (one-day total): delete legacy register, env-var the admin email, alignment fixes
+
+## [2026-05-17] query | Comprehensive Buyer Journey Gap Analysis (v2)
+
+- Updated: `obsidian/Knowledge/2026-05-17-buyer-journey-gap-analysis.md` — expanded from 12 gaps to ~40 gaps across 9 lifecycle stages
+- Updated: `obsidian/index.md` — refreshed summary
+- Added Stage 1 registration deep-dive: 24 gaps (compliance, data model, UX, dead code)
+- Added Stage 4–5 KYC gaps (7), Stage 6–7 deal gaps (7), Stage 8 transaction gaps (5), Stage 9 portfolio gaps (4), cross-cutting (6)
+- Notable findings: no email verification + auto sign-in = account takeover risk; no PEP/sanctions/DOB/nationality (MLR 2017 non-compliance); legacy `/api/register` dead code with strategy enum mismatch; `targetAreas` is free text blocking auto-matching; homepage "Complete & Build Portfolio" promise has zero supporting code
+- Output: 6-phase roadmap (compliance → onboarding → transaction → matching → portfolio → KYC modernisation)
+
 ## [2026-05-17] feature | Task 2 - Admin API GET+POST /api/admin/investors/[id]/deals
 
 - Created: `obsidian/Projects/Task_2_Admin_API_Deals_Endpoint.md`

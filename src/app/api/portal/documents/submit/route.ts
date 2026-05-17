@@ -66,7 +66,7 @@ export async function POST() {
         `,
       }),
       sendEmail({
-        to: 'info@revebatir.co.uk',
+        to: process.env.RESEND_TO_EMAIL!,
         subject: `Documents ready for review — ${name}`,
         html: `<p>Investor <strong>${name}</strong> has submitted all KYC documents.</p><p><a href="${process.env.NEXTAUTH_URL}/admin/investors/${app.id}">Review in dashboard →</a></p>`,
       }),

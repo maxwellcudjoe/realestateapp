@@ -6,7 +6,7 @@ import crypto from 'crypto'
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
-const VALID_DOC_TYPES = ['PASSPORT', 'DRIVING_LICENCE', 'PROOF_OF_ADDRESS', 'SOURCE_OF_FUNDS']
+const VALID_DOC_TYPES = ['PASSPORT', 'PROOF_OF_ADDRESS', 'SOURCE_OF_FUNDS']
 
 export async function POST(req: NextRequest) {
   const session = await auth()

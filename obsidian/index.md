@@ -8,6 +8,7 @@ Master index for project knowledge captured in this vault.
 |---|---|
 | [2026-05-11-realestate-codebase-understanding](Knowledge/2026-05-11-realestate-codebase-understanding.md) | Architecture, route behavior, data flows, testing posture, and extension points for this repository. |
 | [admin-workflow-investor-lifecycle](Knowledge/admin-workflow-investor-lifecycle.md) | Full admin workflow — 7-stage investor lifecycle from SUBMITTED to DEAL_SENT, with panel descriptions and business rules. |
+| [2026-05-17-buyer-journey-gap-analysis](Knowledge/2026-05-17-buyer-journey-gap-analysis.md) | Comprehensive gap analysis of the buyer journey — registration, KYC, deal response, post-acceptance, portfolio. ~40 gaps across 6 phases with severity + 6-phase roadmap. |
 
 ## Projects
 
@@ -22,6 +23,7 @@ Master index for project knowledge captured in this vault.
 | [Task_1_Prisma_Schema_Deal_Models](Projects/Task_1_Prisma_Schema_Deal_Models.md) | Added Deal and DealResponse models to Prisma schema — admins post property deals, investors respond with intent. Pushed to Azure SQL and regenerated Prisma Client. |
 | [Task_2_Admin_API_Deals_Endpoint](Projects/Task_2_Admin_API_Deals_Endpoint.md) | Admin API route GET+POST /api/admin/investors/[id]/deals — list deals and create new deal with investor email notification. |
 | [investor-deal-feedback](Projects/investor-deal-feedback.md) | Full deal feedback feature — admin posts deals, investor CRUD responses, 5 API routes, DealCard 4-state UI, email notifications. |
+| [2026-05-17-close-all-gaps-plan](Projects/2026-05-17-close-all-gaps-plan.md) | 6-phase, ~12-week sequenced plan to close all 40+ buyer-journey gaps. Schema diffs, files affected, AC, and risk notes per task. |
 
 ## Bug Fixes
 

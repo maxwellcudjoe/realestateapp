@@ -18,8 +18,8 @@ const STEPS = [
   },
   {
     num: '04',
-    title: 'Complete & Build Your Portfolio',
-    body: 'Instruct your solicitor, complete the purchase, and grow your property portfolio.',
+    title: 'Review & Respond',
+    body: 'Review each deal pack in your portal and respond — accept, request more info, or pass.',
   },
 ]
 

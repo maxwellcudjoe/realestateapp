@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
           `,
         }),
         sendEmail({
-          to: 'info@revebatir.co.uk',
+          to: process.env.RESEND_TO_EMAIL!,
           subject: `New investor application — ${d.firstName} ${d.lastName}`,
           html: `
             <div style="font-family:sans-serif;max-width:600px">

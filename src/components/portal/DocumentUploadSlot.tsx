@@ -2,6 +2,9 @@
 
 import { useState, useRef } from 'react'
 
+const MAX_SIZE = 10 * 1024 * 1024 // 10 MB — must match server limit
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
+
 interface Props {
   type: string
   label: string
@@ -19,6 +22,18 @@ export function DocumentUploadSlot({ type, label, description, existing, onUploa
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError('Only PDF, JPG, and PNG files are accepted')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_SIZE) {
+      setError(`File must be under 10 MB (yours is ${(file.size / 1024 / 1024).toFixed(1)} MB)`)
+      e.target.value = ''
+      return
+    }
 
     setUploading(true)
     setError('')
