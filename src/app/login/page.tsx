@@ -36,7 +36,23 @@ function LoginForm() {
       setError('Invalid email or password.')
       setLoading(false)
     } else {
-      router.push(callbackUrl)
+      // If no explicit callback, route based on role
+      if (searchParams.get('callbackUrl')) {
+        router.push(callbackUrl)
+      } else {
+        // Fetch session to determine role
+        try {
+          const res = await fetch('/api/auth/session')
+          const session = await res.json()
+          if (session?.user?.role === 'admin') {
+            router.push('/admin/investors')
+          } else {
+            router.push('/portal/status')
+          }
+        } catch {
+          router.push('/portal/status')
+        }
+      }
     }
   }
 
