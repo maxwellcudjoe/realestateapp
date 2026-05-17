@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { dealStageLabel, dealStageDescription, visibleStagesForTimeline } from '@/lib/deal-stages'
 import { OfferForm } from '@/components/portal/OfferForm'
+import { FinancialSummary } from '@/components/portal/FinancialSummary'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -19,6 +20,7 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
       dealLeadUser: { select: { email: true } },
       response: true,
       offer: true,
+      application: { include: { investorProfile: { select: { taxResidency: true, entityType: true } } } },
     },
   })
   if (!deal) redirect('/portal/deals')
@@ -63,6 +65,19 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
               } : null}
             />
           </div>
+        </section>
+      )}
+
+      {deal.offer && deal.offer.status !== 'WITHDRAWN' && (
+        <section className="mb-12">
+          <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Financial Summary</p>
+          <FinancialSummary
+            offerAmount={Number(deal.offer.amount)}
+            depositPercent={deal.offer.depositPercent}
+            financingSource={deal.offer.financingSource}
+            taxResidency={deal.application.investorProfile.taxResidency}
+            entityType={deal.application.investorProfile.entityType}
+          />
         </section>
       )}
 
