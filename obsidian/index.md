@@ -41,6 +41,8 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-phase-7-plan](Projects/2026-05-17-phase-7-plan.md) | Phase 7 plan — Post-viewing handoff + Rêve Bâtir invoicing. Two shippable units: 7A (no-schema UX) + 7B (Invoice + Subscription + 48h Premium gate). Decisions locked: solicitor-only money, three fee types, manual sourcing trigger, % success on COMPLETED, uniform pricing. |
 | [2026-05-17-task-7-1-post-viewing-handoff](Projects/2026-05-17-task-7-1-post-viewing-handoff.md) | Phase 7 Task 7.1 — Admin Mark-completed/Cancel buttons on CONFIRMED viewings + investor PostViewingPrompt banner above OfferForm. Scope reduced after finding offer POST already auto-advances stage. 8 viewing API tests. |
 | [2026-05-17-task-7-2-proof-of-funds-gate](Projects/2026-05-17-task-7-2-proof-of-funds-gate.md) | Phase 7 Task 7.2 — PROOF_OF_FUNDS doc type (6-month freshness), new `/api/portal/proof-of-funds` upload route, server-side gate on viewing-request and offer POST (`POF_REQUIRED` code), ProofOfFundsGate UI banner. 16 new tests. |
+| [2026-05-17-task-7-3-invoicing](Projects/2026-05-17-task-7-3-invoicing.md) | Phase 7 Task 7.3 — Invoice model (SOURCING / SUCCESS / SUBSCRIPTION, RB-YYYY-NNNN numbering), `@react-pdf/renderer` PDF generation, admin + investor UI, deal-page quick-actions with auto success-fee suggestion. 27 new tests. |
+| [2026-05-17-task-7-4-premium-tier](Projects/2026-05-17-task-7-4-premium-tier.md) | Phase 7 Task 7.4 — Subscription model + User.tier (FREE/PREMIUM), 48h Premium-preview gate on deal queries (publishedAt), admin SubscriptionPanel, investor /portal/subscription, manual renewal-invoice generator. 23 new tests. |
 
 ## Bug Fixes
 

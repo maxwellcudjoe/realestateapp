@@ -3,10 +3,12 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { DealStagePanel } from '@/components/admin/DealStagePanel'
 import { OfferDecisionPanel } from '@/components/admin/OfferDecisionPanel'
+import { InvoiceIssuer } from '@/components/admin/InvoiceIssuer'
 import { DealMessageThread } from '@/components/portal/DealMessageThread'
 import { DealDocumentRoom } from '@/components/portal/DealDocumentRoom'
 import { ViewingPanel } from '@/components/portal/ViewingPanel'
 import { DEAL_STAGES } from '@/lib/deal-stages'
+import { calculateSuccessFee, successFeePercent } from '@/lib/invoices'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -25,16 +27,23 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
     prisma.deal.findUnique({
       where: { id: params.dealId },
       include: {
-        application: { include: { investorProfile: { include: { user: { select: { email: true } } } } } },
+        application: { include: { investorProfile: { include: { user: { select: { id: true, email: true } } } } } },
         response: true,
         stageHistory: { orderBy: { createdAt: 'asc' } },
         dealLeadUser: { select: { id: true, email: true } },
         offer: true,
+        invoices: { orderBy: { createdAt: 'desc' } },
       },
     }),
     prisma.user.findMany({ where: { role: 'admin' }, select: { id: true, email: true }, orderBy: { email: 'asc' } }),
   ])
   if (!deal || deal.applicationId !== params.id) redirect(`/admin/investors/${params.id}/deals`)
+
+  const investorUserId = deal.application.investorProfile.user.id
+  const successPct = successFeePercent()
+  const suggestedSuccessFee = calculateSuccessFee(Number(deal.askingPrice), successPct)
+  const hasSuccessInvoice = deal.invoices.some((i) => i.type === 'SUCCESS' && i.status !== 'VOID')
+  const hasSourcingInvoice = deal.invoices.some((i) => i.type === 'SOURCING' && i.status !== 'VOID')
 
   const fmt = (n: number) => `£${Number(n).toLocaleString('en-GB')}`
 
@@ -122,6 +131,48 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
               brokerContact={deal.brokerContact}
               admins={admins}
             />
+          </div>
+        </div>
+
+        <div className="mt-8 border border-carbon p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold">Invoices for this deal</h2>
+            <Link href={`/admin/investors/${params.id}/invoices`} className="font-sans text-[0.6rem] uppercase tracking-widest text-stone hover:text-gold transition-colors">
+              All invoices →
+            </Link>
+          </div>
+          {deal.invoices.length === 0 ? (
+            <p className="font-sans text-xs text-stone mb-4">No invoices issued for this deal yet.</p>
+          ) : (
+            <ul className="space-y-2 mb-4">
+              {deal.invoices.map((i) => (
+                <li key={i.id} className="flex items-center justify-between font-sans text-sm">
+                  <a href={`/api/admin/invoices/${i.id}/pdf`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">{i.invoiceNumber}</a>
+                  <span className="text-stone">{i.type} · £{Number(i.amount).toLocaleString('en-GB', { minimumFractionDigits: 2 })} · <span className={i.status === 'PAID' ? 'text-green-400' : i.status === 'VOID' ? 'text-stone/60' : 'text-gold'}>{i.status}</span></span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="space-y-3">
+            {!hasSourcingInvoice && (deal.stage === 'OFFER_ACCEPTED' || deal.stage === 'MEMO_OF_SALE' || deal.stage === 'CONVEYANCING' || deal.stage === 'SURVEY' || deal.stage === 'MORTGAGE' || deal.stage === 'EXCHANGED' || deal.stage === 'COMPLETED') && (
+              <InvoiceIssuer
+                userId={investorUserId}
+                dealId={deal.id}
+                defaultType="SOURCING"
+                defaultDescription={`Sourcing fee — ${deal.address}`}
+                triggerLabel="Issue sourcing invoice"
+              />
+            )}
+            {!hasSuccessInvoice && deal.stage === 'COMPLETED' && (
+              <InvoiceIssuer
+                userId={investorUserId}
+                dealId={deal.id}
+                defaultType="SUCCESS"
+                defaultAmount={suggestedSuccessFee}
+                defaultDescription={`Success fee (${successPct}% of £${Number(deal.askingPrice).toLocaleString('en-GB')}) — ${deal.address}`}
+                triggerLabel={`Issue success invoice (suggested £${suggestedSuccessFee.toLocaleString('en-GB', { minimumFractionDigits: 2 })})`}
+              />
+            )}
           </div>
         </div>
 

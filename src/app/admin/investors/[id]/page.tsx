@@ -2,12 +2,14 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
+import { SubscriptionPanel } from '@/components/admin/SubscriptionPanel'
 import {
   COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn,
   experienceLabel, timelineLabel, mortgageStatusLabel, entityTypeLabel,
 } from '@/lib/compliance'
 import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
 import { DocumentReviewRow } from '@/components/admin/DocumentReviewRow'
+import { premiumMonthlyAmount, premiumAnnualAmount } from '@/lib/subscriptions'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -35,7 +37,7 @@ export default async function AdminInvestorDetailPage({
     include: {
       investorProfile: {
         include: {
-          user: { select: { email: true } },
+          user: { select: { id: true, email: true, tier: true, subscription: true } },
           structuredAreas: { orderBy: { label: 'asc' } },
           strategies: true,
         },
@@ -264,11 +266,33 @@ export default async function AdminInvestorDetailPage({
       </div>
 
       <div className="mt-8">
+        <SubscriptionPanel
+          userId={p.user.id}
+          tier={(p.user.tier ?? 'FREE') as 'FREE' | 'PREMIUM'}
+          subscription={p.user.subscription ? {
+            billingPeriod: p.user.subscription.billingPeriod,
+            amount: Number(p.user.subscription.amount),
+            startedAt: p.user.subscription.startedAt.toISOString(),
+            cancelledAt: p.user.subscription.cancelledAt?.toISOString() ?? null,
+            nextRenewalAt: p.user.subscription.nextRenewalAt.toISOString(),
+          } : null}
+          defaultMonthly={premiumMonthlyAmount()}
+          defaultAnnual={premiumAnnualAmount()}
+        />
+      </div>
+
+      <div className="mt-8 flex items-center gap-6">
         <Link
           href={`/admin/investors/${params.id}/deals`}
           className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory transition-colors"
         >
           View Deals →
+        </Link>
+        <Link
+          href={`/admin/investors/${params.id}/invoices`}
+          className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory transition-colors"
+        >
+          View Invoices →
         </Link>
       </div>
     </div>

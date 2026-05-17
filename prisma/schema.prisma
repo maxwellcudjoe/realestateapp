@@ -16,6 +16,8 @@ model User {
   totpSecret      String?   @db.NVarChar(255)
   totpEnabledAt   DateTime?
   deletedAt       DateTime?
+  // Task 7.4 — subscription tier (FREE | PREMIUM); drives 48h deal-preview gate + admin priority
+  tier            String    @default("FREE") @db.NVarChar(20)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -28,6 +30,8 @@ model User {
   sentMessages             Message[]            @relation("UserSentMessages")
   postedDeals              Deal[]               @relation("AdminPostedDeals")
   ledDeals                 Deal[]               @relation("DealLeads")
+  invoices                 Invoice[]
+  subscription             Subscription?
 }
 
 model RecoveryCode {
@@ -250,12 +254,16 @@ model Deal {
   solicitorContact  String?   @db.NVarChar(500)
   brokerContact     String?   @db.NVarChar(500)
 
+  // Task 7.4 — visible to FREE tier only when publishedAt is older than 48h; PREMIUM sees as soon as set
+  publishedAt    DateTime?
+
   response       DealResponse?
   offer          Offer?
   messages       Message[]
   documents      DealDocument[]
   viewings       Viewing[]
   favourites     DealFavourite[]
+  invoices       Invoice[]
 }
 
 model DealFavourite {
@@ -423,6 +431,49 @@ model Notification {
   createdAt   DateTime  @default(now())
 
   @@index([userId, readAt, createdAt])
+}
+
+/// Task 7.3 — Rêve Bâtir invoicing. Three types (SOURCING | SUCCESS | SUBSCRIPTION).
+/// Solicitor-only money model: invoices are issued by Rêve Bâtir to investors and
+/// paid via bank transfer off-platform. Admin marks PAID with the transaction reference.
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceNumber   String    @unique @db.NVarChar(30)   // RB-YYYY-NNNN
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  dealId          String?
+  deal            Deal?     @relation(fields: [dealId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  type            String    @db.NVarChar(20)            // SOURCING | SUCCESS | SUBSCRIPTION
+  amount          Decimal   @db.Decimal(12, 2)
+  description     String    @db.NVarChar(500)
+  status          String    @default("DRAFT") @db.NVarChar(20)  // DRAFT | SENT | PAID | VOID
+  issuedAt        DateTime?
+  dueAt           DateTime?
+  paidAt          DateTime?
+  paidReference   String?   @db.NVarChar(255)           // bank ref / cheque / other
+  pdfBlobPath     String?   @db.NVarChar(500)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([dealId])
+  @@index([status, dueAt])
+}
+
+/// Task 7.4 — Premium subscription. One per user (FREE tier has no Subscription row).
+/// Renewal invoices are generated manually by admin (no cron). Cancelling sets
+/// cancelledAt but the tier remains PREMIUM until nextRenewalAt passes.
+model Subscription {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingPeriod   String    @default("MONTHLY") @db.NVarChar(20)   // MONTHLY | ANNUAL
+  amount          Decimal   @db.Decimal(10, 2)
+  startedAt       DateTime
+  cancelledAt     DateTime?
+  nextRenewalAt   DateTime
+
+  @@index([nextRenewalAt])
 }
 
 /// Task 6.1 — KYC provider integration scaffold. Provider-agnostic record.

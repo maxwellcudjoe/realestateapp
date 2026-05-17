@@ -10,6 +10,8 @@ import { ViewingPanel } from '@/components/portal/ViewingPanel'
 import { PostViewingPrompt } from '@/components/portal/PostViewingPrompt'
 import { ProofOfFundsGate } from '@/components/portal/ProofOfFundsGate'
 import { hasActiveProofOfFunds, getMostRecentProofOfFunds } from '@/lib/proof-of-funds'
+import { isDealVisible } from '@/lib/deal-visibility'
+import type { UserTier } from '@/lib/subscriptions'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -31,6 +33,16 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
     },
   })
   if (!deal) redirect('/portal/deals')
+
+  // 48h Premium preview gate — FREE-tier users can't open a deal until 48h after publishedAt
+  const tierUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { tier: true },
+  })
+  const tier = (tierUser?.tier ?? 'FREE') as UserTier
+  if (!isDealVisible(deal.publishedAt, tier)) {
+    redirect('/portal/deals')
+  }
 
   const fmt = (n: number) => `£${Number(n).toLocaleString('en-GB')}`
   const timeline = visibleStagesForTimeline(deal.stage)

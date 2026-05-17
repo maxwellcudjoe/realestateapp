@@ -10,6 +10,8 @@ const PORTAL_LINKS = [
   { href: '/portal/documents', label: 'Documents' },
   { href: '/portal/deals', label: 'Deals' },
   { href: '/portal/properties', label: 'Properties' },
+  { href: '/portal/invoices', label: 'Invoices' },
+  { href: '/portal/subscription', label: 'Subscription' },
   { href: '/portal/messages', label: 'Messages' },
   { href: '/portal/notifications', label: 'Notifications' },
   { href: '/portal/profile', label: 'Profile' },

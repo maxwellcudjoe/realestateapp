@@ -75,6 +75,8 @@ export async function POST(
       epcRating: parsed.data.epcRating || null,
       rentalAppraisalMonthly: parsed.data.rentalAppraisalMonthly ?? null,
       floorAreaSqft: parsed.data.floorAreaSqft ?? null,
+      // Task 7.4 — drives the FREE-tier 48h preview gate (PREMIUM bypasses)
+      publishedAt: new Date(),
     },
   })
 

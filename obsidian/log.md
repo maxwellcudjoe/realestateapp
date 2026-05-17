@@ -2,6 +2,28 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Tasks 7.3 + 7.4 — Rêve Bâtir invoicing + Premium subscription tier (Phase 7B)
+
+- Created: `obsidian/Projects/2026-05-17-task-7-3-invoicing.md`
+- Created: `obsidian/Projects/2026-05-17-task-7-4-premium-tier.md`
+- Updated: `obsidian/index.md` — added both task entries
+- Schema (Azure SQL push 7.31s): `Invoice` model (RB-YYYY-NNNN), `Subscription` model (MONTHLY/ANNUAL renewal), `User.tier` (FREE/PREMIUM), `Deal.publishedAt` (nullable, drives 48h gate)
+- Dep: `@react-pdf/renderer` (server-side PDF, no headless browser)
+- **Task 7.3**: full invoice lifecycle — admin issues sourcing (manual amount) + success (auto-suggested `askingPrice × env.SUCCESS_FEE_PCT`), DRAFT→SENT→PAID workflow with bank-reference capture on PAID, on-demand A4 PDF with brand styling + bank details, investor /portal/invoices list with outstanding/overdue banner, admin /admin/investors/[id]/invoices list with mark-paid/void actions, deal-page quick-action buttons that disappear once invoice of that type exists (no double-billing).
+- **Task 7.4**: Premium tier with 48h head start on new deals — admin SubscriptionPanel embeds in investor page (Activate/Change/Cancel), investor /portal/subscription with Monthly/Annual pricing display, manual renewal-invoice generator (`POST /api/admin/subscriptions/generate-renewals?days=7`, idempotent). FREE-tier deal-list filtered + upgrade banner shows count of hidden Premium-only previews. Detail-page redirect back to list if deal still in 48h window.
+- Code structure: `src/lib/invoices.ts` is now Prisma-free (browser-safe for client components); `nextInvoiceNumber` moved to `src/lib/invoice-numbering.ts` (server-only). Fixes mssql-in-browser bundle issue.
+- Tests: +53 (15 invoices lib, 12 invoice API, 15 subscriptions lib, 8 deal-visibility, +3 from existing tests updated for new mocks); 282/282 pass
+- Build: clean — new routes `/portal/invoices`, `/portal/subscription`, `/admin/investors/[id]/invoices`, `/api/admin/invoices*`, `/api/admin/subscriptions*`, `/api/portal/invoices*`
+- Env vars added (all have safe defaults): `REVE_BATIR_SUCCESS_FEE_PCT`, `REVE_BATIR_PREMIUM_MONTHLY`, `REVE_BATIR_PREMIUM_ANNUAL`, `REVE_BATIR_BANK_NAME/SORT_CODE/ACCOUNT/ACCOUNT_NAME`, `REVE_BATIR_VAT_NUMBER`
+- Deferred: admin matching premium chip (matching UI doesn't yet show tier — easy follow-up); session.user.tier propagation (currently each gated query reads `User.tier` from DB)
+
+## [2026-05-17] ship | Phase 7A committed + pushed (commit 86340a4)
+
+- 17 files / +1119 lines committed as `feat: post-viewing handoff + proof-of-funds gate (Phase 7A)`
+- Pushed to origin/master — Azure SWA deploy triggered
+- `prisma.config.ts` and `scripts/check-data.ts` left as pre-existing untracked (not part of 7A scope)
+- Next: Task 7.3 schema (Invoice + Subscription + User.tier + Deal.publishedAt) on Azure SQL
+
 ## [2026-05-17] feature | Tasks 7.1 + 7.2 — Post-viewing handoff + Proof-of-funds gate (Phase 7A)
 
 - Created: `obsidian/Projects/2026-05-17-task-7-1-post-viewing-handoff.md`
