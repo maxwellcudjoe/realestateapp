@@ -421,3 +421,19 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
 }
+
+/// Task 6.1 — KYC provider integration scaffold. Provider-agnostic record.
+model KycCheck {
+  id              String    @id @default(cuid())
+  applicationId   String
+  provider        String    @db.NVarChar(30)
+  externalCheckId String?   @db.NVarChar(128)
+  status          String    @default("PENDING") @db.NVarChar(20)
+  reportPdfUrl    String?   @db.NVarChar(500)
+  rawResult       String?   @db.NVarChar(Max)
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@index([applicationId, startedAt])
+  @@index([externalCheckId])
+}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { stepPersonalSchema } from '@/lib/schemas/onboarding'
 import { ENTITY_TYPES } from '@/lib/compliance'
 import { Button } from '@/components/ui/Button'
+import { PostcodeLookup } from './PostcodeLookup'
 
 const FIELD_CLASS =
   'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
@@ -104,6 +105,10 @@ export function StepPersonal({ data, onChange, onNext, onBack }: Props) {
         <label className={LABEL_CLASS}>Phone Number</label>
         <input type="tel" required value={data.phone} onChange={(e) => onChange({ ...data, phone: e.target.value })} className={FIELD_CLASS} placeholder="+44 7700 000 000" />
         {errors.phone && <p className="font-sans text-xs text-gold mt-1">{errors.phone[0]}</p>}
+      </div>
+      <div>
+        <label className={LABEL_CLASS}>Look up address by postcode (optional)</label>
+        <PostcodeLookup onPick={(a) => onChange({ ...data, addressLine1: [a.line1, a.line2].filter(Boolean).join(', '), city: a.town, postcode: a.postcode })} />
       </div>
       <div>
         <label className={LABEL_CLASS}>Address</label>
