@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { TargetAreaPicker } from '@/components/onboarding/TargetAreaPicker'
+import { PostcodeLookup } from '@/components/onboarding/PostcodeLookup'
 import { STRATEGIES } from '@/lib/strategies'
 import {
   COUNTRIES, SOURCE_OF_FUNDS_OPTIONS,
@@ -132,6 +133,14 @@ export function ProfileEditForm({ initial }: { initial: ProfileData }) {
             <label className={LABEL}>Phone</label>
             <input type="tel" required value={data.phone} onChange={(e) => update('phone', e.target.value)} className={FIELD} />
             {err('phone')}
+          </div>
+          <div>
+            <label className={LABEL}>Look up address by postcode (optional)</label>
+            <PostcodeLookup onPick={(a) => {
+              update('addressLine1', [a.line1, a.line2].filter(Boolean).join(', '))
+              update('city', a.town)
+              update('postcode', a.postcode)
+            }} />
           </div>
           <div>
             <label className={LABEL}>Address</label>
