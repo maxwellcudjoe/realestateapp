@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { InvestorTable } from '@/components/admin/InvestorTable'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,9 +34,17 @@ export default async function AdminInvestorsPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-4xl font-light text-ivory mb-8">
-        Investor Applications
-      </h1>
+      <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
+        <h1 className="font-serif text-4xl font-light text-ivory">
+          Investor Applications
+        </h1>
+        <Link
+          href="/admin/match"
+          className="inline-block px-6 py-3 text-xs font-semibold uppercase tracking-widest border border-gold text-gold hover:bg-gold hover:text-obsidian transition-colors"
+        >
+          Match &amp; post deal &rarr;
+        </Link>
+      </div>
       <InvestorTable investors={investors} />
     </div>
   )
