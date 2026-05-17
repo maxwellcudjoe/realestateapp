@@ -2,9 +2,20 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
+import { COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn } from '@/lib/compliance'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+
+function countryLabel(code: string | null) {
+  if (!code) return '—'
+  return COUNTRIES.find((c) => c.code === code)?.label ?? code
+}
+
+function sourceOfFundsLabel(value: string | null) {
+  if (!value) return '—'
+  return SOURCE_OF_FUNDS_OPTIONS.find((o) => o.value === value)?.label ?? value
+}
 
 export default async function AdminInvestorDetailPage({
   params,
@@ -91,6 +102,72 @@ export default async function AdminInvestorDetailPage({
             currentStatus={app.status}
             adminNotes={app.adminNotes}
           />
+        </div>
+      </div>
+
+      {/* Compliance / AML panel — full-width below the 3 columns */}
+      <div className="mt-8 border border-carbon p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold">Compliance & AML</h2>
+          {p.complianceCompleted ? (
+            <span className="font-sans text-[0.6rem] uppercase tracking-widest text-gold">Complete</span>
+          ) : (
+            <span className="font-sans text-[0.6rem] uppercase tracking-widest text-stone">Legacy account — data missing</span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Date of Birth</p>
+            <p className="font-sans text-sm text-ivory">
+              {p.dateOfBirth ? `${p.dateOfBirth.toLocaleDateString('en-GB')} (age ${ageOn(p.dateOfBirth)})` : '—'}
+            </p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Nationality</p>
+            <p className="font-sans text-sm text-ivory">{countryLabel(p.nationality)}</p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Tax Residency</p>
+            <p className="font-sans text-sm text-ivory">
+              {countryLabel(p.taxResidency)}
+              {p.taxResidency && p.taxResidency !== 'GB' && (
+                <span className="ml-2 text-[0.55rem] uppercase tracking-widest text-gold">+2% SDLT surcharge</span>
+              )}
+            </p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">NI Number</p>
+            <p className="font-sans text-sm text-ivory font-mono">{p.niNumber ?? '—'}</p>
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Source of Funds</p>
+            <p className="font-sans text-sm text-ivory">{sourceOfFundsLabel(p.sourceOfFunds)}</p>
+            {p.sourceOfFundsDetail && (
+              <p className="font-sans text-xs text-stone mt-1 italic">&ldquo;{p.sourceOfFundsDetail}&rdquo;</p>
+            )}
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">PEP Status</p>
+            {p.isPep ? (
+              <>
+                <p className="font-sans text-sm text-gold">⚠ Politically Exposed Person</p>
+                {p.pepDetails && (
+                  <p className="font-sans text-xs text-stone mt-1 italic">&ldquo;{p.pepDetails}&rdquo;</p>
+                )}
+                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-gold mt-1">Enhanced Due Diligence required</p>
+              </>
+            ) : (
+              <p className="font-sans text-sm text-ivory">Not a PEP</p>
+            )}
+          </div>
+          <div>
+            <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">Marketing Consent</p>
+            <p className="font-sans text-sm text-ivory">
+              {p.marketingConsentAt
+                ? `Yes (since ${p.marketingConsentAt.toLocaleDateString('en-GB')})`
+                : 'No'}
+            </p>
+          </div>
         </div>
       </div>
 

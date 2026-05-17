@@ -98,6 +98,16 @@ export async function POST(req: NextRequest) {
           buyerType: d.buyerType,
           targetAreas: d.targetAreas,
           marketingConsentAt: d.agreedToMarketing ? new Date() : null,
+          // Compliance / AML
+          dateOfBirth: new Date(d.dateOfBirth),
+          nationality: d.nationality,
+          taxResidency: d.taxResidency,
+          niNumber: d.niNumber?.replace(/\s+/g, '').toUpperCase() || null,
+          isPep: d.isPep,
+          pepDetails: d.isPep ? d.pepDetails : null,
+          sourceOfFunds: d.sourceOfFunds,
+          sourceOfFundsDetail: d.sourceOfFunds === 'OTHER' ? d.sourceOfFundsDetail : null,
+          complianceCompleted: true,
         },
       })
 

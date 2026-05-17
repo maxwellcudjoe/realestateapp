@@ -1,4 +1,10 @@
 import { z } from 'zod'
+import {
+  VALID_COUNTRY_CODES,
+  VALID_SOURCE_OF_FUNDS,
+  NI_NUMBER_REGEX,
+  ageOn,
+} from '@/lib/compliance'
 
 const passwordSchema = z
   .string()
@@ -27,6 +33,47 @@ export const stepPersonalSchema = z.object({
   city: z.string().min(1, 'City is required').max(100),
   postcode: z.string().min(1, 'Postcode is required').max(20),
 })
+
+export const stepComplianceSchema = z
+  .object({
+    dateOfBirth: z
+      .string()
+      .min(1, 'Date of birth is required')
+      .refine((s) => !Number.isNaN(Date.parse(s)), 'Invalid date'),
+    nationality: z
+      .string()
+      .refine((v) => VALID_COUNTRY_CODES.includes(v), 'Select your nationality'),
+    taxResidency: z
+      .string()
+      .refine((v) => VALID_COUNTRY_CODES.includes(v), 'Select your tax residency'),
+    niNumber: z.string().optional().default(''),
+    isPep: z.boolean(),
+    pepDetails: z.string().optional().default(''),
+    sourceOfFunds: z
+      .string()
+      .refine((v) => VALID_SOURCE_OF_FUNDS.includes(v), 'Please select a source of funds'),
+    sourceOfFundsDetail: z.string().optional().default(''),
+  })
+  .refine((d) => ageOn(new Date(d.dateOfBirth)) >= 18, {
+    message: 'You must be at least 18 years old',
+    path: ['dateOfBirth'],
+  })
+  .refine((d) => ageOn(new Date(d.dateOfBirth)) < 120, {
+    message: 'Please enter a valid date of birth',
+    path: ['dateOfBirth'],
+  })
+  .refine((d) => d.taxResidency !== 'GB' || !d.niNumber || NI_NUMBER_REGEX.test(d.niNumber.replace(/\s+/g, '')), {
+    message: 'NI number must be in the format QQ123456C',
+    path: ['niNumber'],
+  })
+  .refine((d) => !d.isPep || d.pepDetails.trim().length >= 5, {
+    message: 'Please provide brief details of your PEP status',
+    path: ['pepDetails'],
+  })
+  .refine((d) => d.sourceOfFunds !== 'OTHER' || d.sourceOfFundsDetail.trim().length >= 5, {
+    message: 'Please describe your source of funds',
+    path: ['sourceOfFundsDetail'],
+  })
 
 export const stepCriteriaSchema = z
   .object({
@@ -59,6 +106,15 @@ export const onboardingSubmitSchema = z
     strategy: z.enum(['BTL', 'HMO', 'Flip', 'Any']),
     buyerType: z.enum(['cash', 'mortgage']),
     targetAreas: z.string().min(1).max(500),
+    // Compliance fields (Task 1.4)
+    dateOfBirth: z.string().refine((s) => !Number.isNaN(Date.parse(s)), 'Invalid date'),
+    nationality: z.string().refine((v) => VALID_COUNTRY_CODES.includes(v)),
+    taxResidency: z.string().refine((v) => VALID_COUNTRY_CODES.includes(v)),
+    niNumber: z.string().optional().default(''),
+    isPep: z.boolean(),
+    pepDetails: z.string().optional().default(''),
+    sourceOfFunds: z.string().refine((v) => VALID_SOURCE_OF_FUNDS.includes(v)),
+    sourceOfFundsDetail: z.string().optional().default(''),
     agreedToTerms: z.literal(true, {
       errorMap: () => ({ message: 'You must agree to the Terms & Conditions' }),
     }),
@@ -73,8 +129,21 @@ export const onboardingSubmitSchema = z
     message: 'Maximum budget must exceed minimum',
     path: ['budgetMax'],
   })
+  .refine((d) => ageOn(new Date(d.dateOfBirth)) >= 18, {
+    message: 'You must be at least 18 years old',
+    path: ['dateOfBirth'],
+  })
+  .refine((d) => !d.isPep || d.pepDetails.trim().length >= 5, {
+    message: 'Please provide brief details of your PEP status',
+    path: ['pepDetails'],
+  })
+  .refine((d) => d.sourceOfFunds !== 'OTHER' || d.sourceOfFundsDetail.trim().length >= 5, {
+    message: 'Please describe your source of funds',
+    path: ['sourceOfFundsDetail'],
+  })
 
 export type StepAccountData = z.infer<typeof stepAccountSchema>
+export type StepComplianceData = z.infer<typeof stepComplianceSchema>
 export type StepPersonalData = z.infer<typeof stepPersonalSchema>
 export type StepCriteriaData = z.infer<typeof stepCriteriaSchema>
 export type OnboardingPayload = z.infer<typeof onboardingSubmitSchema>

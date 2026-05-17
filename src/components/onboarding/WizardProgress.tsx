@@ -1,4 +1,4 @@
-const STEPS = ['Account', 'Personal', 'Criteria', 'Review']
+const STEPS = ['Account', 'Personal', 'Compliance', 'Criteria', 'Review']
 
 export function WizardProgress({ current }: { current: number }) {
   return (

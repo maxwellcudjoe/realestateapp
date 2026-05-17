@@ -90,6 +90,18 @@ model InvestorProfile {
   buyerType           String    @db.NVarChar(20)
   targetAreas         String    @db.NVarChar(Max)
   marketingConsentAt  DateTime?
+
+  // Compliance / AML — Task 1.4
+  dateOfBirth         DateTime?
+  nationality         String?   @db.NVarChar(2)
+  taxResidency        String?   @db.NVarChar(2)
+  niNumber            String?   @db.NVarChar(20)
+  isPep               Boolean   @default(false)
+  pepDetails          String?   @db.NVarChar(Max)
+  sourceOfFunds       String?   @db.NVarChar(30)
+  sourceOfFundsDetail String?   @db.NVarChar(Max)
+  complianceCompleted Boolean   @default(false)
+
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

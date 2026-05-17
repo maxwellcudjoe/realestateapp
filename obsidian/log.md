@@ -2,6 +2,20 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.4 — AML data capture + admin Compliance panel
+
+- Created: `obsidian/Projects/2026-05-17-task-1-4-aml-data.md`
+- Schema: 9 new fields on InvestorProfile (dateOfBirth, nationality, taxResidency, niNumber, isPep, pepDetails, sourceOfFunds, sourceOfFundsDetail, complianceCompleted) — all nullable for backwards compat — pushed to Azure SQL (6.25s)
+- Lib: `src/lib/compliance.ts` — COUNTRIES (29 common+OT), SOURCE_OF_FUNDS_OPTIONS (8 values), NI_NUMBER_REGEX, ageOn(), looksLikeNiNumber()
+- Zod: new stepComplianceSchema with 5 cross-field refines (≥18, ≤120, NI format when GB, PEP details when isPep, source-of-funds detail when OTHER); onboardingSubmitSchema extended
+- UI: new StepCompliance (9 fields, conditional NI/source-detail/PEP-details rendering); WizardProgress 4→5 steps; onboarding page wires new step between Personal and Criteria
+- Admin: new full-width Compliance panel on /admin/investors/[id] with SDLT surcharge badge for non-GB taxResidency, prominent gold warning + EDD tag for PEPs, legacy-account flag
+- API: persists all fields, normalises NI number (uppercase, no whitespace), respects conditional nulls
+- Tests: +14 (compliance lib + schema); 88/88 pass
+- Build: clean
+- Closes R4 (PEP), R5 (DOB/nationality/tax residency/NI), R6 (structured source of funds)
+- **Phase 1 complete — all 7 tasks shipped**
+
 ## [2026-05-17] feature | Task 1.6 — TOTP 2FA + recovery codes + 2-step login
 
 - Created: `obsidian/Projects/2026-05-17-task-1-6-totp-2fa.md`

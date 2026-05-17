@@ -6,6 +6,7 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 import { WizardProgress } from '@/components/onboarding/WizardProgress'
 import { StepAccount } from '@/components/onboarding/StepAccount'
 import { StepPersonal } from '@/components/onboarding/StepPersonal'
+import { StepCompliance } from '@/components/onboarding/StepCompliance'
 import { StepCriteria } from '@/components/onboarding/StepCriteria'
 import { StepReview } from '@/components/onboarding/StepReview'
 
@@ -18,6 +19,11 @@ export default function OnboardingPage() {
 
   const [account, setAccount] = useState({ email: '', password: '', confirmPassword: '' })
   const [personal, setPersonal] = useState({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '' })
+  const [compliance, setCompliance] = useState({
+    dateOfBirth: '', nationality: 'GB', taxResidency: 'GB',
+    niNumber: '', isPep: false, pepDetails: '',
+    sourceOfFunds: '', sourceOfFundsDetail: '',
+  })
   const [criteria, setCriteria] = useState({ budgetMin: 0, budgetMax: 0, strategy: 'BTL', buyerType: 'cash', targetAreas: '' })
   const [agreements, setAgreements] = useState({ agreedToTerms: false, agreedToPrivacy: false, agreedToAccuracy: false, agreedToAge: false, agreedToMarketing: false })
 
@@ -33,6 +39,7 @@ export default function OnboardingPage() {
       email: account.email,
       password: account.password,
       ...personal,
+      ...compliance,
       ...criteria,
       ...agreements,
       turnstileToken,
@@ -68,16 +75,18 @@ export default function OnboardingPage() {
         <h1 className="font-serif text-5xl font-light text-ivory mb-8">
           {step === 0 && 'Create Your Account'}
           {step === 1 && 'Personal Details'}
-          {step === 2 && 'Investment Criteria'}
-          {step === 3 && 'Review & Submit'}
+          {step === 2 && 'Compliance & AML'}
+          {step === 3 && 'Investment Criteria'}
+          {step === 4 && 'Review & Submit'}
         </h1>
 
         <WizardProgress current={step} />
 
         {step === 0 && <StepAccount data={account} onChange={setAccount} onNext={() => setStep(1)} />}
         {step === 1 && <StepPersonal data={personal} onChange={setPersonal} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
-        {step === 2 && <StepCriteria data={criteria} onChange={setCriteria} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
-        {step === 3 && (
+        {step === 2 && <StepCompliance data={compliance} onChange={setCompliance} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
+        {step === 3 && <StepCriteria data={criteria} onChange={setCriteria} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
+        {step === 4 && (
           <StepReview
             account={account}
             personal={personal}
@@ -86,7 +95,7 @@ export default function OnboardingPage() {
             onAgreementChange={handleAgreement}
             onTurnstileToken={setTurnstileToken}
             turnstileToken={turnstileToken}
-            onBack={() => setStep(2)}
+            onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             submitting={submitting}
             errors={submitErrors}
