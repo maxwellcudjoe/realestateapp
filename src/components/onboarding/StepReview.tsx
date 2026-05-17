@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { Button } from '@/components/ui/Button'
 
 const LABEL_CLASS = 'font-sans text-[0.6rem] uppercase tracking-widest text-stone'
@@ -12,6 +13,8 @@ interface Props {
   criteria: { budgetMin: number; budgetMax: number; strategy: string; buyerType: string; targetAreas: string }
   agreements: { agreedToTerms: boolean; agreedToPrivacy: boolean; agreedToAccuracy: boolean; agreedToAge: boolean }
   onAgreementChange: (field: string, value: boolean) => void
+  onTurnstileToken: (token: string) => void
+  turnstileToken: string
   onBack: () => void
   onSubmit: () => void
   submitting: boolean
@@ -20,9 +23,13 @@ interface Props {
 
 export function StepReview({
   account, personal, criteria, agreements,
-  onAgreementChange, onBack, onSubmit, submitting, errors,
+  onAgreementChange, onTurnstileToken, turnstileToken,
+  onBack, onSubmit, submitting, errors,
 }: Props) {
   const fmt = (n: number) => `£${n.toLocaleString('en-GB')}`
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  // Submit blocked until CAPTCHA solved, unless Turnstile not yet configured.
+  const captchaReady = !turnstileSiteKey || Boolean(turnstileToken)
 
   return (
     <div className="flex flex-col gap-8">
@@ -64,13 +71,26 @@ export function StepReview({
         ))}
       </div>
 
+      {/* CAPTCHA */}
+      {turnstileSiteKey && (
+        <div>
+          <Turnstile
+            siteKey={turnstileSiteKey}
+            onSuccess={onTurnstileToken}
+            onError={() => onTurnstileToken('')}
+            onExpire={() => onTurnstileToken('')}
+            options={{ theme: 'dark' }}
+          />
+        </div>
+      )}
+
       {/* Server error */}
       {errors._form && <p className="font-sans text-xs text-red-400">{errors._form[0]}</p>}
 
       <div className="flex justify-between">
         <Button onClick={onBack} variant="secondary">← Back</Button>
-        <Button onClick={onSubmit} disabled={submitting}>
-          {submitting ? 'Submitting…' : 'Submit Application'}
+        <Button onClick={onSubmit} disabled={submitting || !captchaReady}>
+          {submitting ? 'Submitting…' : !captchaReady ? 'Complete CAPTCHA' : 'Submit Application'}
         </Button>
       </div>
     </div>

@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 1.3 — CAPTCHA + rate limit on /api/onboarding
+
+- Created: `obsidian/Projects/2026-05-17-task-1-3-captcha-rate-limit.md`
+- Lib: `src/lib/rate-limit.ts` (in-memory IP bucket, 5/15min for onboarding) + `src/lib/turnstile.ts` (Cloudflare verify with graceful fallback)
+- API: `/api/onboarding` gates on rate limit (429) then CAPTCHA before any DB work
+- UI: Turnstile widget on StepReview, dark theme, blocks submit until solved (auto-hidden when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` unset)
+- Dep: `@marsidev/react-turnstile@^1.5.2`
+- Tests: +12 (7 rate-limit, 5 turnstile); 45/45 pass
+- Build: clean (32 pages)
+- Setup checklist saved in note: add `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` to Azure SWA env to activate CAPTCHA
+- Closes gap R2
+
 ## [2026-05-17] feature | Task 1.2 — Email verification + verify-before-sign-in
 
 - Created: `obsidian/Projects/2026-05-17-task-1-2-email-verification.md`

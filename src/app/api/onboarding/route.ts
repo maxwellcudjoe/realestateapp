@@ -3,10 +3,26 @@ import { prisma } from '@/lib/prisma'
 import { onboardingSubmitSchema } from '@/lib/schemas/onboarding'
 import { sendEmail } from '@/lib/resend'
 import { verificationEmailHtml } from '@/lib/emails/verification'
+import { verifyTurnstile } from '@/lib/turnstile'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 
+const ONBOARDING_RATE_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 } // 5 per 15 min per IP
+
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit({ key: `onboarding:${ip}`, ...ONBOARDING_RATE_LIMIT })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: 'Too many registration attempts. Please try again in 15 minutes.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    )
+  }
+
   let body: unknown
   try {
     body = await req.json()
@@ -14,7 +30,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const parsed = onboardingSubmitSchema.safeParse(body)
+  const { turnstileToken, ...rest } = (body ?? {}) as { turnstileToken?: string } & Record<string, unknown>
+
+  const captcha = await verifyTurnstile(turnstileToken, ip)
+  if (!captcha.ok) {
+    return NextResponse.json(
+      { error: 'CAPTCHA verification failed. Please try again.' },
+      { status: 400 },
+    )
+  }
+
+  const parsed = onboardingSubmitSchema.safeParse(rest)
   if (!parsed.success) {
     return NextResponse.json(
       { errors: parsed.error.flatten().fieldErrors },

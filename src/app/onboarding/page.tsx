@@ -14,6 +14,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitErrors, setSubmitErrors] = useState<Record<string, string[]>>({})
+  const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   const [account, setAccount] = useState({ email: '', password: '', confirmPassword: '' })
   const [personal, setPersonal] = useState({ firstName: '', lastName: '', phone: '', addressLine1: '', city: '', postcode: '' })
@@ -34,6 +35,7 @@ export default function OnboardingPage() {
       ...personal,
       ...criteria,
       ...agreements,
+      turnstileToken,
     }
 
     try {
@@ -82,6 +84,8 @@ export default function OnboardingPage() {
             criteria={criteria}
             agreements={agreements}
             onAgreementChange={handleAgreement}
+            onTurnstileToken={setTurnstileToken}
+            turnstileToken={turnstileToken}
             onBack={() => setStep(2)}
             onSubmit={handleSubmit}
             submitting={submitting}
