@@ -195,9 +195,13 @@ model Message {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   senderUserId  String
   senderUser    User        @relation("UserSentMessages", fields: [senderUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  dealId        String?
+  deal          Deal?       @relation(fields: [dealId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   subject       String      @db.NVarChar(255)
   body          String      @db.NVarChar(Max)
   createdAt     DateTime    @default(now())
+
+  @@index([dealId, createdAt])
 }
 
 model Deal {
@@ -225,6 +229,7 @@ model Deal {
 
   response       DealResponse?
   offer          Offer?
+  messages       Message[]
 }
 
 model DealStageHistory {

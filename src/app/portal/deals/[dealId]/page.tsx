@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { dealStageLabel, dealStageDescription, visibleStagesForTimeline } from '@/lib/deal-stages'
 import { OfferForm } from '@/components/portal/OfferForm'
 import { FinancialSummary } from '@/components/portal/FinancialSummary'
+import { DealMessageThread } from '@/components/portal/DealMessageThread'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -130,6 +131,13 @@ export default async function PortalDealDetailPage({ params }: { params: { dealI
           </div>
         </section>
       )}
+
+      <section className="mb-12">
+        <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Discussion</p>
+        <div className="border border-carbon p-5">
+          <DealMessageThread dealId={deal.id} />
+        </div>
+      </section>
 
       {deal.summary && (
         <section>
