@@ -93,6 +93,15 @@ export default async function AdminInvestorDetailPage({
           />
         </div>
       </div>
+
+      <div className="mt-8">
+        <Link
+          href={`/admin/investors/${params.id}/deals`}
+          className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory transition-colors"
+        >
+          View Deals →
+        </Link>
+      </div>
     </div>
   )
 }
