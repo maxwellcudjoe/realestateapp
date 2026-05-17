@@ -2,6 +2,21 @@
 
 Append-only record of vault updates.
 
+## [2026-05-17] feature | Task 2.8 — Profile-edit page
+
+- API: GET + PATCH /api/portal/profile (Zod-validated subset)
+- Schema: `src/lib/schemas/profile.ts` profileUpdateSchema — all editable fields + cross-field refines (budget, mortgage, NI, source-of-funds)
+- Locked (admin-edit only): firstName, lastName, dateOfBirth, nationality, isPep — surfaced read-only with explainer
+- Page: /portal/profile with sectioned form (Identity / Contact / Investment Criteria / Experience & Funding / Tax & Source / Communication)
+- Replaces structuredAreas + strategies atomically within transaction (deleteMany + createMany)
+- E.164 normalisation on phone, NI uppercase + whitespace-strip, marketing consent timestamp preserved if previously granted
+- Legacy compliance flag set true on first save — closes the legacy-account gap
+- Banner shown on /portal/profile when complianceCompleted=false
+- Profile tab added to portal nav
+- Tests: +7 (auth, valid, invalid, not-found, mortgage refine, GET 401/404); 118/118 pass
+- Build: clean
+- Closes R20
+
 ## [2026-05-17] feature | Task 2.9 — Password change page in portal
 
 - API: POST /api/portal/password/change — requires current password, rejects same-as-new, applies full complexity rules + HIBP breach check, bcrypt(12)
