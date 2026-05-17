@@ -7,6 +7,7 @@ import Link from 'next/link'
 const PORTAL_LINKS = [
   { href: '/portal/status', label: 'Status' },
   { href: '/portal/documents', label: 'Documents' },
+  { href: '/portal/deals', label: 'Deals' },
   { href: '/portal/messages', label: 'Messages' },
 ]
 
