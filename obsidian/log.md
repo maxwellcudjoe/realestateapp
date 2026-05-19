@@ -2,6 +2,44 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #1 — Phase 7 leak plugs (audit followup)
+
+- Created: `obsidian/Projects/2026-05-19-pr1-phase7-leak-plugs.md`
+- Updated: `obsidian/index.md` — added entry
+- Fixes 5 audit findings:
+  - **C5** `batch-post` now sets `publishedAt = new Date()` — Premium 48h gate fully functional on primary deal-distribution path again
+  - **C4** offer POST requires `DealResponse.intent === 'ACCEPT'` (server enforces what UI gates on) — returns 409 `RESPONSE_REQUIRED`
+  - **C3** PoF gate copied from offer POST to offer PATCH (prevents stale-PoF amount-raise bypass)
+  - **C7** subscription DELETE preserves `User.tier` until period ends; new `effectiveTier(user, now)` helper computes runtime tier from intent + subscription state; updated tier-gate call sites in `/api/portal/deals`, `/portal/deals`, `/portal/deals/[dealId]`, `/portal/subscription`
+  - **H6/H7** P2002 caught on Offer + Response create races → friendly 409 instead of 500
+- New tests: `tests/api/response.test.ts` (5), `tests/api/subscriptions.test.ts` (4), `effectiveTier` block in `tests/lib/subscriptions.test.ts` (6), updated `tests/api/offer.test.ts` (+4 cases)
+- 301/301 tests pass; build clean
+- Next: PR #2 (centralize getDealForUser with tier filter) then PR #3 (C8 counter-offer flow)
+
+## [2026-05-18] audit | Deal-package workflow — security + correctness review
+
+- Created: `obsidian/Knowledge/2026-05-18-deal-workflow-audit.md`
+- Updated: `obsidian/index.md` — added Knowledge entry
+- Dispatched a thorough general-purpose audit agent covering 22+ files in the deal lifecycle + cross-cutting gates (PoF, Premium tier, auth)
+- Findings: 8 CRITICAL, 5 HIGH, 8 MEDIUM, 7 LOW
+- Self-verified the top 5 criticals (C1/C4/C5/C7/C8) against actual code — all confirmed true
+- **Top three to fix first**:
+  - C5: batch-post omits `publishedAt` → Premium 48h gate silently off for primary deal-distribution path
+  - C1: subresource APIs (offer/viewings/response/messages/docs/favourite) ignore tier gate → Premium gate is UI-only, bypassable via curl
+  - C7: subscription cancellation immediately demotes `User.tier` → refund liability when user cancels mid-period (also contradicts the schema comment I wrote)
+- Notable correctness issues: C4 offer-without-ACCEPT (state machine pollution), C8 vendor-REJECTED auto-FALLEN_THROUGH (UX deadlock for revised offers)
+- Quick-win batch: C5 + C4 + C3 + C7 + H6/H7 can land in one PR (~2-3 hrs)
+- Architectural fix: centralize getDealForUser in `src/lib/deal-access.ts` with built-in tier+visibility filter (fixes C1 + L2 together, ~½ day)
+- Not committed yet — audit findings only
+
+## [2026-05-17] note | Azure SWA deploy "failure" on becd637 was a benign cancellation
+
+- Symptom: GitHub Actions shows ❌ on the becd637 (7B) run.
+- Cause: deploy was canceled mid-poll because the next commit (7226ac3, docs log update) landed 42 seconds later on the same branch. SWA cancels in-flight deploys when a newer commit arrives.
+- Log message: `Deployment Failure Reason: Deployment Canceled`
+- Outcome: 7226ac3 includes all of 7B code + the doc line, and its deploy succeeded. Site has the full Phase 7B code.
+- Lesson for future: avoid back-to-back pushes within ~1 minute on master, OR expect to see a cancel marker on the older one (cosmetic only).
+
 ## [2026-05-17] ship | Phase 7B committed + pushed (commit becd637)
 
 - 36 files / +2931 lines committed as `feat: Reve Batir invoicing + Premium tier (Phase 7B)`

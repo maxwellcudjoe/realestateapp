@@ -11,6 +11,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-buyer-journey-gap-analysis](Knowledge/2026-05-17-buyer-journey-gap-analysis.md) | Comprehensive gap analysis of the buyer journey — registration, KYC, deal response, post-acceptance, portfolio. ~40 gaps across 6 phases with severity + 6-phase roadmap. |
 | [2026-05-17-handoff-prompt](Knowledge/2026-05-17-handoff-prompt.md) | Handoff prompt for next session — 36-commit summary, phase status, external setup pending, deferred work (6.8 Passkeys), key files, mandatory workflow notes. |
 | [2026-05-17-post-viewing-flow-and-money-handling](Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md) | Process-gap analysis + locked product decisions: solicitor-only money flow, Rêve Bâtir invoices for sourcing/success/subscription fees. Proposes Phase 7 build. |
+| [2026-05-18-deal-workflow-audit](Knowledge/2026-05-18-deal-workflow-audit.md) | End-to-end audit of deal lifecycle after Phase 7 ship. 8 CRITICAL (Premium gate bypassable via API; batch-post no publishedAt; offer-no-intent-check; cancellation drops tier; REJECTED dead-ends; PoF gate missing on PATCH; invoice numbering race; vendor-decline auto-FALLEN_THROUGH) + 5 HIGH + 8 MEDIUM + 7 LOW. Suggested fix sequence at the bottom. |
 
 ## Projects
 
@@ -43,6 +44,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-7-2-proof-of-funds-gate](Projects/2026-05-17-task-7-2-proof-of-funds-gate.md) | Phase 7 Task 7.2 — PROOF_OF_FUNDS doc type (6-month freshness), new `/api/portal/proof-of-funds` upload route, server-side gate on viewing-request and offer POST (`POF_REQUIRED` code), ProofOfFundsGate UI banner. 16 new tests. |
 | [2026-05-17-task-7-3-invoicing](Projects/2026-05-17-task-7-3-invoicing.md) | Phase 7 Task 7.3 — Invoice model (SOURCING / SUCCESS / SUBSCRIPTION, RB-YYYY-NNNN numbering), `@react-pdf/renderer` PDF generation, admin + investor UI, deal-page quick-actions with auto success-fee suggestion. 27 new tests. |
 | [2026-05-17-task-7-4-premium-tier](Projects/2026-05-17-task-7-4-premium-tier.md) | Phase 7 Task 7.4 — Subscription model + User.tier (FREE/PREMIUM), 48h Premium-preview gate on deal queries (publishedAt), admin SubscriptionPanel, investor /portal/subscription, manual renewal-invoice generator. 23 new tests. |
+| [2026-05-19-pr1-phase7-leak-plugs](Projects/2026-05-19-pr1-phase7-leak-plugs.md) | Audit-followup PR #1 — plugs 5 Phase 7 leaks: batch-post publishedAt (C5), offer requires intent=ACCEPT (C4), PoF gate on offer PATCH (C3), subscription cancel preserves tier via new effectiveTier helper (C7), P2002→409 on Offer/Response races (H6/H7). +19 tests; 301/301 pass. |
 
 ## Bug Fixes
 

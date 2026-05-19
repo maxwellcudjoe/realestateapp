@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
           floorAreaSqft: d.floorAreaSqft ?? null,
           areaCode: d.areaCode || null,
           strategyTag: d.strategyTag || null,
+          // C5 fix — drives the FREE-tier 48h preview gate. Without this, batch-posted
+          // deals are visible to FREE users immediately (silently disables Premium tier).
+          publishedAt: new Date(),
         },
       })
     )

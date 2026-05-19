@@ -16,7 +16,7 @@ const offerSchema = z.object({
 async function getDealForUser(dealId: string, userId: string) {
   return prisma.deal.findFirst({
     where: { id: dealId, application: { investorProfile: { userId } } },
-    include: { offer: true, application: { include: { investorProfile: true } } },
+    include: { offer: true, response: true, application: { include: { investorProfile: true } } },
   })
 }
 
@@ -54,6 +54,15 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
   if (deal.offer) return NextResponse.json({ error: 'An offer already exists for this deal. Use update.' }, { status: 409 })
 
+  // C4 fix — must have accepted the deal before submitting a formal offer.
+  // UI already gates OfferForm rendering on this; enforce server-side too.
+  if (deal.response?.intent !== 'ACCEPT') {
+    return NextResponse.json(
+      { error: 'Respond to the deal with "Accept" before submitting a formal offer.', code: 'RESPONSE_REQUIRED' },
+      { status: 409 },
+    )
+  }
+
   const pofOk = await hasActiveProofOfFunds(deal.applicationId)
   if (!pofOk) {
     return NextResponse.json(
@@ -63,25 +72,33 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   }
 
   const d = parsed.data
-  await prisma.$transaction([
-    prisma.offer.create({
-      data: {
-        dealId,
-        amount: d.amount,
-        depositPercent: d.depositPercent,
-        financingSource: d.financingSource,
-        targetExchangeDate: d.targetExchangeDate ? new Date(d.targetExchangeDate) : null,
-        conditions: d.conditions || null,
-      },
-    }),
-    // Auto-advance from PROPOSED → OFFER_PENDING (don't overwrite if admin already moved it)
-    ...(deal.stage === 'PROPOSED' ? [
-      prisma.deal.update({ where: { id: dealId }, data: { stage: 'OFFER_PENDING' } }),
-      prisma.dealStageHistory.create({
-        data: { dealId, fromStage: 'PROPOSED', toStage: 'OFFER_PENDING', changedByUserId: session.user.id, note: 'Offer submitted by investor' },
+  try {
+    await prisma.$transaction([
+      prisma.offer.create({
+        data: {
+          dealId,
+          amount: d.amount,
+          depositPercent: d.depositPercent,
+          financingSource: d.financingSource,
+          targetExchangeDate: d.targetExchangeDate ? new Date(d.targetExchangeDate) : null,
+          conditions: d.conditions || null,
+        },
       }),
-    ] : []),
-  ])
+      // Auto-advance from PROPOSED → OFFER_PENDING (don't overwrite if admin already moved it)
+      ...(deal.stage === 'PROPOSED' ? [
+        prisma.deal.update({ where: { id: dealId }, data: { stage: 'OFFER_PENDING' } }),
+        prisma.dealStageHistory.create({
+          data: { dealId, fromStage: 'PROPOSED', toStage: 'OFFER_PENDING', changedByUserId: session.user.id, note: 'Offer submitted by investor' },
+        }),
+      ] : []),
+    ])
+  } catch (e: any) {
+    // H6 fix — double-click race: Offer.dealId @unique rejects the loser with P2002
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ error: 'An offer was already submitted for this deal.' }, { status: 409 })
+    }
+    throw e
+  }
 
   await notifyAdminOnOffer('submitted', deal, d.amount, deal.application.investorProfile.firstName)
   return NextResponse.json({ success: true })
@@ -105,6 +122,16 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
   if (!deal?.offer) return NextResponse.json({ error: 'No offer to update' }, { status: 404 })
   if (deal.offer.status !== 'PENDING') {
     return NextResponse.json({ error: 'This offer has already been decided and cannot be edited.' }, { status: 409 })
+  }
+
+  // C3 fix — proof-of-funds freshness must be re-validated on edits too. Without
+  // this, an investor with stale PoF could raise their amount without re-attesting.
+  const pofOk = await hasActiveProofOfFunds(deal.applicationId)
+  if (!pofOk) {
+    return NextResponse.json(
+      { error: 'Upload a recent proof of funds (bank statement or mortgage AIP within 6 months) before editing your offer.', code: 'POF_REQUIRED' },
+      { status: 403 },
+    )
   }
 
   const d = parsed.data

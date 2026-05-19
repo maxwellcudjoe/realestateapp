@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { DealsClient } from '@/components/portal/DealsClient'
 import { dealVisibilityWhere } from '@/lib/deal-visibility'
-import type { UserTier } from '@/lib/subscriptions'
+import { effectiveTier } from '@/lib/subscriptions'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,9 +13,9 @@ export default async function PortalDealsPage() {
 
   const baseUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { tier: true },
+    select: { tier: true, subscription: { select: { cancelledAt: true, nextRenewalAt: true } } },
   })
-  const tier = (baseUser?.tier ?? 'FREE') as UserTier
+  const tier = effectiveTier(baseUser ?? {})
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

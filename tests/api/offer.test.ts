@@ -45,6 +45,7 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
     mockFindFirst.mockResolvedValue({
       id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
       offer: null,
+      response: { intent: 'ACCEPT' },
       application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
     })
     mockTransaction.mockResolvedValue([])
@@ -69,7 +70,7 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
   })
 
   it('rejects when offer already exists', async () => {
-    mockFindFirst.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1' }, application: { investorProfile: { firstName: 'Jane' } } })
+    mockFindFirst.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1' }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
     const { POST } = await getPortalHandlers()
     expect((await POST(req(VALID), ctx())).status).toBe(409)
   })
@@ -90,6 +91,42 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
     expect(body.code).toBe('POF_REQUIRED')
     expect(mockTransaction).not.toHaveBeenCalled()
   })
+
+  it('rejects offer when investor has not responded with intent=ACCEPT', async () => {
+    mockFindFirst.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
+      offer: null,
+      response: { intent: 'PASS' },
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
+    })
+    const { POST } = await getPortalHandlers()
+    const res = await POST(req(VALID), ctx())
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.code).toBe('RESPONSE_REQUIRED')
+    expect(mockTransaction).not.toHaveBeenCalled()
+  })
+
+  it('rejects offer when investor has no DealResponse at all', async () => {
+    mockFindFirst.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
+      offer: null,
+      response: null,
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
+    })
+    const { POST } = await getPortalHandlers()
+    const res = await POST(req(VALID), ctx())
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.code).toBe('RESPONSE_REQUIRED')
+  })
+
+  it('returns friendly 409 (not 500) when DB rejects duplicate offer (race)', async () => {
+    mockTransaction.mockRejectedValue(Object.assign(new Error('Unique constraint'), { code: 'P2002' }))
+    const { POST } = await getPortalHandlers()
+    const res = await POST(req(VALID), ctx())
+    expect(res.status).toBe(409)
+  })
 })
 
 describe('PATCH /api/portal/deals/[dealId]/offer', () => {
@@ -97,15 +134,17 @@ describe('PATCH /api/portal/deals/[dealId]/offer', () => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
     mockFindFirst.mockResolvedValue({
-      id: 'd1', stage: 'OFFER_PENDING', title: 'X', address: 'Y',
+      id: 'd1', applicationId: 'app1', stage: 'OFFER_PENDING', title: 'X', address: 'Y',
       offer: { id: 'o1', status: 'PENDING' },
-      application: { investorProfile: { firstName: 'Jane' } },
+      response: { intent: 'ACCEPT' },
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
     })
     mockOfferUpdate.mockResolvedValue({})
+    mockHasPof.mockResolvedValue(true)
   })
 
   it('refuses to edit a decided offer', async () => {
-    mockFindFirst.mockResolvedValue({ id: 'd1', offer: { id: 'o1', status: 'ACCEPTED' }, application: { investorProfile: { firstName: 'Jane' } } })
+    mockFindFirst.mockResolvedValue({ id: 'd1', applicationId: 'app1', offer: { id: 'o1', status: 'ACCEPTED' }, application: { id: 'app1', investorProfile: { firstName: 'Jane' } } })
     const { PATCH } = await getPortalHandlers()
     expect((await PATCH(req(VALID, 'PATCH'), ctx())).status).toBe(409)
   })
@@ -114,6 +153,16 @@ describe('PATCH /api/portal/deals/[dealId]/offer', () => {
     const { PATCH } = await getPortalHandlers()
     expect((await PATCH(req(VALID, 'PATCH'), ctx())).status).toBe(200)
     expect(mockOfferUpdate).toHaveBeenCalled()
+  })
+
+  it('rejects PATCH when proof of funds has expired (C3)', async () => {
+    mockHasPof.mockResolvedValue(false)
+    const { PATCH } = await getPortalHandlers()
+    const res = await PATCH(req(VALID, 'PATCH'), ctx())
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(body.code).toBe('POF_REQUIRED')
+    expect(mockOfferUpdate).not.toHaveBeenCalled()
   })
 })
 

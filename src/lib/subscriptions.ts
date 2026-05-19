@@ -52,3 +52,27 @@ export const BILLING_PERIOD_LABEL: Record<BillingPeriod, string> = {
   MONTHLY: 'Monthly',
   ANNUAL: 'Annual',
 }
+
+/**
+ * Computes the runtime tier — User.tier is the stored "intent" (set when admin
+ * activates PREMIUM, never auto-demoted). Cancellation only sets
+ * Subscription.cancelledAt — the user keeps PREMIUM access until nextRenewalAt
+ * passes, matching the schema spec.
+ *
+ * Use this everywhere a tier check gates a feature.
+ */
+export function effectiveTier(
+  user: {
+    tier?: string | null
+    subscription?: { cancelledAt: Date | null; nextRenewalAt: Date } | null
+  },
+  now: Date = new Date(),
+): UserTier {
+  const stored = (user.tier ?? 'FREE') as UserTier
+  if (stored !== 'PREMIUM') return 'FREE'
+  // PREMIUM by intent — downgrade only if cancelled AND access period has passed
+  if (user.subscription?.cancelledAt && user.subscription.nextRenewalAt < now) {
+    return 'FREE'
+  }
+  return 'PREMIUM'
+}

@@ -54,13 +54,21 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid input', details: parsed.error.flatten().fieldErrors }, { status: 400 })
   }
 
-  await prisma.dealResponse.create({
-    data: {
-      dealId: params.dealId,
-      intent: parsed.data.intent,
-      comment: parsed.data.comment ?? null,
-    },
-  })
+  // H7 fix — double-click race: DealResponse.dealId @unique rejects the loser with P2002
+  try {
+    await prisma.dealResponse.create({
+      data: {
+        dealId: params.dealId,
+        intent: parsed.data.intent,
+        comment: parsed.data.comment ?? null,
+      },
+    })
+  } catch (e: any) {
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ error: 'Response already recorded — use PUT to update' }, { status: 409 })
+    }
+    throw e
+  }
 
   try {
     const user = await prisma.user.findUnique({

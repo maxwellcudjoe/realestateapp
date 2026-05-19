@@ -79,7 +79,9 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ userId: st
 
 /**
  * DELETE /api/admin/subscriptions/[userId]
- * Cancel a subscription. Tier reverts to FREE immediately.
+ * Cancel a subscription. User retains PREMIUM access until nextRenewalAt
+ * passes — only Subscription.cancelledAt is set here. Use effectiveTier()
+ * at read-time to compute the runtime tier.
  */
 export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ userId: string }> }) {
   const session = await auth()
@@ -89,11 +91,12 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ userId:
   const { userId } = await ctx.params
   const sub = await prisma.subscription.findUnique({ where: { userId } })
   if (!sub) return NextResponse.json({ error: 'No subscription to cancel' }, { status: 404 })
+  if (sub.cancelledAt) return NextResponse.json({ error: 'Subscription is already cancelled' }, { status: 409 })
 
-  await prisma.$transaction([
-    prisma.user.update({ where: { id: userId }, data: { tier: 'FREE' } }),
-    prisma.subscription.update({ where: { userId }, data: { cancelledAt: new Date() } }),
-  ])
+  await prisma.subscription.update({
+    where: { userId },
+    data: { cancelledAt: new Date() },
+  })
 
   return NextResponse.json({ success: true })
 }

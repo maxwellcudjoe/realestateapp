@@ -5,6 +5,7 @@ import {
   defaultAmountFor,
   nextRenewalDate,
   freeTierDealCutoff,
+  effectiveTier,
   PREMIUM_PREVIEW_HOURS,
   BILLING_PERIODS,
   USER_TIERS,
@@ -69,6 +70,46 @@ describe('subscriptions lib', () => {
       const now = new Date('2026-05-17T12:00:00Z')
       const cutoff = freeTierDealCutoff(now)
       expect(cutoff.toISOString()).toBe('2026-05-15T12:00:00.000Z')
+    })
+  })
+
+  describe('effectiveTier', () => {
+    const now = new Date('2026-05-19T12:00:00Z')
+
+    it('returns FREE for a stored FREE user with no subscription', () => {
+      expect(effectiveTier({ tier: 'FREE', subscription: null }, now)).toBe('FREE')
+    })
+
+    it('returns FREE when tier is null/undefined', () => {
+      expect(effectiveTier({}, now)).toBe('FREE')
+    })
+
+    it('returns PREMIUM for a PREMIUM user with active subscription', () => {
+      expect(effectiveTier({
+        tier: 'PREMIUM',
+        subscription: { cancelledAt: null, nextRenewalAt: new Date('2026-06-19T12:00:00Z') },
+      }, now)).toBe('PREMIUM')
+    })
+
+    it('returns PREMIUM for a cancelled-but-not-yet-expired subscription (C7 fix)', () => {
+      expect(effectiveTier({
+        tier: 'PREMIUM',
+        subscription: { cancelledAt: new Date('2026-05-15T00:00:00Z'), nextRenewalAt: new Date('2026-06-01T12:00:00Z') },
+      }, now)).toBe('PREMIUM')
+    })
+
+    it('returns FREE for a cancelled subscription past its renewal date', () => {
+      expect(effectiveTier({
+        tier: 'PREMIUM',
+        subscription: { cancelledAt: new Date('2026-04-15T00:00:00Z'), nextRenewalAt: new Date('2026-05-01T12:00:00Z') },
+      }, now)).toBe('FREE')
+    })
+
+    it('returns PREMIUM for an uncancelled subscription even if renewal is overdue (admin needs to bill them)', () => {
+      expect(effectiveTier({
+        tier: 'PREMIUM',
+        subscription: { cancelledAt: null, nextRenewalAt: new Date('2026-04-15T12:00:00Z') },
+      }, now)).toBe('PREMIUM')
     })
   })
 })

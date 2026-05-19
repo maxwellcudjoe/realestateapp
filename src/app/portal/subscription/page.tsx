@@ -6,6 +6,7 @@ import {
   premiumMonthlyAmount,
   premiumAnnualAmount,
   PREMIUM_PREVIEW_HOURS,
+  effectiveTier,
   type BillingPeriod,
 } from '@/lib/subscriptions'
 
@@ -30,6 +31,9 @@ export default async function PortalSubscriptionPage() {
   const monthlyAnnualised = monthly * 12
   const annualSavings = monthlyAnnualised - annual
 
+  const tier = effectiveTier(user)
+  const isCancelledButActive = tier === 'PREMIUM' && Boolean(user.subscription?.cancelledAt)
+
   return (
     <div>
       <h1 className="font-serif text-3xl font-light text-ivory mb-2">Subscription</h1>
@@ -39,8 +43,13 @@ export default async function PortalSubscriptionPage() {
 
       <section className="mb-12">
         <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Current tier</p>
-        <div className={`border p-5 ${user.tier === 'PREMIUM' ? 'border-gold bg-gold/5' : 'border-carbon'}`}>
-          <p className="font-sans text-2xl text-ivory">{user.tier === 'PREMIUM' ? 'Premium' : 'Free'}</p>
+        <div className={`border p-5 ${tier === 'PREMIUM' ? 'border-gold bg-gold/5' : 'border-carbon'}`}>
+          <p className="font-sans text-2xl text-ivory">
+            {tier === 'PREMIUM' ? 'Premium' : 'Free'}
+            {isCancelledButActive && (
+              <span className="font-sans text-sm text-stone ml-3">(cancelled — ends {fmtDate(user.subscription!.nextRenewalAt)})</span>
+            )}
+          </p>
           {user.subscription && (
             <div className="mt-4 grid grid-cols-2 gap-6">
               <div>
@@ -51,7 +60,7 @@ export default async function PortalSubscriptionPage() {
               </div>
               <div>
                 <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone mb-1">
-                  {user.subscription.cancelledAt ? 'Cancelled — access until' : 'Next renewal'}
+                  {user.subscription.cancelledAt ? 'Access ends' : 'Next renewal'}
                 </p>
                 <p className="font-sans text-sm text-ivory">{fmtDate(user.subscription.nextRenewalAt)}</p>
               </div>
@@ -60,7 +69,7 @@ export default async function PortalSubscriptionPage() {
         </div>
       </section>
 
-      {user.tier === 'FREE' && (
+      {tier === 'FREE' && (
         <section className="mb-12">
           <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Upgrade to Premium</p>
           <div className="border border-carbon p-6 space-y-5">
@@ -92,7 +101,7 @@ export default async function PortalSubscriptionPage() {
         </section>
       )}
 
-      {user.tier === 'PREMIUM' && !user.subscription?.cancelledAt && (
+      {tier === 'PREMIUM' && !user.subscription?.cancelledAt && (
         <section>
           <p className="font-sans text-xs text-stone">
             Need to change your plan or cancel? Contact us via the <a href="/portal/messages" className="text-gold hover:underline">Messages</a> tab.
