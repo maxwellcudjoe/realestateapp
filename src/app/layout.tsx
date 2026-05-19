@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Montserrat } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { ImpersonationBanner } from '@/components/ImpersonationBanner'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -114,6 +115,7 @@ export default function RootLayout({
       </head>
       <body>
         <Navbar />
+        <ImpersonationBanner />
         <main>{children}</main>
         <Footer />
       </body>

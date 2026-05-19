@@ -1,7 +1,6 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { InvoiceIssuer } from '@/components/admin/InvoiceIssuer'
 import { InvoiceMarkPaid } from '@/components/admin/InvoiceMarkPaid'
 import { INVOICE_TYPE_LABELS, INVOICE_STATUS_LABELS, type InvoiceType, type InvoiceStatus } from '@/lib/invoices'
@@ -46,17 +45,8 @@ export default async function AdminInvestorInvoicesPage({ params }: { params: { 
     .reduce((sum, i) => sum + Number(i.amount), 0)
 
   return (
-    <div className="min-h-screen bg-obsidian pt-[72px]">
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <Link href={`/admin/investors/${params.id}`} className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors mb-4 inline-block">
-          ← Back to investor
-        </Link>
-        <h1 className="font-serif text-4xl font-light text-ivory mb-2">
-          Invoices — {application.investorProfile.firstName} {application.investorProfile.lastName}
-        </h1>
-        <p className="font-sans text-sm text-stone mb-8">{user.email}</p>
-
-        <div className="grid grid-cols-2 gap-4 mb-8">
+    <div>
+      <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="border border-carbon p-5">
             <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone mb-1">Outstanding</p>
             <p className={`font-sans text-2xl ${outstanding > 0 ? 'text-gold' : 'text-stone'}`}>{fmt(outstanding)}</p>
@@ -125,7 +115,6 @@ export default async function AdminInvestorInvoicesPage({ params }: { params: { 
             })}
           </div>
         )}
-      </div>
     </div>
   )
 }

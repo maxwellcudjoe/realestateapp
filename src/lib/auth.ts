@@ -1,10 +1,12 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import { cookies } from 'next/headers'
 import { authConfig } from '@/lib/auth.config'
 import { prisma } from '@/lib/prisma'
 import { isIpLockedOut, recordLoginAttempt } from '@/lib/login-tracking'
 import { getClientIp } from '@/lib/rate-limit'
 import { verifyTotpCode, findMatchingRecoveryCode } from '@/lib/totp'
+import { IMPERSONATE_COOKIE, verifyImpersonateCookie } from '@/lib/impersonate'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
@@ -38,12 +40,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const dbUser = await prisma.user.findUnique({
         where: { id: tokenId },
-        select: { deletedAt: true },
+        select: { deletedAt: true, role: true },
       })
       if (!dbUser || dbUser.deletedAt) {
         // Strip user fields — every authenticated route checks `session?.user?.id`
         return { ...baseSession, user: undefined as unknown as typeof baseSession.user }
       }
+
+      // PR I — admin impersonation overlay. If the actor is an admin AND the
+      // signed impersonate cookie is present + valid + unexpired, overlay the
+      // session to appear as the target user, with `impersonator` set to the
+      // admin's id. Middleware blocks all /api/* mutations while this is set.
+      if (dbUser.role === 'admin' && baseSession.user) {
+        try {
+          const secret = process.env.NEXTAUTH_SECRET
+          if (secret) {
+            const cookieValue = cookies().get(IMPERSONATE_COOKIE)?.value
+            const payload = await verifyImpersonateCookie(secret, cookieValue)
+            if (payload && payload.adminId === tokenId) {
+              const target = await prisma.user.findUnique({
+                where: { id: payload.targetUserId },
+                select: { id: true, email: true, role: true, deletedAt: true },
+              })
+              if (target && target.role !== 'admin' && !target.deletedAt) {
+                return {
+                  ...baseSession,
+                  user: {
+                    ...baseSession.user,
+                    id: target.id,
+                    email: target.email,
+                    role: target.role,
+                    impersonator: payload.adminId,
+                  },
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error('[impersonate] session overlay failed (non-fatal):', e)
+        }
+      }
+
       return baseSession
     },
   },

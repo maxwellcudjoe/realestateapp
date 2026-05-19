@@ -8,20 +8,24 @@ export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 100
 
-export default async function AdminAuditPage({ searchParams }: { searchParams: { action?: string; resource?: string; page?: string } }) {
+export default async function AdminAuditPage({ searchParams }: { searchParams: { action?: string; resource?: string; actorUserId?: string; resourceId?: string; page?: string } }) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') redirect('/login')
 
   const action = searchParams.action?.trim() || undefined
   const resource = searchParams.resource?.trim() || undefined
+  const actorUserId = searchParams.actorUserId?.trim() || undefined
+  const resourceId = searchParams.resourceId?.trim() || undefined
   const page = Math.max(1, parseInt(searchParams.page ?? '1', 10) || 1)
 
   const where = {
     ...(action ? { action } : {}),
     ...(resource ? { resourceType: resource } : {}),
+    ...(actorUserId ? { actorUserId } : {}),
+    ...(resourceId ? { resourceId } : {}),
   }
 
-  const [events, total] = await Promise.all([
+  const [events, total, focusedActor] = await Promise.all([
     prisma.auditEvent.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -29,6 +33,9 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: {
       skip: (page - 1) * PAGE_SIZE,
     }),
     prisma.auditEvent.count({ where }),
+    actorUserId
+      ? prisma.user.findUnique({ where: { id: actorUserId }, select: { email: true } })
+      : Promise.resolve(null),
   ])
 
   // Resolve actor email for display
@@ -37,6 +44,16 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: {
     ? await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, email: true } })
     : []
   const userById = new Map(users.map((u) => [u.id, u.email]))
+
+  const qs = (extra: Record<string, string | number | undefined>) => {
+    const params = new URLSearchParams()
+    if (action) params.set('action', action)
+    if (resource) params.set('resource', resource)
+    if (actorUserId) params.set('actorUserId', actorUserId)
+    if (resourceId) params.set('resourceId', resourceId)
+    for (const [k, v] of Object.entries(extra)) if (v !== undefined) params.set(k, String(v))
+    return params.toString()
+  }
 
   return (
     <div>
@@ -52,18 +69,37 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: {
           className="bg-charcoal border border-carbon px-4 py-2 font-sans text-xs text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors min-w-[280px]" />
         <input type="text" name="resource" defaultValue={resource ?? ''} placeholder="Resource type (Deal / User / Offer)"
           className="bg-charcoal border border-carbon px-4 py-2 font-sans text-xs text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors" />
+        <input type="text" name="actorUserId" defaultValue={actorUserId ?? ''} placeholder="Actor user id"
+          className="bg-charcoal border border-carbon px-4 py-2 font-sans text-xs text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors font-mono" />
+        <input type="text" name="resourceId" defaultValue={resourceId ?? ''} placeholder="Resource id"
+          className="bg-charcoal border border-carbon px-4 py-2 font-sans text-xs text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors font-mono" />
         <button type="submit" className="px-5 py-2 border border-gold text-gold font-sans text-[0.6rem] uppercase tracking-widest hover:bg-gold hover:text-obsidian transition-colors">
           Filter
         </button>
-        {(action || resource) && (
+        {(action || resource || actorUserId || resourceId) && (
           <Link href="/admin/audit" className="px-5 py-2 border border-carbon text-stone font-sans text-[0.6rem] uppercase tracking-widest hover:border-gold hover:text-gold transition-colors">
             Clear
           </Link>
         )}
       </form>
 
+      {(actorUserId || resourceId) && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {actorUserId && (
+            <span className="font-sans text-[0.6rem] uppercase tracking-widest text-gold bg-gold/10 border border-gold/30 px-2 py-1">
+              Actor: {focusedActor?.email ?? actorUserId.slice(0, 12)}
+            </span>
+          )}
+          {resourceId && (
+            <span className="font-sans text-[0.6rem] uppercase tracking-widest text-gold bg-gold/10 border border-gold/30 px-2 py-1">
+              Resource id: <span className="font-mono normal-case">{resourceId.slice(0, 12)}</span>
+            </span>
+          )}
+        </div>
+      )}
+
       <p className="font-sans text-xs text-stone mb-4">
-        {total.toLocaleString('en-GB')} event{total === 1 ? '' : 's'}{(action || resource) ? ' (filtered)' : ''} ·
+        {total.toLocaleString('en-GB')} event{total === 1 ? '' : 's'}{(action || resource || actorUserId || resourceId) ? ' (filtered)' : ''} ·
         Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}
       </p>
 
@@ -108,10 +144,10 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: {
       {total > PAGE_SIZE && (
         <div className="flex gap-3 mt-6">
           {page > 1 && (
-            <Link href={`/admin/audit?page=${page - 1}${action ? `&action=${action}` : ''}${resource ? `&resource=${resource}` : ''}`} className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory">← Prev</Link>
+            <Link href={`/admin/audit?${qs({ page: page - 1 })}`} className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory">← Prev</Link>
           )}
           {page * PAGE_SIZE < total && (
-            <Link href={`/admin/audit?page=${page + 1}${action ? `&action=${action}` : ''}${resource ? `&resource=${resource}` : ''}`} className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory">Next →</Link>
+            <Link href={`/admin/audit?${qs({ page: page + 1 })}`} className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory">Next →</Link>
           )}
         </div>
       )}

@@ -14,7 +14,7 @@ export default async function AdminInvestorsPage() {
     orderBy: { updatedAt: 'desc' },
     include: {
       investorProfile: {
-        include: { user: { select: { email: true } } },
+        include: { user: { select: { email: true, tier: true, deletedAt: true } } },
       },
     },
   })
@@ -28,6 +28,12 @@ export default async function AdminInvestorsPage() {
     budgetMax: Number(app.investorProfile.budgetMax),
     buyerType: app.investorProfile.buyerType,
     status: app.status,
+    tier: app.investorProfile.user.tier,
+    isPep: app.investorProfile.isPep,
+    entityType: app.investorProfile.entityType,
+    complianceCompleted: app.investorProfile.complianceCompleted,
+    kycExpiresAt: app.kycExpiresAt?.toISOString() ?? null,
+    deletedAt: app.investorProfile.user.deletedAt?.toISOString() ?? null,
     createdAt: app.createdAt.toISOString(),
     updatedAt: app.updatedAt.toISOString(),
   }))

@@ -16,6 +16,11 @@ model User {
   totpSecret      String?   @db.NVarChar(255)
   totpEnabledAt   DateTime?
   deletedAt       DateTime?
+  // PR E — admin soft-delete metadata. `deletionReason` is captured when admin
+  // soft-deletes; `anonymisedAt` is set by the 30d anonymisation cron (separate
+  // job, not yet implemented). Restore is allowed only while anonymisedAt is null.
+  deletionReason  String?   @db.NVarChar(500)
+  anonymisedAt    DateTime?
   // Task 7.4 — subscription tier (FREE | PREMIUM); drives 48h deal-preview gate + admin priority
   tier            String    @default("FREE") @db.NVarChar(20)
   createdAt       DateTime  @default(now())

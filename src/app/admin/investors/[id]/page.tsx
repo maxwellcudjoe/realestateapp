@@ -3,9 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { StatusPanel } from '@/components/admin/StatusPanel'
 import { SubscriptionPanel } from '@/components/admin/SubscriptionPanel'
+import { StatusHistoryTimeline } from '@/components/admin/StatusHistoryTimeline'
+import { UserActionsPanel } from '@/components/admin/UserActionsPanel'
+import { InvestorProfileEditor } from '@/components/admin/InvestorProfileEditor'
+import { PortfolioSummaryCard } from '@/components/admin/PortfolioSummaryCard'
+import { KycRecheckButton } from '@/components/admin/KycRecheckButton'
 import {
   COUNTRIES, SOURCE_OF_FUNDS_OPTIONS, ageOn,
-  experienceLabel, timelineLabel, mortgageStatusLabel, entityTypeLabel,
+  experienceLabel, timelineLabel, mortgageStatusLabel,
 } from '@/lib/compliance'
 import { strategyLabel, legacyToStrategies } from '@/lib/strategies'
 import { DocumentReviewRow } from '@/components/admin/DocumentReviewRow'
@@ -37,7 +42,18 @@ export default async function AdminInvestorDetailPage({
     include: {
       investorProfile: {
         include: {
-          user: { select: { id: true, email: true, tier: true, subscription: true } },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              tier: true,
+              subscription: true,
+              emailVerifiedAt: true,
+              totpEnabledAt: true,
+              deletedAt: true,
+              createdAt: true,
+            },
+          },
           structuredAreas: { orderBy: { label: 'asc' } },
           strategies: true,
         },
@@ -52,27 +68,40 @@ export default async function AdminInvestorDetailPage({
   const p = app.investorProfile
   const fmt = (n: number) => `£${Number(n).toLocaleString('en-GB')}`
 
+  const properties = await prisma.property.findMany({
+    where: { userId: p.user.id },
+    orderBy: { completionDate: 'desc' },
+    select: {
+      id: true,
+      address: true,
+      purchasePrice: true,
+      currentValueEstimate: true,
+      completionDate: true,
+      tenancyStatus: true,
+    },
+  })
+
+  const actorIds = Array.from(
+    new Set(app.statusHistory.map((h) => h.changedByUserId).filter(Boolean) as string[]),
+  )
+  const actors = actorIds.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { in: actorIds } },
+        select: { id: true, email: true },
+      })
+    : []
+  const actorEmailById = new Map(actors.map((a) => [a.id, a.email]))
+  const historyForTimeline = app.statusHistory.map((h) => ({
+    id: h.id,
+    fromStatus: h.fromStatus,
+    toStatus: h.toStatus,
+    note: h.note,
+    changedByEmail: h.changedByUserId ? actorEmailById.get(h.changedByUserId) ?? null : null,
+    createdAt: h.createdAt.toISOString(),
+  }))
+
   return (
     <div>
-      <Link href="/admin/investors" className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors mb-4 inline-block">
-        ← Back to List
-      </Link>
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl font-light text-ivory">
-          {p.firstName} {p.lastName}
-        </h1>
-        {p.entityType !== 'INDIVIDUAL' && (
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <span className="font-sans text-[0.55rem] uppercase tracking-widest text-gold bg-gold/10 border border-gold/30 px-2 py-0.5">
-              {entityTypeLabel(p.entityType)}
-            </span>
-            {p.companyName && <span className="font-sans text-sm text-stone">— {p.companyName}</span>}
-            {p.companyNumber && <span className="font-sans text-xs text-stone font-mono">#{p.companyNumber}</span>}
-            {p.vatNumber && <span className="font-sans text-xs text-stone">VAT {p.vatNumber}</span>}
-          </div>
-        )}
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="border border-carbon p-6 space-y-3">
           <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Investor Profile</h2>
@@ -125,11 +154,17 @@ export default async function AdminInvestorDetailPage({
 
         <div className="border border-carbon p-6">
           <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">KYC Documents</h2>
+          {app.kycCompletedAt && (
+            <p className="font-sans text-[0.6rem] text-stone mb-1">
+              KYC completed {app.kycCompletedAt.toLocaleDateString('en-GB')}
+            </p>
+          )}
           {app.kycExpiresAt && (
             <p className={`font-sans text-[0.6rem] mb-3 ${app.kycExpiresAt < new Date() ? 'text-red-400' : app.kycExpiresAt.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000 ? 'text-amber-400' : 'text-stone'}`}>
               KYC {app.kycExpiresAt < new Date() ? 'expired' : 'expires'} {app.kycExpiresAt.toLocaleDateString('en-GB')}
             </p>
           )}
+          <KycRecheckButton applicationId={app.id} kycExpiresAt={app.kycExpiresAt?.toISOString() ?? null} />
           {app.documents.length === 0 ? (
             <p className="font-sans text-xs text-stone">No documents uploaded yet.</p>
           ) : (
@@ -265,6 +300,68 @@ export default async function AdminInvestorDetailPage({
         </div>
       </div>
 
+      <PortfolioSummaryCard
+        userId={p.user.id}
+        properties={properties.map((prop) => ({
+          id: prop.id,
+          address: prop.address,
+          purchasePrice: Number(prop.purchasePrice),
+          currentValueEstimate: prop.currentValueEstimate !== null ? Number(prop.currentValueEstimate) : null,
+          completionDate: prop.completionDate.toISOString(),
+          tenancyStatus: prop.tenancyStatus,
+        }))}
+      />
+
+      <div className="mt-8 border border-carbon p-6">
+        <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Status History</h2>
+        <StatusHistoryTimeline history={historyForTimeline} />
+      </div>
+
+      <div className="mt-8">
+        <UserActionsPanel
+          userId={p.user.id}
+          email={p.user.email}
+          emailVerified={!!p.user.emailVerifiedAt}
+          totpEnabled={!!p.user.totpEnabledAt}
+          isDeleted={!!p.user.deletedAt}
+        />
+      </div>
+
+      <InvestorProfileEditor
+        applicationId={app.id}
+        initial={{
+          firstName: p.firstName,
+          lastName: p.lastName,
+          phone: p.phone,
+          addressLine1: p.addressLine1,
+          city: p.city,
+          postcode: p.postcode,
+          entityType: p.entityType,
+          companyName: p.companyName,
+          companyNumber: p.companyNumber,
+          vatNumber: p.vatNumber,
+          companyAddress: p.companyAddress,
+          budgetMin: Number(p.budgetMin),
+          budgetMax: Number(p.budgetMax),
+          buyerType: p.buyerType,
+          dateOfBirth: p.dateOfBirth?.toISOString() ?? null,
+          nationality: p.nationality,
+          taxResidency: p.taxResidency,
+          niNumber: p.niNumber,
+          isPep: p.isPep,
+          pepDetails: p.pepDetails,
+          sourceOfFunds: p.sourceOfFunds,
+          sourceOfFundsDetail: p.sourceOfFundsDetail,
+          experienceLevel: p.experienceLevel,
+          timelineToBuy: p.timelineToBuy,
+          mortgageStatus: p.mortgageStatus,
+          mortgageLender: p.mortgageLender,
+          maxLtv: p.maxLtv,
+          depositAvailable: p.depositAvailable !== null ? Number(p.depositAvailable) : null,
+          referralSource: p.referralSource,
+        }}
+      />
+
       <div className="mt-8">
         <SubscriptionPanel
           userId={p.user.id}
@@ -281,18 +378,18 @@ export default async function AdminInvestorDetailPage({
         />
       </div>
 
-      <div className="mt-8 flex items-center gap-6">
+      <div className="mt-8 flex items-center gap-6 flex-wrap">
         <Link
-          href={`/admin/investors/${params.id}/deals`}
-          className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory transition-colors"
+          href={`/admin/audit?actorUserId=${p.user.id}`}
+          className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors"
         >
-          View Deals →
+          Audit by this user →
         </Link>
         <Link
-          href={`/admin/investors/${params.id}/invoices`}
-          className="font-sans text-xs uppercase tracking-widest text-gold hover:text-ivory transition-colors"
+          href={`/admin/audit?resourceId=${p.user.id}`}
+          className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors"
         >
-          View Invoices →
+          Audit about this user →
         </Link>
       </div>
     </div>

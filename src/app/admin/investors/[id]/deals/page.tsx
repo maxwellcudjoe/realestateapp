@@ -24,7 +24,6 @@ export default async function AdminInvestorDealsPage({
   const app = await prisma.application.findUnique({
     where: { id: params.id },
     include: {
-      investorProfile: { select: { firstName: true, lastName: true } },
       deals: {
         orderBy: { createdAt: 'desc' },
         include: { response: true },
@@ -35,20 +34,9 @@ export default async function AdminInvestorDealsPage({
   if (!app) redirect('/admin/investors')
 
   const fmt = (n: number) => `£${n.toLocaleString('en-GB')}`
-  const p = app.investorProfile
 
   return (
     <div>
-      <Link
-        href={`/admin/investors/${params.id}`}
-        className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors mb-4 inline-block"
-      >
-        ← Back to {p.firstName} {p.lastName}
-      </Link>
-      <h1 className="font-serif text-4xl font-light text-ivory mb-8">
-        Deals — {p.firstName} {p.lastName}
-      </h1>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Post Deal form */}
         <div>

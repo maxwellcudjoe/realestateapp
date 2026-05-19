@@ -36,6 +36,24 @@ export const AUDIT_ACTIONS = {
   SUBSCRIPTION_ACTIVATED: 'Premium subscription activated',
   SUBSCRIPTION_CANCELLED: 'Premium subscription cancelled',
   SUBSCRIPTION_RENEWAL_RUN: 'Renewal generator run',
+  // PR E — admin user-management actions
+  VERIFICATION_RESENT: 'Admin resent verification email',
+  TWOFA_DISABLED_BY_ADMIN: '2FA disabled by admin',
+  PASSWORD_RESET_FORCED: 'Admin forced password reset',
+  USER_SOFT_DELETED: 'User soft-deleted by admin',
+  USER_RESTORED: 'User restored by admin',
+  // PR F — admin profile edits
+  PROFILE_EDITED_BY_ADMIN: 'Investor profile edited by admin',
+  PROFILE_AML_EDITED_BY_ADMIN: 'Investor AML data edited by admin',
+  // PR H — KYC re-check launcher
+  KYC_RECHECK_LAUNCHED: 'KYC re-check launched',
+  // Anonymisation cron (post-PR E follow-up)
+  USER_ANONYMISED: 'User personal data anonymised',
+  ANONYMISATION_RUN: 'Anonymisation cron run',
+  // PR I — impersonation
+  IMPERSONATION_STARTED: 'Admin started impersonating user',
+  IMPERSONATION_ENDED: 'Admin ended impersonation',
+  IMPERSONATION_BLOCKED_WRITE: 'Impersonation blocked a write attempt',
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS

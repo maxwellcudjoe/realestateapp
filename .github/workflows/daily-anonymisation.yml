@@ -1,0 +1,69 @@
+name: Daily soft-delete anonymisation
+
+# Runs every day at 02:00 UTC. Calls the anonymise-expired endpoint with the
+# CRON_SECRET Bearer token. Anonymises users whose `deletedAt` is older than
+# 30 days AND `anonymisedAt` is still null (i.e. the admin's restore window
+# has closed). Same anonymisation path as the self-serve /portal/account/delete.
+#
+# Manual trigger from the Actions tab supports custom graceDays + dryRun.
+#
+# Required GitHub repository secrets:
+#   ANONYMISATION_ENDPOINT  — e.g. https://www.revebatir.co.uk/api/admin/users/anonymise-expired
+#   CRON_SECRET             — must match the env var in Azure SWA Application settings
+
+on:
+  schedule:
+    # Every day at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      graceDays:
+        description: 'Grace days (deletedAt older than N days)'
+        required: false
+        default: '30'
+      dryRun:
+        description: 'Dry-run (preview only, no anonymisation)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  anonymise-expired:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger anonymisation
+        env:
+          ENDPOINT: ${{ secrets.ANONYMISATION_ENDPOINT }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          GRACE_DAYS: ${{ github.event.inputs.graceDays || '30' }}
+          DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
+        run: |
+          if [ -z "$ENDPOINT" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::ANONYMISATION_ENDPOINT and CRON_SECRET repository secrets must be set."
+            exit 1
+          fi
+          URL="${ENDPOINT}?graceDays=${GRACE_DAYS}&dryRun=${DRY_RUN}"
+          echo "Calling $URL (dryRun=$DRY_RUN)"
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "$URL" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n1)
+          echo "HTTP $STATUS"
+          echo "$BODY" | jq . || echo "$BODY"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Anonymisation run failed with HTTP $STATUS"
+            exit 1
+          fi
+          PROCESSED=$(echo "$BODY" | jq -r '.processed // .candidateCount' 2>/dev/null || echo "?")
+          SUCCESSFUL=$(echo "$BODY" | jq -r '.successful // 0' 2>/dev/null || echo "?")
+          ERRORS=$(echo "$BODY" | jq -r '.errors // 0' 2>/dev/null || echo "?")
+          echo "## Anonymisation run summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Grace days: $GRACE_DAYS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dry-run: $DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Processed: $PROCESSED" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Successful: $SUCCESSFUL" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Errors: $ERRORS" >> "$GITHUB_STEP_SUMMARY"

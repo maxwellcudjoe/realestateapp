@@ -3,6 +3,7 @@ import { auth, signOut } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { recordAudit } from '@/lib/audit'
 import { getClientIp } from '@/lib/rate-limit'
+import { anonymiseUser } from '@/lib/user-anonymise'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 
@@ -45,51 +46,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Password did not match.' }, { status: 400 })
   }
 
-  const now = new Date()
-  const anonStamp = `[deleted-${user.id.slice(0, 8)}]`
-
-  await prisma.$transaction(async (tx) => {
-    // Anonymise the User record (keep id, mark deletedAt, scramble email/credentials)
-    await tx.user.update({
-      where: { id: user.id },
-      data: {
-        deletedAt: now,
-        email: `${anonStamp}@deleted.local`,
-        passwordHash: 'DELETED',
-        totpSecret: null,
-        totpEnabledAt: null,
-      },
-    })
-
-    // Anonymise the InvestorProfile (keep id, scrub PII)
-    if (user.investorProfile) {
-      await tx.investorProfile.update({
-        where: { id: user.investorProfile.id },
-        data: {
-          firstName: '[Deleted',
-          lastName: 'Investor]',
-          phone: '',
-          addressLine1: '',
-          city: '',
-          postcode: '',
-          niNumber: null,
-          pepDetails: null,
-          sourceOfFundsDetail: null,
-          companyName: null,
-          companyNumber: null,
-          vatNumber: null,
-          companyAddress: null,
-          referralSource: null,
-          marketingConsentAt: null,
-        },
-      })
-    }
-
-    // Clear active sensitive tokens
-    await tx.passwordResetToken.deleteMany({ where: { userId: user.id } })
-    await tx.emailVerificationToken.deleteMany({ where: { userId: user.id } })
-    await tx.recoveryCode.deleteMany({ where: { userId: user.id } })
-  })
+  await anonymiseUser(prisma, user.id)
 
   await recordAudit({
     actorUserId: user.id,

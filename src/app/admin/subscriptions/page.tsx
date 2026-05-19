@@ -4,6 +4,13 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { RenewalGeneratorButton } from '@/components/admin/RenewalGeneratorButton'
 import { BILLING_PERIOD_LABEL, type BillingPeriod } from '@/lib/subscriptions'
+import {
+  pendingSubscriptionRequests,
+  parseRequestTypeFromBody,
+  elapsedSince,
+  SUBSCRIPTION_REQUEST_SUBJECT_PREFIX,
+  SUBSCRIPTION_REQUEST_WINDOW_DAYS,
+} from '@/lib/subscription-requests'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +22,9 @@ export default async function AdminSubscriptionsPage() {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') redirect('/login')
 
-  const [subscriptions, recentInvoices] = await Promise.all([
+  const requestWindowStart = new Date(Date.now() - SUBSCRIPTION_REQUEST_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+
+  const [subscriptions, recentInvoices, requestMessages] = await Promise.all([
     prisma.subscription.findMany({
       orderBy: { nextRenewalAt: 'asc' },
       include: {
@@ -37,7 +46,51 @@ export default async function AdminSubscriptionsPage() {
       take: 20,
       include: { user: { select: { email: true, investorProfile: { select: { firstName: true, lastName: true } } } } },
     }),
+    prisma.message.findMany({
+      where: {
+        subject: { startsWith: SUBSCRIPTION_REQUEST_SUBJECT_PREFIX },
+        createdAt: { gte: requestWindowStart },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        senderUser: { select: { id: true, role: true } },
+        application: {
+          select: {
+            id: true,
+            investorProfile: { select: { firstName: true, lastName: true, user: { select: { email: true } } } },
+          },
+        },
+      },
+    }),
   ])
+
+  // Pull all admin replies on the same applicationIds in the window so we can
+  // mark requests "actioned" when an admin replied after the request landed.
+  const requestAppIds = Array.from(new Set(requestMessages.map((m) => m.applicationId)))
+  const adminReplyMessages = requestAppIds.length > 0
+    ? await prisma.message.findMany({
+        where: {
+          applicationId: { in: requestAppIds },
+          createdAt: { gte: requestWindowStart },
+          senderUser: { role: 'admin' },
+        },
+        select: { applicationId: true, senderUserId: true, createdAt: true },
+      })
+    : []
+
+  const investorRequests = requestMessages.filter((m) => m.senderUser?.role !== 'admin')
+  const pendingRequests = pendingSubscriptionRequests(
+    investorRequests.map((m) => ({
+      id: m.id,
+      applicationId: m.applicationId,
+      senderUserId: m.senderUserId,
+      subject: m.subject,
+      body: m.body,
+      createdAt: m.createdAt,
+    })),
+    adminReplyMessages,
+  )
+  const requestById = new Map(requestMessages.map((m) => [m.id, m]))
 
   const now = new Date()
   const cutoff7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -77,6 +130,46 @@ export default async function AdminSubscriptionsPage() {
       <section className="mb-12">
         <RenewalGeneratorButton />
       </section>
+
+      {pendingRequests.length > 0 && (
+        <section className="mb-12">
+          <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">
+            Pending subscription requests · {pendingRequests.length}
+          </h2>
+          <div className="border border-gold/30 bg-gold/5">
+            {pendingRequests.map((r) => {
+              const full = requestById.get(r.id)
+              const appId = full?.application?.id
+              const profile = full?.application?.investorProfile
+              const fullName = profile ? `${profile.firstName} ${profile.lastName}`.trim() : ''
+              const name = fullName || profile?.user.email || 'Unknown'
+              const requestType = parseRequestTypeFromBody(r.body) ?? r.subject.replace(SUBSCRIPTION_REQUEST_SUBJECT_PREFIX, '').trim()
+              return (
+                <div key={r.id} className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-gold/20 last:border-b-0 items-start">
+                  <div className="col-span-3">
+                    <p className="font-sans text-sm text-ivory">{name}</p>
+                    <p className="font-sans text-[0.65rem] text-stone">{profile?.user.email}</p>
+                  </div>
+                  <div className="col-span-3 font-sans text-sm text-gold">{requestType}</div>
+                  <div className="col-span-4 font-sans text-xs text-stone whitespace-pre-line line-clamp-3">
+                    {r.body}
+                  </div>
+                  <div className="col-span-2 flex flex-col items-end gap-1">
+                    <span className="font-sans text-[0.55rem] uppercase tracking-widest text-stone">
+                      {elapsedSince(r.createdAt)}
+                    </span>
+                    {appId && (
+                      <Link href={`/admin/investors/${appId}`} className="font-sans text-[0.6rem] uppercase tracking-widest text-gold hover:text-ivory transition-colors">
+                        Open profile →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="mb-12">
         <h2 className="font-sans text-[0.6rem] uppercase tracking-widest text-gold mb-4">Active subscribers</h2>

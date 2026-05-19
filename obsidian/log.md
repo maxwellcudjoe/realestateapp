@@ -2,6 +2,70 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | Admin profile deferred items — anonymisation cron + tab refactor + impersonate
+
+- Created: `obsidian/Projects/2026-05-19-admin-profile-deferred-items.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- All 3 originally-deferred items from PR A–H session shipped:
+- **Anonymisation cron**: new `src/lib/user-anonymise.ts` (extracted from `/portal/account/delete` so there's one canonical anonymisation path) + `POST /api/admin/users/anonymise-expired` (Bearer CRON_SECRET OR admin session) + `.github/workflows/daily-anonymisation.yml` at 02:00 UTC. Per-user error isolation + summary audit. New audit codes: `USER_ANONYMISED`, `ANONYMISATION_RUN`. Owner needs to set GitHub secret `ANONYMISATION_ENDPOINT`.
+- **Tab-nav refactor**: new `[id]/layout.tsx` (server component) renders shared header with name + email + chips + status. New `InvestorTabStrip` (client) uses `usePathname` for active state. Removed back-link + H1 + chips block from Overview/Deals/Invoices/Activity pages. Cleaner code per tab, no duplicated header rendering.
+- **PR I (impersonate)**: new `src/lib/impersonate.ts` with Web-Crypto-signed cookie (works in both edge + Node) — 30-min TTL HMAC-SHA256. New `POST/DELETE /api/admin/users/[userId]/impersonate`. Session callback overlays target identity when valid cookie + admin actor + non-admin target + not deleted. Middleware (widened matcher to include `/api/portal` + `/api/admin`) returns 403 `IMPERSONATION_READ_ONLY` for any mutation method during impersonation, except the stop endpoint. Banner mounted in root layout. Button on `UserActionsPanel`. 3 new audit codes (`IMPERSONATION_STARTED`/`ENDED`/`BLOCKED_WRITE`).
+- Threat-model checklist in the project note: cookie tampering, theft, forever-impersonation, admin-on-admin, writes during impersonation, audit gap, confused-deputy, deleted-target — each mitigated.
+- Tests: 475 → 498 (+23). 3 new test files: `tests/api/admin-anonymise-expired.test.ts` (7), `tests/lib/impersonate.test.ts` (12), `tests/api/admin-impersonate.test.ts` (11). Build clean.
+- Type aug: `Session.user.impersonator?: string` added.
+- No schema changes (impersonation is cookie-only state).
+- Open: `ANONYMISATION_ENDPOINT` GitHub secret still to set; future "write-mode impersonation" PR could allow writes with elevated audit; auto-refresh-on-activity TTL could be added.
+
+## [2026-05-19] feature | Admin user-profile gaps — PRs A–H shipped
+
+- Created: `obsidian/Projects/2026-05-19-admin-user-profile-gaps-implementation.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- Executed the full 8-PR plan from [[2026-05-19-admin-user-profile-gaps-plan]] in one session
+- **PR A** statusHistory timeline + account chips (`emailVerified`/`totpEnabled`/`deletedAt`/`kycCompletedAt`) on detail page; new `StatusHistoryTimeline` component renders the previously-dead-weight fetched data
+- **PR B** investor list — new `src/lib/investor-filter.ts` pure helper + 6 new filter dropdowns (tier/PEP/compliance/KYC/entity/show-deleted) + row chips (Premium, ⚠ PEP, ⏳ KYC, Legacy, Deleted)
+- **PR C** audit log — `?actorUserId=` + `?resourceId=` query params + 2 new deep-link buttons on profile (`Audit by this user` / `Audit about this user`)
+- **PR D** `/admin/subscriptions` gains a "Pending subscription requests" inbox card via `src/lib/subscription-requests.ts` (LIKE on `[Subscription request]` subject prefix; filter out where admin replied after the request)
+- **PR E** 5 admin-action endpoints under `/api/admin/users/[userId]/`: `resend-verification`, `disable-2fa` (txn-clears TOTP+codes), `force-password-reset`, `soft-delete` (reason+blocks self/admin), `restore` (410 if anonymised). Schema: `User.deletionReason` + `User.anonymisedAt`. New `UserActionsPanel` component. 5 new audit codes.
+- **PR F** full `InvestorProfile` editor — `PATCH /api/admin/applications/[id]/profile`. 30 fields editable; AML-core (8 fields) requires `reason` → 400 REASON_REQUIRED otherwise; audit metadata contains the field-level diff. 2 new audit codes (`PROFILE_EDITED_BY_ADMIN`, `PROFILE_AML_EDITED_BY_ADMIN`). `src/lib/schemas/admin-profile.ts` + `InvestorProfileEditor` component (~250 LoC).
+- **PR G** `/admin/investors/[id]/activity` page — unified feed merging LoginAttempt / AuditEvent (actor OR resource) / Message / Viewing / DealFavourite / ContentfulDealInterest. `src/lib/user-activity.ts` + 5 mappers + `mergeActivity()` sorter. Toggle filter chips via `?kinds=` query param. Tab-nav refactor of the 3 standalone routes deferred — activity is a peer page for now.
+- **PR H** Portfolio summary card (auto-hidden when 0 properties) + Launch-KYC-recheck button visible when expiring ≤30d or null. `POST /api/admin/applications/[id]/kyc-recheck` creates a `KycCheck` row, emails investor, writes audit; gracefully falls back to provider=MANUAL when SumSub env vars unset.
+- Schema pushed once (4.64s).
+- Tests: 374 → 468 (+94) — 7 new test files, 50 test files total, all passing
+- Build clean throughout
+- Audit codes added: 8 new (`VERIFICATION_RESENT`, `TWOFA_DISABLED_BY_ADMIN`, `PASSWORD_RESET_FORCED`, `USER_SOFT_DELETED`, `USER_RESTORED`, `PROFILE_EDITED_BY_ADMIN`, `PROFILE_AML_EDITED_BY_ADMIN`, `KYC_RECHECK_LAUNCHED`)
+- Open: PR I (impersonate) deferred for security spike. 30-day anonymisation cron still TODO (endpoint `restore` already checks `anonymisedAt` but no cron sets it yet).
+
+## [2026-05-19] plan | Admin user-profile gaps — implementation plan
+
+- Created: `obsidian/Projects/2026-05-19-admin-user-profile-gaps-plan.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- 9 PRs across 3 phases closing all 12 gaps from [[2026-05-19-admin-user-profile-surface-gap-analysis]]
+- **Phase 1 — Visibility** (PRs A+B, ~3h, no schema): render statusHistory timeline + account chips (email-verified, 2FA, deletedAt, kycCompletedAt); list-page tier chip + PEP badge + 4 new filters
+- **Phase 2 — Triage** (PRs C+D, ~3h, optional `Message.kind` schema): user-scoped audit-log filter (`?actorUserId=` / `?resourceId=`) + deep links from profile; subscription-request inbox card on `/admin/subscriptions`
+- **Phase 3 — Editability & ops** (PRs E-H, ~3 days, +`User.deletionReason`+`User.anonymisedAt`):
+  - PR E: 5-endpoint admin-actions panel (resend-verify · disable-2FA · force-password-reset · soft-delete · restore) with `reason` capture and AuditEvent on every action
+  - PR F: full InvestorProfile editor with AML-core `reason` requirement and diff-in-audit-metadata; closes the "SSH-to-DB" gap
+  - PR G: per-user activity tab unifying LoginAttempt + AuditEvent + Message + Viewing + Favourites; converts 3 standalone admin routes into shared-header tabs
+  - PR H: Portfolio summary card + Launch-KYC-recheck button (graceful fallback when SumSub env unset)
+- **Backlog — PR I**: impersonate / view-as, deferred for security review with brainstorming spike
+- 4 cross-cutting decisions called out for owner sign-off: AML-core field list · soft-delete grace window (suggested 30d) · tab vs separate-page refactor · impersonate scope (read-only first)
+- Test target 374 → ~440 by end of Phase 3
+- Items 1–5 (A + B + C) close the highest-leverage compliance/ops gaps in sub-day total
+
+## [2026-05-19] query | Admin portal — user profile surface & gap analysis
+
+- Created: `obsidian/Knowledge/2026-05-19-admin-user-profile-surface-gap-analysis.md`
+- Updated: `obsidian/index.md` — added Knowledge entry
+- Audited 9 admin pages + 11 admin components + 17 admin API routes against the `User`/`InvestorProfile`/`Application` schema and 9 related models
+- Headline finding: profile **read-surface** is strong on AML/identity (DOB, nationality, PEP, source of funds, entity, experience, mortgage — all rendered with semantic chips). Gaps cluster in 4 areas:
+  1. **User-account view**: `emailVerifiedAt`, `totpEnabledAt`, `deletedAt`, `User.createdAt`, login history — none surfaced. Support can't triage "I can't log in" without DB access.
+  2. **Cross-entity views**: no audit-events-per-user filter, no all-messages-from-user feed, no favourites/interest list, no portfolio view, no all-viewings list — even though schema models all exist.
+  3. **Editability**: admin can mutate only `Application.status/adminNotes`, `User.tier`, and `Document.reviewStatus`. Zero `InvestorProfile` fields editable from UI — typo in NI number requires DB access.
+  4. **Operational affordances**: no resend-verification, no disable-2FA for support, no force-password-reset, no soft-delete-from-UI, no impersonate, no SumSub re-check launcher despite `sumsubApplicantId` being stored.
+- Notable waste: `statusHistory` is fetched in the detail-page query (line 47) but never rendered.
+- Notable risks called out: PEP investors not flagged in list (EDD obligation), soft-deleted users visually indistinguishable, subscription-cancel requests (B1) land in email only (cooling-off deadline risk).
+- 12-item prioritised fix sequence at the bottom — items 1–5 are sub-day total and close the highest-leverage compliance/ops gaps.
+
 ## [2026-05-19] handoff | New session prompt written
 
 - Created: `obsidian/Knowledge/2026-05-19-handoff-prompt.md`
