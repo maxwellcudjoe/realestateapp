@@ -23,6 +23,8 @@ vi.mock('@/lib/prisma', () => ({
     user: { findUnique: mockUserFindUnique, update: mockUserUpdate },
     subscription: { findUnique: mockSubFindUnique, findMany: mockSubFindMany, create: mockSubCreate, update: mockSubUpdate },
     invoice: { create: mockInvoiceCreate, findFirst: mockInvoiceFindFirst },
+    invoiceCounter: { upsert: vi.fn().mockResolvedValue({ prefix: 'RB-2026', seq: 99 }) },
+    auditEvent: { create: vi.fn() },
     $transaction: mockTransaction,
   },
 }))
@@ -237,9 +239,9 @@ describe('POST /api/admin/subscriptions/generate-renewals — A1 dry-run', () =>
         user: { email: 'x@x', investorProfile: { firstName: 'Jane', lastName: 'Doe' } },
       },
     ])
-    mockInvoiceFindFirst
-      .mockResolvedValueOnce(null) // recent-skip check
-      .mockResolvedValueOnce(null) // nextInvoiceNumber lookup
+    // recent-skip check returns null (no recent invoice) — nextInvoiceNumber
+    // uses the invoiceCounter upsert mock at the top of this file, not findFirst.
+    mockInvoiceFindFirst.mockResolvedValue(null)
     mockInvoiceCreate.mockResolvedValue({ id: 'inv-1', invoiceNumber: 'RB-2026-0050' })
     mockSubUpdate.mockResolvedValue({})
     const POST = await getRenewalsHandler()

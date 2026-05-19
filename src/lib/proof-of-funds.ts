@@ -15,7 +15,8 @@ export const POF_DOC_TYPE = 'PROOF_OF_FUNDS'
 export async function hasActiveProofOfFunds(applicationId: string): Promise<boolean> {
   const cutoff = pofCutoffDate()
   const doc = await prisma.document.findFirst({
-    where: { applicationId, type: POF_DOC_TYPE, uploadedAt: { gte: cutoff } },
+    // M1 — supersededAt IS NULL filter: only the current (non-replaced) PoF counts.
+    where: { applicationId, type: POF_DOC_TYPE, uploadedAt: { gte: cutoff }, supersededAt: null },
     select: { id: true },
   })
   return Boolean(doc)
@@ -23,7 +24,7 @@ export async function hasActiveProofOfFunds(applicationId: string): Promise<bool
 
 export async function getMostRecentProofOfFunds(applicationId: string) {
   return prisma.document.findFirst({
-    where: { applicationId, type: POF_DOC_TYPE },
+    where: { applicationId, type: POF_DOC_TYPE, supersededAt: null },
     orderBy: { uploadedAt: 'desc' },
     select: { id: true, fileName: true, uploadedAt: true },
   })

@@ -8,6 +8,7 @@ const {
   mockInvoiceFindUnique,
   mockInvoiceFindFirst,
   mockInvoiceUpdate,
+  mockInvoiceCounterUpsert,
 } = vi.hoisted(() => ({
   mockAuth: vi.fn(),
   mockUserFindUnique: vi.fn(),
@@ -16,6 +17,7 @@ const {
   mockInvoiceFindUnique: vi.fn(),
   mockInvoiceFindFirst: vi.fn(),
   mockInvoiceUpdate: vi.fn(),
+  mockInvoiceCounterUpsert: vi.fn(),
 }))
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
@@ -30,6 +32,8 @@ vi.mock('@/lib/prisma', () => ({
       update: mockInvoiceUpdate,
       delete: vi.fn(),
     },
+    invoiceCounter: { upsert: mockInvoiceCounterUpsert },
+    auditEvent: { create: vi.fn() },
   },
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
@@ -65,7 +69,7 @@ describe('POST /api/admin/invoices', () => {
       id: 'u1', email: 'jane@example.com',
       investorProfile: { firstName: 'Jane', lastName: 'Doe' },
     })
-    mockInvoiceFindFirst.mockResolvedValue(null) // numbering starts fresh
+    mockInvoiceCounterUpsert.mockResolvedValue({ prefix: 'RB-2026', seq: 1 })
     mockInvoiceCreate.mockResolvedValue({
       id: 'inv1', invoiceNumber: 'RB-2026-0001', status: 'SENT', amount: 5000,
     })

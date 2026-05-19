@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #8 — Schema-blocked audit items (C6 + L1 + M1)
+
+- Created: `obsidian/Projects/2026-05-19-pr8-schema-blocked-items.md`
+- Updated: `obsidian/index.md`
+- Azure SQL firewall whitelisted via `az sql server firewall-rule create` for IP 154.161.38.129 (rule name: claude-session-may19; resource group: gbhlogistics; SQL server: gmxserver)
+- Schema pushes (2x): added `InvoiceCounter` model + dropped `Invoice.pdfBlobPath` + added `Document.supersededAt`
+- **C6**: `nextInvoiceNumber` now uses `prisma.invoiceCounter.upsert({ where: {prefix}, create: {prefix, seq: 1}, update: { seq: { increment: 1 } } })` — atomic at the DB level. No more race + retry surface. Numbering is monotonic (VOIDed numbers stay used — proper accounting).
+- **L1**: dropped `Invoice.pdfBlobPath` schema field (was never written; PDFs render on-demand).
+- **M1**: `Document.supersededAt` added; PoF replace now uses `updateMany({supersededAt: now})` instead of `deleteMany`, blob intentionally preserved for AML evidence chain. `hasActiveProofOfFunds` + `getMostRecentProofOfFunds` filter `supersededAt: null`.
+- Tests: rewrote `nextInvoiceNumber` test block for counter approach; added `invoiceCounter.upsert` mock to invoices + subscriptions test prisma mocks; removed leftover `mockResolvedValueOnce(null)` queue that was bleeding across tests. 374/374 pass; build clean.
+- **Audit close-out: 26 of 29 items**. Remaining 3 are cosmetic (M5), verified safe (M8), or user-owned (L3).
+
 ## [2026-05-19] polish | PR #7 — Audit batch (M2, M3, M4, M6, M9, L4, L5, L7)
 
 - Created: `obsidian/Projects/2026-05-19-pr7-audit-polish-medium-low.md`

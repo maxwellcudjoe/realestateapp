@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { uploadDocument, deleteBlob } from '@/lib/azure-blob'
+import { uploadDocument } from '@/lib/azure-blob'
 import { POF_DOC_TYPE } from '@/lib/proof-of-funds'
 import crypto from 'crypto'
 
@@ -50,16 +50,16 @@ export async function POST(req: NextRequest) {
 
   await uploadDocument(buffer, blobPath, file.type)
 
-  // Replace existing PoF — only the most recent matters for the gate.
-  // L7 — orphan blobs from the prior upload are cleaned up best-effort.
-  const priorDocs = await prisma.document.findMany({
-    where: { applicationId: app.id, type: POF_DOC_TYPE },
-    select: { blobPath: true },
+  // M1 — soft-delete prior PoF instead of hard-deleting it. Sets
+  // supersededAt = now so the AML evidence chain is preserved (every PoF that
+  // backed a viewing-request or offer remains queryable). Blob is intentionally
+  // NOT cleaned up here — we need the file to satisfy the audit trail, not
+  // just the row. The active-PoF query filters supersededAt IS NULL so the
+  // freshness gate ignores superseded docs.
+  await prisma.document.updateMany({
+    where: { applicationId: app.id, type: POF_DOC_TYPE, supersededAt: null },
+    data: { supersededAt: new Date() },
   })
-  await prisma.document.deleteMany({
-    where: { applicationId: app.id, type: POF_DOC_TYPE },
-  })
-  await Promise.all(priorDocs.map((d) => deleteBlob(d.blobPath)))
   const doc = await prisma.document.create({
     data: {
       applicationId: app.id,

@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-const { mockInvoiceFindFirst } = vi.hoisted(() => ({ mockInvoiceFindFirst: vi.fn() }))
+const { mockInvoiceCounterUpsert } = vi.hoisted(() => ({ mockInvoiceCounterUpsert: vi.fn() }))
 
 vi.mock('@/lib/prisma', () => ({
-  prisma: { invoice: { findFirst: mockInvoiceFindFirst } },
+  prisma: { invoiceCounter: { upsert: mockInvoiceCounterUpsert } },
 }))
 
 import {
@@ -102,21 +102,29 @@ describe('invoices lib', () => {
     })
   })
 
-  describe('nextInvoiceNumber', () => {
-    it('returns RB-YYYY-0001 when no invoices exist', async () => {
-      mockInvoiceFindFirst.mockResolvedValue(null)
+  describe('nextInvoiceNumber (atomic counter — C6 fix)', () => {
+    it('returns RB-YYYY-0001 on first use (counter inserts seq=1)', async () => {
+      mockInvoiceCounterUpsert.mockResolvedValue({ prefix: 'RB-2026', seq: 1 })
       const num = await nextInvoiceNumber(new Date('2026-05-17T00:00:00Z'))
       expect(num).toBe('RB-2026-0001')
     })
-    it('increments the last sequence for the current year', async () => {
-      mockInvoiceFindFirst.mockResolvedValue({ invoiceNumber: 'RB-2026-0042' })
+    it('increments via the counter — returns the new seq value', async () => {
+      mockInvoiceCounterUpsert.mockResolvedValue({ prefix: 'RB-2026', seq: 43 })
       const num = await nextInvoiceNumber(new Date('2026-05-17T00:00:00Z'))
       expect(num).toBe('RB-2026-0043')
     })
     it('pads sequences below 1000 to 4 digits', async () => {
-      mockInvoiceFindFirst.mockResolvedValue({ invoiceNumber: 'RB-2026-0009' })
+      mockInvoiceCounterUpsert.mockResolvedValue({ prefix: 'RB-2026', seq: 10 })
       const num = await nextInvoiceNumber(new Date('2026-05-17T00:00:00Z'))
       expect(num).toBe('RB-2026-0010')
+    })
+    it('passes the right prefix + upsert clauses', async () => {
+      mockInvoiceCounterUpsert.mockResolvedValue({ prefix: 'RB-2027', seq: 1 })
+      await nextInvoiceNumber(new Date('2027-01-01T00:00:00Z'))
+      const call = mockInvoiceCounterUpsert.mock.calls[0][0]
+      expect(call.where).toEqual({ prefix: 'RB-2027' })
+      expect(call.create).toEqual({ prefix: 'RB-2027', seq: 1 })
+      expect(call.update).toEqual({ seq: { increment: 1 } })
     })
   })
 

@@ -191,6 +191,10 @@ model Document {
   reviewNote       String?     @db.NVarChar(1000)
   // Task 6.2 — doc-level expiry (passports, POA staleness)
   expiresAt        DateTime?
+  // PR #8 (M1) — soft-delete for PoF audit trail. When a fresh PoF is uploaded,
+  // the prior doc gets supersededAt = now (instead of hard-delete) so the AML
+  // evidence chain is preserved. Active PoF query filters supersededAt IS NULL.
+  supersededAt     DateTime?
 }
 
 model StatusHistory {
@@ -451,7 +455,6 @@ model Invoice {
   dueAt           DateTime?
   paidAt          DateTime?
   paidReference   String?   @db.NVarChar(255)           // bank ref / cheque / other
-  pdfBlobPath     String?   @db.NVarChar(500)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
