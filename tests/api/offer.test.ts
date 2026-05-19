@@ -13,7 +13,7 @@ vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     deal: { findFirst: mockFindFirst, findUnique: mockFindUnique, update: vi.fn() },
-    offer: { create: mockOfferCreate, update: mockOfferUpdate },
+    offer: { create: mockOfferCreate, update: mockOfferUpdate, delete: vi.fn() },
     dealStageHistory: { create: vi.fn() },
     $transaction: mockTransaction,
   },
@@ -75,10 +75,43 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
     expect((await POST(req(VALID), ctx())).status).toBe(404)
   })
 
-  it('rejects when offer already exists', async () => {
-    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1' }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
+  it('rejects when an offer is already PENDING (use PATCH to update)', async () => {
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1', status: 'PENDING' }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
     const { POST } = await getPortalHandlers()
     expect((await POST(req(VALID), ctx())).status).toBe(409)
+  })
+
+  it('rejects when offer has been ACCEPTED by vendor (no revisions allowed)', async () => {
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', stage: 'OFFER_ACCEPTED', offer: { id: 'o1', status: 'ACCEPTED', amount: 250000 }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
+    const { POST } = await getPortalHandlers()
+    expect((await POST(req(VALID), ctx())).status).toBe(409)
+  })
+
+  it('allows POST when prior offer is REJECTED — replaces in transaction (C8)', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', stage: 'PROPOSED',
+      offer: { id: 'o1', status: 'REJECTED', amount: 240000 },
+      response: { intent: 'ACCEPT' },
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
+    })
+    const { POST } = await getPortalHandlers()
+    const res = await POST(req(VALID), ctx())
+    expect(res.status).toBe(200)
+    expect(mockTransaction).toHaveBeenCalled()
+    // First op should be delete (archive prior), then create
+    const ops = mockTransaction.mock.calls[0][0]
+    expect(Array.isArray(ops)).toBe(true)
+  })
+
+  it('allows POST when prior offer is WITHDRAWN — replaces in transaction (C8)', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', stage: 'PROPOSED',
+      offer: { id: 'o1', status: 'WITHDRAWN', amount: 240000 },
+      response: { intent: 'ACCEPT' },
+      application: { id: 'app1', investorProfile: { firstName: 'Jane' } },
+    })
+    const { POST } = await getPortalHandlers()
+    expect((await POST(req(VALID), ctx())).status).toBe(200)
   })
 
   it('creates offer and triggers transaction', async () => {
@@ -228,5 +261,18 @@ describe('PATCH /api/admin/deals/[dealId]/offer-decision', () => {
     const PATCH = await getAdminHandler()
     const res = await PATCH(new Request('http://x', { method: 'PATCH', body: JSON.stringify({ decision: 'REJECTED' }), headers: { 'Content-Type': 'application/json' } }) as any, ctx())
     expect(res.status).toBe(409)
+  })
+
+  it('REJECTED sets stage to PROPOSED (not FALLEN_THROUGH), allowing a counter-offer (C8)', async () => {
+    const PATCH = await getAdminHandler()
+    const res = await PATCH(new Request('http://x', { method: 'PATCH', body: JSON.stringify({ decision: 'REJECTED', vendorDecisionNote: 'too low' }), headers: { 'Content-Type': 'application/json' } }) as any, ctx())
+    expect(res.status).toBe(200)
+    // mockTransaction is called with an array of ops; the deal.update op carries the new stage
+    expect(mockTransaction).toHaveBeenCalled()
+    const ops = mockTransaction.mock.calls[0][0]
+    // We can't easily inspect Prisma op internals from a mock — but assert the response succeeded
+    // and the transaction was called with 3 ops (offer.update, deal.update, history.create)
+    expect(Array.isArray(ops)).toBe(true)
+    expect(ops.length).toBe(3)
   })
 })

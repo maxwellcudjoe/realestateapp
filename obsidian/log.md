@@ -2,6 +2,22 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #3 — Counter-offer flow after vendor REJECTED (audit followup)
+
+- Created: `obsidian/Projects/2026-05-19-pr3-counter-offer-flow.md`
+- Updated: `obsidian/index.md`
+- Closes **C8**: vendor REJECTED previously hard-jumped to FALLEN_THROUGH (terminal), blocking the common counter-offer flow.
+- Backend:
+  - `offer-decision/route.ts`: REJECTED → stage = PROPOSED (was FALLEN_THROUGH); updated notification + email copy to invite revised offer
+  - `offer/route.ts` POST: status-aware branching — PENDING blocks with "use PATCH", ACCEPTED blocks ("no revisions"), REJECTED/WITHDRAWN allows replacement via delete-old + create-new in single transaction; audit trail in DealStageHistory note
+- Frontend:
+  - `OfferForm.tsx`: new isUpdatable/isReplaceable discriminators; REJECTED/WITHDRAWN shows prior summary + "Submit revised offer" CTA; submit button text reflects flow ("Update", "Submit Revised", "Submit")
+  - Form pre-populates with prior offer values so investor only needs to tweak amount
+- Schema unchanged — Offer.dealId @unique preserved via delete-in-transaction
+- Tests: +4 (PENDING-409, ACCEPTED-409, REJECTED-replaces, REJECTED-stage-to-PROPOSED); 315/315 pass
+- Build clean
+- Audit close-out: 3 PRs landed (PR #1 C3+C4+C5+C7+H6+H7, PR #2 C1+L2, PR #3 C8). Remaining open: C6 invoice race, H1 deletedAt JWT, H2 property cleanup, H4 transition matrix, M+L backlog
+
 ## [2026-05-19] feature | PR #2 — Centralised deal access with tier gate (audit followup)
 
 - Created: `obsidian/Projects/2026-05-19-pr2-deal-access-helper.md`

@@ -56,7 +56,20 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
 
   const deal = await loadOfferDeal(dealId, session.user.id)
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
-  if (deal.offer) return NextResponse.json({ error: 'An offer already exists for this deal. Use update.' }, { status: 409 })
+
+  // C8 — distinguish active offer (block) vs decided/withdrawn (allow replace).
+  // PENDING: use PATCH instead of POST. ACCEPTED: cannot revise an accepted offer.
+  // REJECTED/WITHDRAWN: archive (delete) the prior and create a fresh one — this is
+  // the counter-offer flow after the vendor declines.
+  if (deal.offer?.status === 'PENDING') {
+    return NextResponse.json({ error: 'An offer already exists for this deal. Use update.' }, { status: 409 })
+  }
+  if (deal.offer?.status === 'ACCEPTED') {
+    return NextResponse.json({ error: 'This offer has been accepted by the vendor — no revised offers can be submitted.' }, { status: 409 })
+  }
+  const isReplacement = Boolean(deal.offer && (deal.offer.status === 'REJECTED' || deal.offer.status === 'WITHDRAWN'))
+  const priorAmount = deal.offer ? Number(deal.offer.amount) : null
+  const priorStatus = deal.offer?.status ?? null
 
   // C4 fix — must have accepted the deal before submitting a formal offer.
   // UI already gates OfferForm rendering on this; enforce server-side too.
@@ -76,8 +89,17 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   }
 
   const d = parsed.data
+  const wantsStageAdvance = deal.stage === 'PROPOSED'
+  const noteForHistory = isReplacement
+    ? `Investor submitted revised offer (replaces previous: £${priorAmount?.toLocaleString('en-GB')}, ${priorStatus})`
+    : 'Offer submitted by investor'
+
   try {
     await prisma.$transaction([
+      // C8 — when replacing a REJECTED/WITHDRAWN offer, delete it first so the
+      // Offer.dealId @unique constraint lets the new row insert. Audit trail is
+      // preserved via DealStageHistory's note (includes prior amount + status).
+      ...(isReplacement ? [prisma.offer.delete({ where: { dealId } })] : []),
       prisma.offer.create({
         data: {
           dealId,
@@ -88,11 +110,10 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
           conditions: d.conditions || null,
         },
       }),
-      // Auto-advance from PROPOSED → OFFER_PENDING (don't overwrite if admin already moved it)
-      ...(deal.stage === 'PROPOSED' ? [
+      ...(wantsStageAdvance ? [
         prisma.deal.update({ where: { id: dealId }, data: { stage: 'OFFER_PENDING' } }),
         prisma.dealStageHistory.create({
-          data: { dealId, fromStage: 'PROPOSED', toStage: 'OFFER_PENDING', changedByUserId: session.user.id, note: 'Offer submitted by investor' },
+          data: { dealId, fromStage: 'PROPOSED', toStage: 'OFFER_PENDING', changedByUserId: session.user.id, note: noteForHistory },
         }),
       ] : []),
     ])
@@ -104,7 +125,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
     throw e
   }
 
-  await notifyAdminOnOffer('submitted', deal, d.amount, deal.application.investorProfile.firstName)
+  await notifyAdminOnOffer(isReplacement ? 'updated' : 'submitted', deal, d.amount, deal.application.investorProfile.firstName)
   return NextResponse.json({ success: true })
 }
 

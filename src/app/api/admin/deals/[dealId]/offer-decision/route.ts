@@ -15,7 +15,9 @@ const schema = z.object({
 
 /** Admin records the vendor's decision on an investor's offer.
  *  ACCEPTED → deal stage moves to OFFER_ACCEPTED.
- *  REJECTED → stage moves to FALLEN_THROUGH (deal can be revived later by admin moving back). */
+ *  REJECTED → stage returns to PROPOSED so the investor can submit a revised
+ *             (counter) offer. Use the stage PATCH route to move to
+ *             FALLEN_THROUGH if the deal is truly dead. */
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -44,7 +46,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
   }
 
   const { decision, vendorDecisionNote } = parsed.data
-  const nextStage = decision === 'ACCEPTED' ? 'OFFER_ACCEPTED' : 'FALLEN_THROUGH'
+  // C8 fix — REJECTED stays in PROPOSED so the investor can submit a revised
+  // (counter) offer. Use the stage PATCH if the deal is truly dead.
+  const nextStage = decision === 'ACCEPTED' ? 'OFFER_ACCEPTED' : 'PROPOSED'
 
   await prisma.$transaction([
     prisma.offer.update({
@@ -58,7 +62,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
         fromStage: deal.stage,
         toStage: nextStage,
         changedByUserId: session.user.id,
-        note: vendorDecisionNote || (decision === 'ACCEPTED' ? 'Vendor accepted the offer' : 'Vendor declined the offer'),
+        note: vendorDecisionNote || (decision === 'ACCEPTED'
+          ? 'Vendor accepted the offer'
+          : 'Vendor declined the offer — investor may submit a revised offer'),
       },
     }),
   ])
@@ -76,7 +82,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
   await createNotification({
     userId: deal.application.investorProfile.userId,
     type: 'OFFER_DECISION',
-    title: decision === 'ACCEPTED' ? 'Offer accepted by vendor' : 'Offer declined by vendor',
+    title: decision === 'ACCEPTED'
+      ? 'Offer accepted by vendor'
+      : 'Offer declined — submit a revised offer if you wish to continue',
     body: `${deal.address}${vendorDecisionNote ? ` — ${vendorDecisionNote}` : ''}`,
     link: `/portal/deals/${dealId}`,
   })
@@ -93,6 +101,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
           <p>Dear ${deal.application.investorProfile.firstName},</p>
           <p>The vendor has <strong style="color:${decision === 'ACCEPTED' ? '#c9a84c' : '#f87171'}">${decision === 'ACCEPTED' ? 'accepted' : 'declined'}</strong> your offer on <strong>${deal.address}</strong>.</p>
           ${vendorDecisionNote ? `<p style="border-left:2px solid #c9a84c;padding-left:16px;color:#b3b3b3;font-style:italic">${vendorDecisionNote}</p>` : ''}
+          ${decision === 'REJECTED' ? `<p>You can submit a <strong>revised offer</strong> from your deal page if you'd like to continue the conversation.</p>` : ''}
           <p>Pipeline stage is now <strong>${dealStageLabel(nextStage)}</strong>.</p>
           <p><a href="${process.env.NEXTAUTH_URL}/portal/deals/${dealId}" style="color:#c9a84c">View deal →</a></p>
         </div>

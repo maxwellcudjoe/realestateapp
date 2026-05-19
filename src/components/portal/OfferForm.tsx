@@ -44,12 +44,17 @@ export function OfferForm({ dealId, askingPrice, existingOffer }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // C8 — an existing REJECTED/WITHDRAWN offer is replaceable via POST (the API
+  // archives the prior offer and creates a new one). Only PENDING uses PATCH.
+  const isUpdatable = existingOffer?.status === 'PENDING'
+  const isReplaceable = existingOffer && !isUpdatable && existingOffer.status !== 'ACCEPTED'
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setSubmitting(true)
     try {
       const res = await fetch(`/api/portal/deals/${dealId}/offer`, {
-        method: existingOffer ? 'PATCH' : 'POST',
+        method: isUpdatable ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount, depositPercent, financingSource, targetExchangeDate, conditions }),
       })
@@ -87,8 +92,8 @@ export function OfferForm({ dealId, askingPrice, existingOffer }: Props) {
   const depositAmount = Math.round((amount * depositPercent) / 100)
   const balance = amount - depositAmount
 
-  // Locked-state display when offer is decided
-  if (existingOffer && existingOffer.status !== 'PENDING') {
+  // Locked-state display when offer is ACCEPTED — no more changes possible.
+  if (existingOffer && existingOffer.status === 'ACCEPTED') {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -106,6 +111,35 @@ export function OfferForm({ dealId, askingPrice, existingOffer }: Props) {
             &ldquo;{existingOffer.vendorDecisionNote}&rdquo;
           </p>
         )}
+      </div>
+    )
+  }
+
+  // C8 — REJECTED/WITHDRAWN: show prior offer summary + invite a revised offer.
+  // The form replaces the prior via POST (server archives the old one).
+  if (isReplaceable && !editing) {
+    return (
+      <div className="space-y-4">
+        <div className="border-l-2 border-stone/40 pl-4 py-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="font-sans text-sm text-stone">{fmt(existingOffer.amount)}</p>
+            <span className={`font-sans text-[0.6rem] uppercase tracking-widest ${existingOffer.status === 'REJECTED' ? 'text-red-400' : 'text-stone'}`}>
+              Previous: {STATUS_LABEL[existingOffer.status]}
+            </span>
+          </div>
+          <p className="font-sans text-[0.65rem] text-stone">
+            Submitted {new Date(existingOffer.submittedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            {' · '}{existingOffer.depositPercent}% deposit · {existingOffer.financingSource.toLowerCase()}
+          </p>
+          {existingOffer.vendorDecisionNote && (
+            <p className="font-sans text-xs text-stone italic">
+              Vendor: &ldquo;{existingOffer.vendorDecisionNote}&rdquo;
+            </p>
+          )}
+        </div>
+        <Button type="button" onClick={() => setEditing(true)}>
+          Submit revised offer
+        </Button>
       </div>
     )
   }
@@ -188,7 +222,13 @@ export function OfferForm({ dealId, askingPrice, existingOffer }: Props) {
       {error && <p className="font-sans text-xs text-red-400">{error}</p>}
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting || !amount || depositPercent < 0}>
-          {submitting ? 'Saving…' : existingOffer ? 'Update Offer' : 'Submit Offer'}
+          {submitting
+            ? 'Saving…'
+            : isUpdatable
+              ? 'Update Offer'
+              : isReplaceable
+                ? 'Submit Revised Offer'
+                : 'Submit Offer'}
         </Button>
         {existingOffer && (
           <Button type="button" variant="secondary" onClick={() => setEditing(false)} disabled={submitting}>Cancel</Button>
