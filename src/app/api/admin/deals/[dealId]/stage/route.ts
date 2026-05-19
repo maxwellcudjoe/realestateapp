@@ -121,9 +121,12 @@ export async function PATCH(
     if (becameCompleted) {
       const existing = await tx.property.findUnique({ where: { dealId } })
       if (!existing) {
+        // M3 fix — pass Prisma.Decimal through directly instead of round-tripping
+        // through Number(). For amounts < 2^53 the math is safe but the principle
+        // (Decimal in, Decimal out) is cleaner and audit-friendly.
         const purchasePrice = deal.offer?.status === 'ACCEPTED' && deal.offer.amount
-          ? Number(deal.offer.amount)
-          : Number(deal.askingPrice)
+          ? deal.offer.amount
+          : deal.askingPrice
         await tx.property.create({
           data: {
             userId: deal.application.investorProfile.userId,

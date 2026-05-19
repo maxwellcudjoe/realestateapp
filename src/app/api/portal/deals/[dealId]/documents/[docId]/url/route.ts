@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { generatePresignedUrl } from '@/lib/azure-blob'
+import { generatePresignedUrl, deleteBlob } from '@/lib/azure-blob'
 import { getDealForViewer } from '@/lib/deal-access'
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ dealId: string; docId: string }> }) {
@@ -50,5 +50,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ dealId:
   }
 
   await prisma.dealDocument.delete({ where: { id: docId } })
+  // L7 — best-effort blob cleanup so the Azure container doesn't accumulate orphans
+  await deleteBlob(doc.blobPath)
   return NextResponse.json({ success: true })
 }

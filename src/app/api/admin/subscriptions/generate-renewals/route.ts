@@ -5,6 +5,8 @@ import { sendEmail } from '@/lib/resend'
 import { defaultDueDate } from '@/lib/invoices'
 import { nextInvoiceNumber } from '@/lib/invoice-numbering'
 import { nextRenewalDate, BILLING_PERIOD_LABEL, type BillingPeriod } from '@/lib/subscriptions'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 
 /**
  * POST /api/admin/subscriptions/generate-renewals?days=N&dryRun=true&userIds=id1,id2
@@ -63,13 +65,18 @@ export async function POST(req: NextRequest) {
     const investorName = sub.user.investorProfile
       ? `${sub.user.investorProfile.firstName} ${sub.user.investorProfile.lastName}`.trim()
       : sub.user.email
-    // Avoid double-billing: skip if any subscription invoice issued in the last 25 days
+    // M2 fix — idempotency window scales with billing period. Was hardcoded 25 days
+    // (fine for MONTHLY but pointless for ANNUAL — an annual subscriber wouldn't have
+    // had an invoice in the last 25 days even if billed yesterday relative to renewal).
+    // Use period minus a small safety buffer so a click re-issued at the same renewal
+    // moment is still caught, but legitimate next-period invoicing isn't blocked.
+    const idempotencyDays = sub.billingPeriod === 'ANNUAL' ? 350 : 25
     const recent = await prisma.invoice.findFirst({
       where: {
         userId: sub.userId,
         type: 'SUBSCRIPTION',
         status: { in: ['SENT', 'PAID'] },
-        issuedAt: { gte: new Date(now.getTime() - 25 * 24 * 60 * 60 * 1000) },
+        issuedAt: { gte: new Date(now.getTime() - idempotencyDays * 24 * 60 * 60 * 1000) },
       },
       select: { id: true },
     })
@@ -154,6 +161,25 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error('Renewal email failed (non-fatal):', e)
     }
+  }
+
+  // L5 — audit every renewal run (including dry-runs and cron-triggered ones)
+  // so admin / compliance can trace exactly which invoices got created and by what.
+  if (!dryRun) {
+    await recordAudit({
+      actorUserId: isAdmin ? session!.user.id : null,
+      actorRole: isAdmin ? session!.user.role : 'cron',
+      action: 'SUBSCRIPTION_RENEWAL_RUN',
+      resourceType: 'Subscription',
+      metadata: {
+        horizonDays: horizon,
+        userIdsFilter: userIdsFilter ?? null,
+        createdCount: created.length,
+        skippedCount: skipped.length,
+        totalScanned: subs.length,
+      },
+      ipAddress: getClientIp(req),
+    })
   }
 
   return NextResponse.json({ success: true, dryRun, created, skipped, total: subs.length })

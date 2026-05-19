@@ -28,6 +28,14 @@ export const AUDIT_ACTIONS = {
   // Audit PR #4 — new event types
   PROPERTY_DELETED: 'Property deleted by admin',
   STAGE_OVERRIDE: 'Stage transition overridden by admin',
+  // L5 — money / subscription mutations
+  INVOICE_ISSUED: 'Invoice issued',
+  INVOICE_MARKED_PAID: 'Invoice marked paid',
+  INVOICE_VOIDED: 'Invoice voided',
+  INVOICE_DELETED: 'Invoice deleted (DRAFT only)',
+  SUBSCRIPTION_ACTIVATED: 'Premium subscription activated',
+  SUBSCRIPTION_CANCELLED: 'Premium subscription cancelled',
+  SUBSCRIPTION_RENEWAL_RUN: 'Renewal generator run',
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS

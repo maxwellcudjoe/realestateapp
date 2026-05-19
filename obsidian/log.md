@@ -2,6 +2,21 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] polish | PR #7 — Audit batch (M2, M3, M4, M6, M9, L4, L5, L7)
+
+- Created: `obsidian/Projects/2026-05-19-pr7-audit-polish-medium-low.md`
+- Updated: `obsidian/index.md`
+- **M2**: renewals idempotency window = `period === 'ANNUAL' ? 350 : 25` days (was hardcoded 25)
+- **M3**: Property.purchasePrice now passes Prisma.Decimal through instead of round-tripping via Number()
+- **M4**: success-fee suggestion uses `deal.offer?.amount` when offer is ACCEPTED, falls back to askingPrice. Description string updated.
+- **M6**: /api/portal/messages POST body capped at 5000 chars (matches per-deal messages route)
+- **M9**: DealResponse DELETE returns 409 OFFER_ACTIVE if PENDING/ACCEPTED offer exists. Migrated to getInvestorDeal for tier-gate consistency.
+- **L4**: `[config] KEY unset — using default "X"` warn-once on cold start for missing REVE_BATIR_SUCCESS_FEE_PCT, REVE_BATIR_PREMIUM_MONTHLY/ANNUAL, REVE_BATIR_BANK_NAME/SORT_CODE/ACCOUNT/ACCOUNT_NAME. Server-side only.
+- **L5**: 7 new audit action codes (INVOICE_ISSUED/MARKED_PAID/VOIDED/DELETED + SUBSCRIPTION_ACTIVATED/CANCELLED/RENEWAL_RUN); wired into 6 admin routes. Cron-triggered renewal runs record actorRole='cron'. Dry-runs skip audit (preview only).
+- **L7**: new `deleteBlob` helper in azure-blob.ts (deleteIfExists, non-fatal). Wired into: DealDocument DELETE, PropertyDocument DELETE, /api/portal/proof-of-funds replace, /api/portal/documents replace. Closes blob-orphan cost leak.
+- Tests: +5 (DELETE-response M9 cases) + C7 test mock extended for new audit metadata. 373/373 pass; build clean.
+- Audit close-out: 13 of 22 critical/high/medium/low items now closed. Open: C6 (firewall), M1 (PoF audit trail needs schema), M5 (cosmetic cache header), L1 (drop unused field, needs schema), L3 (untracked user files).
+
 ## [2026-05-19] feature | PR #6 — Subscription completion (B1 + B2 + C1)
 
 - Created: `obsidian/Projects/2026-05-19-pr6-subscription-b1-b2-c1.md`

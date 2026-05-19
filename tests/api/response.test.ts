@@ -9,7 +9,7 @@ const {
   mockGetInvestorDeal: vi.fn(),
   mockDealResponseCreate: vi.fn(),
   mockDealResponseUpdate: vi.fn(),
-  mockDealResponseDelete: vi.fn(),
+  mockDealResponseDelete: vi.fn().mockResolvedValue({}),
 }))
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
@@ -83,5 +83,61 @@ describe('POST /api/portal/deals/[dealId]/response', () => {
     const { POST } = await getHandlers()
     const res = await POST(req({ intent: 'ACCEPT' }), ctx())
     expect(res.status).toBe(409)
+  })
+})
+
+describe('DELETE /api/portal/deals/[dealId]/response — M9 orphan-offer guard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockAuth.mockResolvedValue({ user: { id: 'u1', email: 'jane@x' } })
+  })
+
+  it('rejects with OFFER_ACTIVE when a PENDING offer exists', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', response: { intent: 'ACCEPT' }, offer: { status: 'PENDING' },
+    })
+    const { DELETE } = await getHandlers()
+    const res = await DELETE(req({}, 'DELETE'), ctx())
+    expect(res.status).toBe(409)
+    const body = await res.json()
+    expect(body.code).toBe('OFFER_ACTIVE')
+    expect(mockDealResponseDelete).not.toHaveBeenCalled()
+  })
+
+  it('rejects with OFFER_ACTIVE when an ACCEPTED offer exists', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', response: { intent: 'ACCEPT' }, offer: { status: 'ACCEPTED' },
+    })
+    const { DELETE } = await getHandlers()
+    const res = await DELETE(req({}, 'DELETE'), ctx())
+    expect(res.status).toBe(409)
+  })
+
+  it('allows DELETE when offer is WITHDRAWN (no longer active)', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', response: { intent: 'ACCEPT' }, offer: { status: 'WITHDRAWN' },
+    })
+    const { DELETE } = await getHandlers()
+    const res = await DELETE(req({}, 'DELETE'), ctx())
+    expect(res.status).toBe(200)
+    expect(mockDealResponseDelete).toHaveBeenCalled()
+  })
+
+  it('allows DELETE when no offer exists', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', response: { intent: 'ACCEPT' }, offer: null,
+    })
+    const { DELETE } = await getHandlers()
+    const res = await DELETE(req({}, 'DELETE'), ctx())
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 404 when no response exists', async () => {
+    mockGetInvestorDeal.mockResolvedValue({
+      id: 'd1', applicationId: 'app1', response: null, offer: null,
+    })
+    const { DELETE } = await getHandlers()
+    const res = await DELETE(req({}, 'DELETE'), ctx())
+    expect(res.status).toBe(404)
   })
 })

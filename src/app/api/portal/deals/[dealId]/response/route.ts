@@ -121,9 +121,21 @@ export async function DELETE(
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const deal = await getDealForUser(params.dealId, session.user.id)
+  // M9 fix — include the offer in the deal lookup so we can block delete when
+  // an active (PENDING / ACCEPTED) offer is attached. Without this guard, deleting
+  // the DealResponse hides the OfferForm but leaves the offer row alive, and the
+  // vendor decision can still flip it to ACCEPTED with no investor-visible UI.
+  const deal = await getInvestorDeal(params.dealId, session.user.id, {
+    include: { response: true, offer: true },
+  })
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
   if (!deal.response) return NextResponse.json({ error: 'No response to delete' }, { status: 404 })
+  if (deal.offer && (deal.offer.status === 'PENDING' || deal.offer.status === 'ACCEPTED')) {
+    return NextResponse.json(
+      { error: 'Withdraw the active offer first before removing your response.', code: 'OFFER_ACTIVE' },
+      { status: 409 },
+    )
+  }
 
   await prisma.dealResponse.delete({ where: { dealId: params.dealId } })
 

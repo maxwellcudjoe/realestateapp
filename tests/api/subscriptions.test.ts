@@ -62,7 +62,12 @@ describe('DELETE /api/admin/subscriptions/[userId]', () => {
   })
 
   it('cancels the subscription WITHOUT demoting User.tier (C7 fix)', async () => {
-    mockSubFindUnique.mockResolvedValue({ userId: 'u1', cancelledAt: null })
+    mockSubFindUnique.mockResolvedValue({
+      userId: 'u1',
+      cancelledAt: null,
+      billingPeriod: 'MONTHLY',
+      nextRenewalAt: new Date('2026-06-19'),
+    })
     mockSubUpdate.mockResolvedValue({})
     const { DELETE } = await getHandlers()
     const res = await DELETE(new Request('http://x', { method: 'DELETE' }) as unknown as import('next/server').NextRequest, ctx())

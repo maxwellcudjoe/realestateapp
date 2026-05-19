@@ -7,18 +7,31 @@ export type UserTier = (typeof USER_TIERS)[number]
 /** How long PREMIUM tier members see a deal before FREE tier members do. */
 export const PREMIUM_PREVIEW_HOURS = 48
 
+// L4 — warn once when REVE_BATIR_* defaults kick in. Server-side only; we
+// don't want client bundles to log on every render.
+const warnedEnvKeys = new Set<string>()
+function warnUnsetOnce(key: string, defaultValue: string) {
+  if (warnedEnvKeys.has(key)) return
+  warnedEnvKeys.add(key)
+  console.warn(`[config] ${key} unset — using default "${defaultValue}". Set it in Azure SWA Application settings if you need a custom value.`)
+}
+
 /** Default monthly premium price (env override: REVE_BATIR_PREMIUM_MONTHLY). */
 export function premiumMonthlyAmount(): number {
   const raw = process.env.REVE_BATIR_PREMIUM_MONTHLY
   const n = raw ? Number(raw) : NaN
-  return Number.isFinite(n) && n > 0 ? n : 49
+  if (Number.isFinite(n) && n > 0) return n
+  if (typeof window === 'undefined') warnUnsetOnce('REVE_BATIR_PREMIUM_MONTHLY', '49')
+  return 49
 }
 
 /** Default annual premium price (env override: REVE_BATIR_PREMIUM_ANNUAL). */
 export function premiumAnnualAmount(): number {
   const raw = process.env.REVE_BATIR_PREMIUM_ANNUAL
   const n = raw ? Number(raw) : NaN
-  return Number.isFinite(n) && n > 0 ? n : 499
+  if (Number.isFinite(n) && n > 0) return n
+  if (typeof window === 'undefined') warnUnsetOnce('REVE_BATIR_PREMIUM_ANNUAL', '499')
+  return 499
 }
 
 export function defaultAmountFor(period: BillingPeriod): number {

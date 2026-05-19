@@ -35,6 +35,21 @@ export async function uploadDocument(
   })
 }
 
+/**
+ * L7 — best-effort blob delete. Used when a Document/DealDocument row is removed
+ * so we don't accumulate orphaned blobs. Non-fatal: failures are logged but the
+ * caller's DB delete is the source of truth (an orphaned blob is recoverable;
+ * a row whose blob deletion threw and rolled back the request would be worse).
+ */
+export async function deleteBlob(blobPath: string): Promise<void> {
+  try {
+    const containerClient = getContainerClient()
+    await containerClient.getBlockBlobClient(blobPath).deleteIfExists()
+  } catch (e) {
+    console.error('[azure-blob] deleteBlob failed (non-fatal):', blobPath, e)
+  }
+}
+
 export function generatePresignedUrl(blobPath: string): string {
   const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME!

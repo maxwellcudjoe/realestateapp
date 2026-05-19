@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const messageSchema = z.object({
   subject: z.string().min(1).max(255),
-  body: z.string().min(1),
+  body: z.string().min(1).max(5000),  // M6 fix — matches the per-deal messages route
 })
 
 async function getApplication(userId: string) {

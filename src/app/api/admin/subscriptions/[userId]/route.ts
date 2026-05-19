@@ -8,6 +8,8 @@ import {
   nextRenewalDate,
   type BillingPeriod,
 } from '@/lib/subscriptions'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const upsertSchema = z.object({
@@ -67,6 +69,21 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ userId: st
         }),
   ])
 
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'SUBSCRIPTION_ACTIVATED',
+    resourceType: 'Subscription',
+    resourceId: userId,
+    metadata: {
+      userId, billingPeriod: period, amount,
+      reactivation: Boolean(user.subscription),
+      preservedRenewal: stillInPeriod,
+      nextRenewalAt: renewal.toISOString(),
+    },
+    ipAddress: getClientIp(req),
+  })
+
   try {
     await sendEmail({
       to: user.email,
@@ -91,7 +108,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ userId: st
  * passes — only Subscription.cancelledAt is set here. Use effectiveTier()
  * at read-time to compute the runtime tier.
  */
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ userId: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ userId: string }> }) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -104,6 +121,16 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ userId:
   await prisma.subscription.update({
     where: { userId },
     data: { cancelledAt: new Date() },
+  })
+
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'SUBSCRIPTION_CANCELLED',
+    resourceType: 'Subscription',
+    resourceId: userId,
+    metadata: { userId, billingPeriod: sub.billingPeriod, accessUntil: sub.nextRenewalAt.toISOString() },
+    ipAddress: getClientIp(req),
   })
 
   return NextResponse.json({ success: true })

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { uploadDocument } from '@/lib/azure-blob'
+import { uploadDocument, deleteBlob } from '@/lib/azure-blob'
 import crypto from 'crypto'
 
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png']
@@ -46,10 +46,16 @@ export async function POST(req: NextRequest) {
 
   await uploadDocument(buffer, blobPath, file.type)
 
-  // Delete existing doc of same type, then create new one
+  // Delete existing doc of same type, then create new one.
+  // L7 — orphan blobs from the replaced doc are cleaned up best-effort.
+  const priorDocs = await prisma.document.findMany({
+    where: { applicationId: app.id, type: docType },
+    select: { blobPath: true },
+  })
   await prisma.document.deleteMany({
     where: { applicationId: app.id, type: docType },
   })
+  await Promise.all(priorDocs.map((d) => deleteBlob(d.blobPath)))
   const doc = await prisma.document.create({
     data: {
       applicationId: app.id,

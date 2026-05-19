@@ -14,7 +14,19 @@ export const INVOICE_NUMBER_PREFIX = 'RB'
 export function successFeePercent(): number {
   const raw = process.env.REVE_BATIR_SUCCESS_FEE_PCT
   const n = raw ? Number(raw) : NaN
-  return Number.isFinite(n) && n > 0 ? n : 1.5
+  if (Number.isFinite(n) && n > 0) return n
+  if (typeof window === 'undefined') warnUnsetOnce('REVE_BATIR_SUCCESS_FEE_PCT', '1.5')
+  return 1.5
+}
+
+// L4 — log a warning at most once per cold start when a REVE_BATIR_* env var
+// is missing, so misconfigured deploys are visible in Azure App Insights /
+// Log stream without spamming every request.
+const warnedEnvKeys = new Set<string>()
+function warnUnsetOnce(key: string, defaultValue: string) {
+  if (warnedEnvKeys.has(key)) return
+  warnedEnvKeys.add(key)
+  console.warn(`[config] ${key} unset — using default "${defaultValue}". Set it in Azure SWA Application settings if you need a custom value.`)
 }
 
 /** Calculates the success fee for a given purchase price (= price × pct%). */
@@ -53,6 +65,12 @@ export interface BankDetails {
 }
 
 export function getBankDetails(): BankDetails {
+  if (typeof window === 'undefined') {
+    if (!process.env.REVE_BATIR_BANK_NAME) warnUnsetOnce('REVE_BATIR_BANK_NAME', 'Lloyds Bank')
+    if (!process.env.REVE_BATIR_BANK_SORT_CODE) warnUnsetOnce('REVE_BATIR_BANK_SORT_CODE', '00-00-00')
+    if (!process.env.REVE_BATIR_BANK_ACCOUNT) warnUnsetOnce('REVE_BATIR_BANK_ACCOUNT', '00000000')
+    if (!process.env.REVE_BATIR_BANK_ACCOUNT_NAME) warnUnsetOnce('REVE_BATIR_BANK_ACCOUNT_NAME', 'Reve Batir Ltd')
+  }
   return {
     bankName: process.env.REVE_BATIR_BANK_NAME ?? 'Lloyds Bank',
     sortCode: process.env.REVE_BATIR_BANK_SORT_CODE ?? '00-00-00',

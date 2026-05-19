@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { canTransition, defaultDueDate, type InvoiceStatus } from '@/lib/invoices'
 import { escapeHtml } from '@/lib/html-escape'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 // H8 fix — sanitise the bank reference: alphanumerics, spaces, and common
@@ -77,6 +79,29 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   const updated = await prisma.invoice.update({ where: { id }, data: updateData })
 
+  // L5 — audit money-state changes
+  if (d.status === 'PAID') {
+    await recordAudit({
+      actorUserId: session.user.id,
+      actorRole: session.user.role,
+      action: 'INVOICE_MARKED_PAID',
+      resourceType: 'Invoice',
+      resourceId: id,
+      metadata: { invoiceNumber: existing.invoiceNumber, userId: existing.userId, amount: Number(existing.amount), paidReference: d.paidReference },
+      ipAddress: getClientIp(req),
+    })
+  } else if (d.status === 'VOID') {
+    await recordAudit({
+      actorUserId: session.user.id,
+      actorRole: session.user.role,
+      action: 'INVOICE_VOIDED',
+      resourceType: 'Invoice',
+      resourceId: id,
+      metadata: { invoiceNumber: existing.invoiceNumber, userId: existing.userId, amount: Number(existing.amount), priorStatus: existing.status },
+      ipAddress: getClientIp(req),
+    })
+  }
+
   if (d.status === 'PAID') {
     try {
       const firstName = escapeHtml(existing.user.investorProfile?.firstName)
@@ -114,17 +139,26 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   return NextResponse.json({ success: true, invoice: updated })
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
   const { id } = await ctx.params
-  const existing = await prisma.invoice.findUnique({ where: { id }, select: { status: true } })
+  const existing = await prisma.invoice.findUnique({ where: { id }, select: { status: true, invoiceNumber: true, userId: true, amount: true } })
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (existing.status !== 'DRAFT') {
     return NextResponse.json({ error: 'Only DRAFT invoices can be deleted; VOID instead' }, { status: 409 })
   }
   await prisma.invoice.delete({ where: { id } })
+  await recordAudit({
+    actorUserId: session.user.id,
+    actorRole: session.user.role,
+    action: 'INVOICE_DELETED',
+    resourceType: 'Invoice',
+    resourceId: id,
+    metadata: { invoiceNumber: existing.invoiceNumber, userId: existing.userId, amount: Number(existing.amount) },
+    ipAddress: getClientIp(req),
+  })
   return NextResponse.json({ success: true })
 }

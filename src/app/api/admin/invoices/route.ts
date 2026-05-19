@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { INVOICE_TYPES, INVOICE_TYPE_LABELS, defaultDueDate, type InvoiceType } from '@/lib/invoices'
 import { nextInvoiceNumber } from '@/lib/invoice-numbering'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const createSchema = z.object({
@@ -93,6 +95,18 @@ export async function POST(req: NextRequest) {
       if (e?.code === 'P2002' && attempt === 0) continue
       throw e
     }
+  }
+
+  if (invoice) {
+    await recordAudit({
+      actorUserId: session.user.id,
+      actorRole: session.user.role,
+      action: 'INVOICE_ISSUED',
+      resourceType: 'Invoice',
+      resourceId: invoice.id,
+      metadata: { invoiceNumber: invoice.invoiceNumber, userId: d.userId, dealId: d.dealId ?? null, type: d.type, amount: d.amount, sendNow: d.sendNow },
+      ipAddress: getClientIp(req),
+    })
   }
 
   if (d.sendNow && invoice) {

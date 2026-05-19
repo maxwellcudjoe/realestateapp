@@ -41,7 +41,13 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
 
   const investorUserId = deal.application.investorProfile.user.id
   const successPct = successFeePercent()
-  const suggestedSuccessFee = calculateSuccessFee(Number(deal.askingPrice), successPct)
+  // M4 fix — success fee is normally a % of the *agreed price* (the accepted
+  // offer), not the asking price. Falls back to askingPrice when no offer exists
+  // (rare on COMPLETED but defensive).
+  const successFeeBase = deal.offer?.status === 'ACCEPTED'
+    ? Number(deal.offer.amount)
+    : Number(deal.askingPrice)
+  const suggestedSuccessFee = calculateSuccessFee(successFeeBase, successPct)
   const hasSuccessInvoice = deal.invoices.some((i) => i.type === 'SUCCESS' && i.status !== 'VOID')
   const hasSourcingInvoice = deal.invoices.some((i) => i.type === 'SOURCING' && i.status !== 'VOID')
 
@@ -169,7 +175,7 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
                 dealId={deal.id}
                 defaultType="SUCCESS"
                 defaultAmount={suggestedSuccessFee}
-                defaultDescription={`Success fee (${successPct}% of £${Number(deal.askingPrice).toLocaleString('en-GB')}) — ${deal.address}`}
+                defaultDescription={`Success fee (${successPct}% of £${successFeeBase.toLocaleString('en-GB')}) — ${deal.address}`}
                 triggerLabel={`Issue success invoice (suggested £${suggestedSuccessFee.toLocaleString('en-GB', { minimumFractionDigits: 2 })})`}
               />
             )}
