@@ -460,6 +460,15 @@ model Invoice {
   @@index([status, dueAt])
 }
 
+/// Audit PR #4 (C6) — atomic invoice number generator.
+/// One row per (prefix, year). `upsert` with `seq: { increment: 1 }` is atomic
+/// at the DB level, replacing the prior max-query + retry pattern which could
+/// produce 500s under concurrent issuance.
+model InvoiceCounter {
+  prefix String @id @db.NVarChar(15)   // e.g. "RB-2026"
+  seq    Int    @default(0)
+}
+
 /// Task 7.4 — Premium subscription. One per user (FREE tier has no Subscription row).
 /// Renewal invoices are generated manually by admin (no cron). Cancelling sets
 /// cancelledAt but the tier remains PREMIUM until nextRenewalAt passes.

@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #4 — Audit hardening (H1, H2, H4, H8)
+
+- Created: `obsidian/Projects/2026-05-19-pr4-audit-hardening.md`
+- Updated: `obsidian/index.md`
+- **H1**: NextAuth session callback (Node-side `auth.ts`) now re-queries `User.deletedAt` on every server-side `auth()` call; returns session with `user: undefined` when the user is deleted, short-circuiting all "if !session?.user return 401" checks. Defence-in-depth helper `getActiveSession()` added too. Middleware unaffected (still uses edge-safe `authConfig`).
+- **H4**: `STAGE_TRANSITIONS` matrix in `src/lib/deal-stages.ts`. `canStageTransition(from, to, { override })` helper. Stage PATCH route returns 409 `INVALID_STAGE_TRANSITION` for invalid moves; `override: true` bypasses but requires `overrideReason` (400 otherwise), prepended to history note as `[OVERRIDE] reason`.
+- **H2**: Stage PATCH route now refuses to roll back FROM `COMPLETED` if a Property exists (409 `PROPERTY_EXISTS` with `propertyId`). New admin DELETE endpoint `/api/admin/properties/[propertyId]` for cleanup, with `PROPERTY_DELETED` audit event.
+- **H8**: `paidReference` on invoice PATCH now validated against `/^[A-Za-z0-9 _\-/.,]{1,255}$/`. New `escapeHtml(value)` helper in `src/lib/html-escape.ts` applied to all admin/investor-controlled interpolations in email templates (invoice receipt, invoice sent, deal stage change, offer decision).
+- Audit: 2 new action codes (`PROPERTY_DELETED`, `STAGE_OVERRIDE`).
+- Tests: +30 (`deal-stages` lib 14, `html-escape` lib 5, `deal-stage` API 6, `invoices` API 3 + 2 helper); 345/345 pass; build clean
+- **C6 deferred**: `InvoiceCounter` model added to schema.prisma but `prisma db push` failed — Azure SQL firewall blocks current IP (154.161.38.129). Will land as separate commit once firewall rule added.
+
 ## [2026-05-19] feature | PR #3 — Counter-offer flow after vendor REJECTED (audit followup)
 
 - Created: `obsidian/Projects/2026-05-19-pr3-counter-offer-flow.md`

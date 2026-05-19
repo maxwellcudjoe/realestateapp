@@ -3,11 +3,17 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { canTransition, defaultDueDate, type InvoiceStatus } from '@/lib/invoices'
+import { escapeHtml } from '@/lib/html-escape'
 import { z } from 'zod'
+
+// H8 fix — sanitise the bank reference: alphanumerics, spaces, and common
+// punctuation only. Prevents control chars / HTML chars from polluting the
+// receipt email body or the audit trail.
+const BANK_REFERENCE_REGEX = /^[A-Za-z0-9 _\-/.,]{1,255}$/
 
 const patchSchema = z.object({
   status: z.enum(['SENT', 'PAID', 'VOID']).optional(),
-  paidReference: z.string().max(255).optional(),
+  paidReference: z.string().regex(BANK_REFERENCE_REGEX, 'Reference may contain letters, digits, spaces, and . , / - _ only').optional(),
   amount: z.number().positive().max(1_000_000_000).optional(),
   description: z.string().min(1).max(500).optional(),
   dueAt: z.string().optional(),
@@ -73,13 +79,15 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
 
   if (d.status === 'PAID') {
     try {
+      const firstName = escapeHtml(existing.user.investorProfile?.firstName)
+      const reference = escapeHtml(d.paidReference)
       await sendEmail({
         to: existing.user.email,
         subject: `Receipt — Invoice ${existing.invoiceNumber} paid`,
         html: `
-          <p>Hello ${existing.user.investorProfile?.firstName ?? ''},</p>
+          <p>Hello ${firstName},</p>
           <p>Thank you — we've received your payment for invoice <strong>${existing.invoiceNumber}</strong> (£${Number(existing.amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}).</p>
-          <p>Reference: ${d.paidReference}</p>
+          <p>Reference: ${reference}</p>
           <p><a href="${process.env.NEXTAUTH_URL}/portal/invoices">View receipt →</a></p>
         `,
       })
@@ -88,11 +96,12 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     }
   } else if (d.status === 'SENT') {
     try {
+      const firstName = escapeHtml(existing.user.investorProfile?.firstName)
       await sendEmail({
         to: existing.user.email,
         subject: `Invoice ${existing.invoiceNumber} from Rêve Bâtir`,
         html: `
-          <p>Hello ${existing.user.investorProfile?.firstName ?? ''},</p>
+          <p>Hello ${firstName},</p>
           <p>Your invoice <strong>${existing.invoiceNumber}</strong> for <strong>£${Number(existing.amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> is ready.</p>
           <p><a href="${process.env.NEXTAUTH_URL}/portal/invoices">View & download invoice →</a></p>
         `,

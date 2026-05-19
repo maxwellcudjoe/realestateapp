@@ -6,6 +6,7 @@ import { dealStageLabel } from '@/lib/deal-stages'
 import { recordAudit } from '@/lib/audit'
 import { createNotification } from '@/lib/notifications'
 import { getClientIp } from '@/lib/rate-limit'
+import { escapeHtml } from '@/lib/html-escape'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -98,9 +99,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#f0e8d8;padding:40px">
           <h1 style="color:#c9a84c;font-size:24px;font-weight:300">Offer ${decision === 'ACCEPTED' ? 'Accepted' : 'Declined'}</h1>
-          <p>Dear ${deal.application.investorProfile.firstName},</p>
-          <p>The vendor has <strong style="color:${decision === 'ACCEPTED' ? '#c9a84c' : '#f87171'}">${decision === 'ACCEPTED' ? 'accepted' : 'declined'}</strong> your offer on <strong>${deal.address}</strong>.</p>
-          ${vendorDecisionNote ? `<p style="border-left:2px solid #c9a84c;padding-left:16px;color:#b3b3b3;font-style:italic">${vendorDecisionNote}</p>` : ''}
+          <p>Dear ${escapeHtml(deal.application.investorProfile.firstName)},</p>
+          <p>The vendor has <strong style="color:${decision === 'ACCEPTED' ? '#c9a84c' : '#f87171'}">${decision === 'ACCEPTED' ? 'accepted' : 'declined'}</strong> your offer on <strong>${escapeHtml(deal.address)}</strong>.</p>
+          ${vendorDecisionNote ? `<p style="border-left:2px solid #c9a84c;padding-left:16px;color:#b3b3b3;font-style:italic">${escapeHtml(vendorDecisionNote)}</p>` : ''}
           ${decision === 'REJECTED' ? `<p>You can submit a <strong>revised offer</strong> from your deal page if you'd like to continue the conversation.</p>` : ''}
           <p>Pipeline stage is now <strong>${dealStageLabel(nextStage)}</strong>.</p>
           <p><a href="${process.env.NEXTAUTH_URL}/portal/deals/${dealId}" style="color:#c9a84c">View deal →</a></p>

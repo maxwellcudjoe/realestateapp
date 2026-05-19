@@ -182,4 +182,24 @@ describe('PATCH /api/admin/invoices/[id]', () => {
     expect(res.status).toBe(200)
     expect(mockInvoiceUpdate.mock.calls[0][0].data.status).toBe('VOID')
   })
+
+  // H8 — bank reference sanitisation
+  it('rejects paidReference with HTML/script characters', async () => {
+    const PATCH = await getPatchHandler()
+    const res = await PATCH(patchReq({ status: 'PAID', paidReference: '<script>alert(1)</script>' }), patchCtx())
+    expect(res.status).toBe(400)
+    expect(mockInvoiceUpdate).not.toHaveBeenCalled()
+  })
+
+  it('rejects paidReference with control characters', async () => {
+    const PATCH = await getPatchHandler()
+    const res = await PATCH(patchReq({ status: 'PAID', paidReference: 'OK\x00drop' }), patchCtx())
+    expect(res.status).toBe(400)
+  })
+
+  it('accepts a normal bank reference (alphanumerics, spaces, common punctuation)', async () => {
+    const PATCH = await getPatchHandler()
+    const res = await PATCH(patchReq({ status: 'PAID', paidReference: 'REF-2026/04 INV.001' }), patchCtx())
+    expect(res.status).toBe(200)
+  })
 })

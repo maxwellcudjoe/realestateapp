@@ -25,6 +25,9 @@ export const AUDIT_ACTIONS = {
   VIEWING_REQUESTED: 'Viewing requested',
   VIEWING_DECIDED: 'Viewing decision recorded',
   ADMIN_BATCH_POST: 'Admin batch-posted deals',
+  // Audit PR #4 — new event types
+  PROPERTY_DELETED: 'Property deleted by admin',
+  STAGE_OVERRIDE: 'Stage transition overridden by admin',
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS
