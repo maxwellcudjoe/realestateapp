@@ -3,7 +3,10 @@ import {
   signImpersonateCookie,
   verifyImpersonateCookie,
   isBlockedDuringImpersonation,
+  maybeRefreshImpersonateCookie,
   IMPERSONATE_TTL_MS,
+  IMPERSONATE_REFRESH_MS,
+  IMPERSONATE_MAX_SESSION_MS,
 } from '@/lib/impersonate'
 
 const SECRET = 'test-secret-32-chars-or-more-padding-for-hmac'
@@ -55,6 +58,71 @@ describe('signImpersonateCookie / verifyImpersonateCookie', () => {
     expect(payload.issuedAt).toBeGreaterThanOrEqual(before)
     expect(payload.expiresAt).toBeGreaterThan(payload.issuedAt)
     expect(payload.expiresAt - payload.issuedAt).toBe(IMPERSONATE_TTL_MS)
+  })
+})
+
+describe('maybeRefreshImpersonateCookie', () => {
+  const issuedAt = new Date('2026-05-19T12:00:00Z').getTime()
+
+  it('does NOT refresh when plenty of TTL remains', async () => {
+    const payload = {
+      adminId: 'admin1',
+      targetUserId: 'investor1',
+      issuedAt,
+      expiresAt: issuedAt + IMPERSONATE_TTL_MS,
+    }
+    const out = await maybeRefreshImpersonateCookie(SECRET, payload, new Date(issuedAt + 60_000))
+    expect(out).toBeNull()
+  })
+
+  it('refreshes when remaining TTL is below the threshold', async () => {
+    const payload = {
+      adminId: 'admin1',
+      targetUserId: 'investor1',
+      issuedAt,
+      expiresAt: issuedAt + IMPERSONATE_TTL_MS,
+    }
+    const justBeforeExpiry = new Date(payload.expiresAt - IMPERSONATE_REFRESH_MS / 2)
+    const out = await maybeRefreshImpersonateCookie(SECRET, payload, justBeforeExpiry)
+    expect(out).not.toBeNull()
+    // Refresh preserves issuedAt and bumps expiresAt by another full TTL
+    expect(out!.payload.issuedAt).toBe(issuedAt)
+    expect(out!.payload.expiresAt).toBe(justBeforeExpiry.getTime() + IMPERSONATE_TTL_MS)
+    // Resulting cookie verifies cleanly
+    const verified = await verifyImpersonateCookie(SECRET, out!.value, justBeforeExpiry)
+    expect(verified?.targetUserId).toBe('investor1')
+  })
+
+  it('does NOT refresh once max session age is reached', async () => {
+    const payload = {
+      adminId: 'admin1',
+      targetUserId: 'investor1',
+      issuedAt,
+      // Pretend the latest refresh pushed expiry past the absolute cap
+      expiresAt: issuedAt + IMPERSONATE_MAX_SESSION_MS + 60_000,
+    }
+    const farFuture = new Date(issuedAt + IMPERSONATE_MAX_SESSION_MS + 30_000)
+    const out = await maybeRefreshImpersonateCookie(SECRET, payload, farFuture)
+    expect(out).toBeNull()
+  })
+
+  it('refreshed cookie cannot extend a session indefinitely', async () => {
+    // Simulate ~4 hours of activity by chaining refreshes
+    const start = new Date('2026-05-19T12:00:00Z')
+    let { payload } = await signImpersonateCookie(SECRET, 'admin1', 'investor1', start)
+    let now = start.getTime()
+    let refreshes = 0
+    while (refreshes < 50) {
+      // Move clock 25 minutes forward (just before TTL boundary, triggers refresh)
+      now += 25 * 60 * 1000
+      const result = await maybeRefreshImpersonateCookie(SECRET, payload, new Date(now))
+      if (!result) break
+      payload = result.payload
+      refreshes++
+    }
+    expect(refreshes).toBeGreaterThan(0)
+    // 4-hour cap should be hit before unbounded refresh
+    expect(now - payload.issuedAt).toBeGreaterThanOrEqual(IMPERSONATE_MAX_SESSION_MS)
   })
 })
 

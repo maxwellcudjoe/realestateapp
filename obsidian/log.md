@@ -2,6 +2,14 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] polish | Sliding-window TTL for impersonation + ANONYMISATION_ENDPOINT secret set
+
+- Updated: `obsidian/Projects/2026-05-19-admin-profile-deferred-items.md` — added "Follow-up — sliding-window TTL" section + struck through the resolved open items
+- **GH secret**: `gh secret set ANONYMISATION_ENDPOINT --body 'https://www.revebatir.co.uk/api/admin/users/anonymise-expired'` — daily cron now fully configured
+- **Sliding TTL**: new `IMPERSONATE_REFRESH_MS` (5 min before expiry) and `IMPERSONATE_MAX_SESSION_MS` (4-hour cap) constants. New `maybeRefreshImpersonateCookie()` helper returns a fresh signed cookie when remaining TTL drops below the threshold AND age is below the cap. `issuedAt` is preserved across refreshes so the 4-hour cap is genuine. Middleware verifies + threads the refresh through every `NextResponse` exit via `attachRefresh()`.
+- Tests: 498 → 502 (+4 sliding-TTL cases including a chained-refresh test that proves the 4-hour cap fires). Build clean.
+- This closes 2 of 3 originally-listed "open" items. Write-mode impersonation remains intentionally deferred (future PR, security spike required).
+
 ## [2026-05-19] feature | Admin profile deferred items — anonymisation cron + tab refactor + impersonate
 
 - Created: `obsidian/Projects/2026-05-19-admin-profile-deferred-items.md`

@@ -176,9 +176,26 @@ Admin can browse the portal as the investor sees it for 30 minutes. All `/api/*`
 
 ## What's still open
 
-- **Required GitHub secret** for the cron: `ANONYMISATION_ENDPOINT`
+- ~~**Required GitHub secret** for the cron: `ANONYMISATION_ENDPOINT`~~ ✅ set 2026-05-19 06:16 UTC via `gh secret set`
+- ~~**Auto-exit on idle**: the cookie has a 30-min hard TTL but doesn't refresh on activity.~~ ✅ Sliding-window TTL added (see "Follow-up — sliding-window TTL" below)
 - **Future hardening idea** for impersonation: capture `impersonator` in `AuditEvent.metadata` on every write that *would* have been allowed (we currently block all writes — but a future "write-mode impersonation" PR could allow it and audit thoroughly). The infrastructure (`session.user.impersonator`) is already in place.
-- **Auto-exit on idle**: the cookie has a 30-min hard TTL but doesn't refresh on activity. Not necessarily a bug — short TTL is intentional — but worth flagging.
+
+## Follow-up — sliding-window TTL
+
+After landing the initial PR, added sliding-window expiry so admins on a long support call don't keep getting kicked out.
+
+- New constants in `src/lib/impersonate.ts`:
+  - `IMPERSONATE_REFRESH_MS = 5 * 60 * 1000` — refresh when remaining < 5 min
+  - `IMPERSONATE_MAX_SESSION_MS = 4 * 60 * 60 * 1000` — absolute cap of 4 hours
+- New helper `maybeRefreshImpersonateCookie(secret, payload, now)`:
+  - Returns a fresh signed cookie if within the refresh threshold AND below max-session-age
+  - `issuedAt` is **preserved across refreshes** — the 4-hour cap is real, not a sliding cap. Admins must explicitly re-start past 4 hours.
+- Middleware (`src/middleware.ts`):
+  - Verifies the cookie once per request
+  - Calls `maybeRefreshImpersonateCookie` and threads the result through every `NextResponse` exit point via a local `attachRefresh()` helper
+  - Refresh fires on any request (read or attempted write), so even page navigation extends the window
+- Tests: `tests/lib/impersonate.test.ts` gains 4 cases — does-not-refresh-when-plenty-of-TTL, refreshes-near-expiry, blocked-at-max-session, chained-refreshes-cap-at-4h
+- Final test count: 498 → 502
 
 ## 🤖 AI Prompts Used
 

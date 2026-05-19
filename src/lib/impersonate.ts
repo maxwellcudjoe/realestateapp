@@ -11,7 +11,9 @@
  */
 
 export const IMPERSONATE_COOKIE = '__impersonate'
-export const IMPERSONATE_TTL_MS = 30 * 60 * 1000   // 30 minutes
+export const IMPERSONATE_TTL_MS = 30 * 60 * 1000           // 30-minute idle window
+export const IMPERSONATE_REFRESH_MS = 5 * 60 * 1000        // refresh when remaining < 5 min
+export const IMPERSONATE_MAX_SESSION_MS = 4 * 60 * 60 * 1000 // absolute cap of 4 hours
 
 export interface ImpersonatePayload {
   adminId: string
@@ -110,6 +112,38 @@ export async function verifyImpersonateCookie(
   if (typeof payload.expiresAt !== 'number' || payload.expiresAt < now.getTime()) return null
   if (!payload.adminId || !payload.targetUserId) return null
   return payload
+}
+
+/**
+ * Decide whether to refresh the impersonation cookie. Returns a new signed
+ * cookie value when:
+ *   - the payload is within `refreshMs` of expiring AND
+ *   - the absolute session age (from `issuedAt`) is below `maxSessionMs`
+ *
+ * Returns null otherwise. `issuedAt` is preserved across refreshes so the
+ * 4-hour cap is genuine — admins must explicitly re-start impersonation
+ * after that window.
+ */
+export async function maybeRefreshImpersonateCookie(
+  secret: string,
+  payload: ImpersonatePayload,
+  now: Date = new Date(),
+  refreshMs: number = IMPERSONATE_REFRESH_MS,
+  maxSessionMs: number = IMPERSONATE_MAX_SESSION_MS,
+): Promise<{ value: string; payload: ImpersonatePayload } | null> {
+  const remainingMs = payload.expiresAt - now.getTime()
+  if (remainingMs > refreshMs) return null
+  if (now.getTime() - payload.issuedAt >= maxSessionMs) return null
+
+  const newPayload: ImpersonatePayload = {
+    adminId: payload.adminId,
+    targetUserId: payload.targetUserId,
+    issuedAt: payload.issuedAt,   // preserve original — caps absolute age
+    expiresAt: now.getTime() + IMPERSONATE_TTL_MS,
+  }
+  const encoded = b64urlEncode(new TextEncoder().encode(JSON.stringify(newPayload)))
+  const signature = await sign(secret, encoded)
+  return { value: `${encoded}.${signature}`, payload: newPayload }
 }
 
 /**
