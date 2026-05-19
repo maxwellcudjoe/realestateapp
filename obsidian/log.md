@@ -2,6 +2,15 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] handoff | New session prompt written
+
+- Created: `obsidian/Knowledge/2026-05-19-handoff-prompt.md`
+- Updated: `obsidian/index.md`
+- Summary of the session: 8 PRs, 15 commits, audit close-out (26 of 29), all 5 subscription workflow plan items live, weekly cron operational + verified, three schema migrations
+- Pending external setup carried forward: Turnstile, SumSub, getaddress.io, Rêve Bâtir bank/pricing env vars on Azure SWA
+- CRON_SECRET ✅ set + verified end-to-end during this session
+- Phase 6.8 Passkeys is still the only outstanding pre-audit gap-analysis item
+
 ## [2026-05-19] feature | PR #8 — Schema-blocked audit items (C6 + L1 + M1)
 
 - Created: `obsidian/Projects/2026-05-19-pr8-schema-blocked-items.md`

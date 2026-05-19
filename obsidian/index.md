@@ -13,6 +13,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-post-viewing-flow-and-money-handling](Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md) | Process-gap analysis + locked product decisions: solicitor-only money flow, Rêve Bâtir invoices for sourcing/success/subscription fees. Proposes Phase 7 build. |
 | [2026-05-18-deal-workflow-audit](Knowledge/2026-05-18-deal-workflow-audit.md) | End-to-end audit of deal lifecycle after Phase 7 ship. 8 CRITICAL (Premium gate bypassable via API; batch-post no publishedAt; offer-no-intent-check; cancellation drops tier; REJECTED dead-ends; PoF gate missing on PATCH; invoice numbering race; vendor-decline auto-FALLEN_THROUGH) + 5 HIGH + 8 MEDIUM + 7 LOW. Suggested fix sequence at the bottom. |
 | [2026-05-19-subscription-workflow](Knowledge/2026-05-19-subscription-workflow.md) | End-to-end subscription workflow doc — upgrade/downgrade/plan-change/renewal flows, effective-tier truth table, schema + code surface map, 5 known gaps with sequenced implementation plan (A1 generate-renewals button ~30min; A2 plan-change preserves period ~1h; B1 investor-side requests via Messages; B2 selective billing; C1 cron). |
+| [2026-05-19-handoff-prompt](Knowledge/2026-05-19-handoff-prompt.md) | Latest handoff — 8 PRs / 15 commits this session, audit close-out (26 of 29), all 5 subscription plan items live, weekly cron operational, schema migrations done. Bank details + SumSub/getaddress env vars still pending. Only Phase 6.8 Passkeys outstanding from pre-audit roadmap. |
 
 ## Projects
 
