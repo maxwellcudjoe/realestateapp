@@ -9,6 +9,7 @@ import {
   effectiveTier,
   type BillingPeriod,
 } from '@/lib/subscriptions'
+import { SubscriptionRequestForm } from '@/components/portal/SubscriptionRequestForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,19 +94,21 @@ export default async function PortalSubscriptionPage() {
               </div>
             </div>
             <p className="font-sans text-xs text-stone leading-relaxed">
-              To upgrade, message us via the <a href="/portal/messages" className="text-gold hover:underline">Messages</a> tab
-              or email <a href="mailto:hello@revebatir.co.uk" className="text-gold hover:underline">hello@revebatir.co.uk</a>.
               We&rsquo;ll activate your tier and send your first invoice by bank transfer.
             </p>
+            <div className="pt-2">
+              <SubscriptionRequestForm allowedTypes={['UPGRADE']} />
+            </div>
           </div>
         </section>
       )}
 
       {tier === 'PREMIUM' && !user.subscription?.cancelledAt && (
         <section>
-          <p className="font-sans text-xs text-stone">
-            Need to change your plan or cancel? Contact us via the <a href="/portal/messages" className="text-gold hover:underline">Messages</a> tab.
+          <p className="font-sans text-xs text-stone mb-3">
+            Need to change your plan or cancel?
           </p>
+          <SubscriptionRequestForm allowedTypes={['CHANGE_MONTHLY', 'CHANGE_ANNUAL', 'CANCEL']} />
         </section>
       )}
     </div>

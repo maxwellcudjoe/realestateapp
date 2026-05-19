@@ -1,13 +1,14 @@
 import { prisma } from '@/lib/prisma'
 
 export const NOTIFICATION_TYPES = {
-  DEAL_POSTED:    'New deal posted',
-  DEAL_STAGE:     'Deal stage change',
-  OFFER_DECISION: 'Offer decision',
-  MESSAGE:        'New message',
-  KYC_STATUS:     'KYC status update',
-  VIEWING:        'Viewing update',
-  SYSTEM:         'System notification',
+  DEAL_POSTED:          'New deal posted',
+  DEAL_STAGE:           'Deal stage change',
+  OFFER_DECISION:       'Offer decision',
+  MESSAGE:              'New message',
+  KYC_STATUS:           'KYC status update',
+  VIEWING:              'Viewing update',
+  SYSTEM:               'System notification',
+  SUBSCRIPTION_REQUEST: 'Subscription request',
 } as const
 
 export type NotificationType = keyof typeof NOTIFICATION_TYPES

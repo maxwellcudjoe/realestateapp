@@ -2,6 +2,17 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #6 — Subscription completion (B1 + B2 + C1)
+
+- Created: `obsidian/Projects/2026-05-19-pr6-subscription-b1-b2-c1.md`
+- Updated: `obsidian/index.md`
+- **C1**: generate-renewals endpoint now accepts EITHER admin session OR Bearer `CRON_SECRET` header. New `.github/workflows/weekly-renewals.yml` runs Mon 09:00 UTC + `workflow_dispatch` for manual ad-hoc with horizon + dryRun inputs. Curl with HTTP-status check; summary written to GitHub Step Summary. Required secrets: `CRON_SECRET` (both Azure SWA env + GitHub repo secret) + `RENEWALS_ENDPOINT` (GitHub).
+- **B2**: `?userIds=u1,u2,u3` filter on generate-renewals; UI gains a checkbox per subscriber in the dry-run preview (all checked by default, Select/Deselect-all toggle, "Send N invoices" reflects selection count).
+- **B1**: new `POST /api/portal/subscription/request` (UPGRADE | CHANGE_MONTHLY | CHANGE_ANNUAL | CANCEL + optional reason); creates an in-portal Message, notifies all admins, emails RESEND_TO_EMAIL. `SUBSCRIPTION_REQUEST` notification type added. New `SubscriptionRequestForm` client component shown on `/portal/subscription` — FREE tier sees only UPGRADE; PREMIUM uncancelled sees the change/cancel set.
+- Tests: +12 (7 subscription-request, 5 generate-renewals C1+B2 cases); 368/368 pass; build clean
+- Setup checklist for cron in the PR note
+- All 5 subscription workflow plan items now shipped (A1, A2, B1, B2, C1)
+
 ## [2026-05-19] feature | PR #5 — Subscription polish A1 + A2
 
 - Created: `obsidian/Projects/2026-05-19-pr5-subscription-polish-a1-a2.md`

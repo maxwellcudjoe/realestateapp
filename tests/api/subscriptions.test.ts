@@ -263,4 +263,63 @@ describe('POST /api/admin/subscriptions/generate-renewals — A1 dry-run', () =>
     expect(json.skipped[0].reason).toBe('recent invoice exists')
     expect(mockInvoiceCreate).not.toHaveBeenCalled()
   })
+
+  // C1 — Bearer-token cron auth path
+  it('accepts Bearer CRON_SECRET in place of admin session', async () => {
+    mockAuth.mockResolvedValue(null) // no session
+    process.env.CRON_SECRET = 'sekret-123'
+    mockSubFindMany.mockResolvedValue([])
+    const POST = await getRenewalsHandler()
+    const req = new NextRequest('http://x/api/admin/subscriptions/generate-renewals', {
+      method: 'POST',
+      headers: { authorization: 'Bearer sekret-123' },
+    })
+    const res = await POST(req, {} as never)
+    expect(res.status).toBe(200)
+    delete process.env.CRON_SECRET
+  })
+
+  it('rejects wrong Bearer token even when CRON_SECRET is set', async () => {
+    mockAuth.mockResolvedValue(null)
+    process.env.CRON_SECRET = 'sekret-123'
+    const POST = await getRenewalsHandler()
+    const req = new NextRequest('http://x/api/admin/subscriptions/generate-renewals', {
+      method: 'POST',
+      headers: { authorization: 'Bearer wrong-token' },
+    })
+    const res = await POST(req, {} as never)
+    expect(res.status).toBe(403)
+    delete process.env.CRON_SECRET
+  })
+
+  it('does NOT accept any Bearer token when CRON_SECRET env is unset', async () => {
+    mockAuth.mockResolvedValue(null)
+    delete process.env.CRON_SECRET
+    const POST = await getRenewalsHandler()
+    const req = new NextRequest('http://x/api/admin/subscriptions/generate-renewals', {
+      method: 'POST',
+      headers: { authorization: 'Bearer anything' },
+    })
+    const res = await POST(req, {} as never)
+    expect(res.status).toBe(403)
+  })
+
+  // B2 — userIds filter for selective billing
+  it('filters subs by userIds when ?userIds= is supplied', async () => {
+    mockSubFindMany.mockResolvedValue([])
+    const POST = await getRenewalsHandler()
+    const res = await POST(renewalReq('?userIds=u1,u2,u3'), {} as never)
+    expect(res.status).toBe(200)
+    const where = mockSubFindMany.mock.calls[0][0].where
+    expect(where.userId).toEqual({ in: ['u1', 'u2', 'u3'] })
+  })
+
+  it('no userId filter when ?userIds= is omitted', async () => {
+    mockSubFindMany.mockResolvedValue([])
+    const POST = await getRenewalsHandler()
+    const res = await POST(renewalReq(), {} as never)
+    expect(res.status).toBe(200)
+    const where = mockSubFindMany.mock.calls[0][0].where
+    expect(where.userId).toBeUndefined()
+  })
 })

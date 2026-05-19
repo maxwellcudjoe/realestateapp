@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 
@@ -41,7 +41,28 @@ export function RenewalGeneratorButton() {
   const [committing, setCommitting] = useState(false)
   const [preview, setPreview] = useState<RunResult | null>(null)
   const [committed, setCommitted] = useState<RunResult | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [error, setError] = useState('')
+
+  // When a new preview lands, default to all subscribers selected.
+  useEffect(() => {
+    if (preview) setSelected(new Set(preview.created.map((e) => e.userId)))
+  }, [preview])
+
+  function toggle(userId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    if (!preview) return
+    if (selected.size === preview.created.length) setSelected(new Set())
+    else setSelected(new Set(preview.created.map((e) => e.userId)))
+  }
 
   async function runDryRun() {
     setError(''); setPreviewing(true); setCommitted(null)
@@ -58,14 +79,17 @@ export function RenewalGeneratorButton() {
   }
 
   async function commit() {
+    if (selected.size === 0) return
     setError(''); setCommitting(true)
     try {
-      const res = await fetch(`/api/admin/subscriptions/generate-renewals?days=${horizon}`, { method: 'POST' })
+      const userIds = Array.from(selected).join(',')
+      const res = await fetch(`/api/admin/subscriptions/generate-renewals?days=${horizon}&userIds=${encodeURIComponent(userIds)}`, { method: 'POST' })
       const json: RunResult = await res.json()
       if (!res.ok) setError((json as unknown as { error?: string }).error ?? 'Failed')
       else {
         setCommitted(json)
         setPreview(null)
+        setSelected(new Set())
         router.refresh()
       }
     } catch {
@@ -106,24 +130,54 @@ export function RenewalGeneratorButton() {
 
       {preview && (
         <div className="border-t border-carbon pt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold">
-              Preview: {preview.created.length} to issue · {preview.skipped.length} skipped
-            </p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-sans text-[0.6rem] uppercase tracking-widest text-gold">
+                Preview: {preview.created.length} eligible · {preview.skipped.length} skipped
+              </p>
+              {preview.created.length > 0 && (
+                <button
+                  type="button"
+                  onClick={toggleAll}
+                  className="font-sans text-[0.6rem] uppercase tracking-widest text-stone hover:text-ivory transition-colors mt-1"
+                >
+                  {selected.size === preview.created.length ? 'Deselect all' : 'Select all'}
+                </button>
+              )}
+            </div>
             {preview.created.length > 0 && (
-              <Button type="button" onClick={commit} disabled={committing}>
-                {committing ? 'Sending…' : `Send ${preview.created.length} invoice${preview.created.length === 1 ? '' : 's'}`}
+              <Button type="button" onClick={commit} disabled={committing || selected.size === 0}>
+                {committing
+                  ? 'Sending…'
+                  : selected.size === 0
+                    ? 'Select at least one'
+                    : `Send ${selected.size} invoice${selected.size === 1 ? '' : 's'}`}
               </Button>
             )}
           </div>
           {preview.created.length > 0 && (
             <ul className="space-y-1.5">
-              {preview.created.map((e) => (
-                <li key={e.userId} className="font-sans text-xs text-ivory border-l-2 border-gold/40 pl-3">
-                  <strong>{e.investorName}</strong> · {fmt(e.amount)} · due {fmtDate(e.dueAt)}
-                  <span className="text-stone"> · {e.userEmail}</span>
-                </li>
-              ))}
+              {preview.created.map((e) => {
+                const checked = selected.has(e.userId)
+                return (
+                  <li
+                    key={e.userId}
+                    className={`font-sans text-xs flex items-start gap-3 border-l-2 pl-3 py-1 ${checked ? 'border-gold/40 text-ivory' : 'border-carbon text-stone/60'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggle(e.userId)}
+                      className="mt-0.5 accent-gold cursor-pointer"
+                      aria-label={`Bill ${e.investorName}`}
+                    />
+                    <div>
+                      <strong>{e.investorName}</strong> · {fmt(e.amount)} · due {fmtDate(e.dueAt)}
+                      <span className="text-stone"> · {e.userEmail}</span>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
           {preview.skipped.length > 0 && (

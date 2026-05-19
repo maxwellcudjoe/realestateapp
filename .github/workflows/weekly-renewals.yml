@@ -1,0 +1,72 @@
+name: Weekly subscription renewals
+
+# C1 — automated subscription renewal billing.
+# Runs every Monday at 09:00 UTC. Calls the production renewals endpoint with
+# the CRON_SECRET Bearer token (which the endpoint accepts in place of an
+# admin session). Hits a 7-day horizon — subscribers whose next renewal falls
+# in the next week get a SENT SUBSCRIPTION invoice + email. Idempotent: the
+# endpoint itself skips anyone billed in the last 25 days.
+#
+# Manual trigger (workflow_dispatch) lets you also fire it ad-hoc from the
+# Actions tab with a custom horizon and dry-run toggle for testing.
+#
+# Required GitHub repository secrets:
+#   RENEWALS_ENDPOINT   — e.g. https://www.revebatir.co.uk/api/admin/subscriptions/generate-renewals
+#   CRON_SECRET         — must match the CRON_SECRET env var in Azure SWA
+#                          Application settings. Generate with: openssl rand -hex 32
+
+on:
+  schedule:
+    # Every Monday 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Renewal horizon in days'
+        required: false
+        default: '7'
+      dryRun:
+        description: 'Dry-run (preview only, no invoices created)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  generate-renewals:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger renewal generation
+        env:
+          ENDPOINT: ${{ secrets.RENEWALS_ENDPOINT }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DAYS: ${{ github.event.inputs.days || '7' }}
+          DRY_RUN: ${{ github.event.inputs.dryRun || 'false' }}
+        run: |
+          if [ -z "$ENDPOINT" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::RENEWALS_ENDPOINT and CRON_SECRET repository secrets must be set."
+            exit 1
+          fi
+          URL="${ENDPOINT}?days=${DAYS}&dryRun=${DRY_RUN}"
+          echo "Calling $URL (dryRun=$DRY_RUN)"
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "$URL" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n1)
+          echo "HTTP $STATUS"
+          echo "$BODY" | jq . || echo "$BODY"
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Renewal generation failed with HTTP $STATUS"
+            exit 1
+          fi
+          # Surface created/skipped counts to the workflow summary
+          CREATED=$(echo "$BODY" | jq -r '.created | length' 2>/dev/null || echo "?")
+          SKIPPED=$(echo "$BODY" | jq -r '.skipped | length' 2>/dev/null || echo "?")
+          echo "## Renewals run summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Horizon: $DAYS days" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dry-run: $DRY_RUN" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Created: $CREATED" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Skipped: $SKIPPED" >> "$GITHUB_STEP_SUMMARY"

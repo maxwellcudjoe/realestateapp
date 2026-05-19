@@ -7,31 +7,52 @@ import { nextInvoiceNumber } from '@/lib/invoice-numbering'
 import { nextRenewalDate, BILLING_PERIOD_LABEL, type BillingPeriod } from '@/lib/subscriptions'
 
 /**
- * POST /api/admin/subscriptions/generate-renewals?days=N&dryRun=true
+ * POST /api/admin/subscriptions/generate-renewals?days=N&dryRun=true&userIds=id1,id2
  *
  * Finds active subscriptions whose nextRenewalAt is within the next N days
  * (default 7) and creates a SENT subscription invoice for each, advancing
  * nextRenewalAt by one billing period. Idempotent: skips users who already
  * have a SENT/PAID subscription invoice issued in the last 25 days.
  *
- * `dryRun=true` runs the same query + skip logic but does NOT create
- * invoices, advance renewal dates, or send emails — returns a preview list
- * with the same shape so the admin can review before committing.
+ * Query params:
+ *   - `days`     (default 7) — horizon for renewal window
+ *   - `dryRun`   (true|false) — preview-only mode (no DB writes, no emails)
+ *   - `userIds`  (comma-separated) — B2 selective billing: restrict to these
+ *                 subscriber userIds (still applies the horizon + skip checks)
+ *
+ * Auth:
+ *   - Admin session (browser via /admin/subscriptions page), OR
+ *   - Bearer token matching CRON_SECRET env var (C1 scheduled job auth path)
  */
 export async function POST(req: NextRequest) {
+  // C1 — accept admin session OR a Bearer token matching CRON_SECRET so a
+  // scheduled job (GitHub Actions / Azure Functions / external cron) can
+  // trigger renewals without a user session.
   const session = await auth()
-  if (!session?.user || session.user.role !== 'admin') {
+  const isAdmin = session?.user?.role === 'admin'
+  const cronSecret = process.env.CRON_SECRET
+  const authHeader = req.headers.get('authorization') ?? ''
+  const isCron = !!cronSecret && authHeader === `Bearer ${cronSecret}`
+  if (!isAdmin && !isCron) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const horizon = Number(req.nextUrl.searchParams.get('days') ?? '7')
   const dryRun = req.nextUrl.searchParams.get('dryRun') === 'true'
+  const userIdsParam = req.nextUrl.searchParams.get('userIds')
+  const userIdsFilter = userIdsParam
+    ? userIdsParam.split(',').map((s) => s.trim()).filter(Boolean)
+    : null
   const now = new Date()
   const cutoff = new Date(now)
   cutoff.setDate(cutoff.getDate() + horizon)
 
   const subs = await prisma.subscription.findMany({
-    where: { cancelledAt: null, nextRenewalAt: { lte: cutoff } },
+    where: {
+      cancelledAt: null,
+      nextRenewalAt: { lte: cutoff },
+      ...(userIdsFilter ? { userId: { in: userIdsFilter } } : {}),
+    },
     include: { user: { include: { investorProfile: true } } },
   })
 
