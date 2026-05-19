@@ -5,6 +5,8 @@ const mockDealFindFirst = vi.fn()
 const mockDealFindUnique = vi.fn()
 const mockMessageFindMany = vi.fn()
 const mockMessageCreate = vi.fn()
+const mockGetDealForViewer = vi.fn()
+const mockCreateNotification = vi.fn().mockResolvedValue({})
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
@@ -14,6 +16,12 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
+vi.mock('@/lib/notifications', () => ({ createNotification: mockCreateNotification }))
+vi.mock('@/lib/deal-access', () => ({
+  getInvestorDeal: mockGetDealForViewer,
+  getAdminDeal: mockGetDealForViewer,
+  getDealForViewer: mockGetDealForViewer,
+}))
 
 async function getHandlers() {
   return await import('@/app/api/portal/deals/[dealId]/messages/route')
@@ -25,7 +33,7 @@ describe('GET /api/portal/deals/[dealId]/messages', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1', role: 'investor' } })
-    mockDealFindFirst.mockResolvedValue({
+    mockGetDealForViewer.mockResolvedValue({
       id: 'd1', applicationId: 'a1',
       application: { investorProfile: { user: { email: 'jane@example.com' } } },
     })
@@ -51,17 +59,17 @@ describe('GET /api/portal/deals/[dealId]/messages', () => {
   })
 
   it('returns 404 when investor does not own the deal', async () => {
-    mockDealFindFirst.mockResolvedValue(null)
+    mockGetDealForViewer.mockResolvedValue(null)
     const { GET } = await getHandlers()
     expect((await GET(new Request('http://x') as any, ctx())).status).toBe(404)
   })
 
   it('allows admin to read any thread', async () => {
     mockAuth.mockResolvedValue({ user: { id: 'a1', role: 'admin' } })
-    mockDealFindUnique.mockResolvedValue({ id: 'd1' })
+    mockGetDealForViewer.mockResolvedValue({ id: 'd1' })
     const { GET } = await getHandlers()
     expect((await GET(new Request('http://x') as any, ctx())).status).toBe(200)
-    expect(mockDealFindUnique).toHaveBeenCalled()
+    expect(mockGetDealForViewer).toHaveBeenCalledWith('d1', 'a1', 'admin')
   })
 })
 
@@ -69,7 +77,7 @@ describe('POST /api/portal/deals/[dealId]/messages', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1', role: 'investor' } })
-    mockDealFindFirst.mockResolvedValue({
+    mockGetDealForViewer.mockResolvedValue({
       id: 'd1', applicationId: 'a1', address: '1 The Street',
       application: { investorProfile: { firstName: 'Jane', user: { email: 'jane@example.com' } } },
     })

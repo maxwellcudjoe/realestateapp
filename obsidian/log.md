@@ -2,6 +2,18 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #2 — Centralised deal access with tier gate (audit followup)
+
+- Created: `obsidian/Projects/2026-05-19-pr2-deal-access-helper.md`
+- Updated: `obsidian/index.md`
+- Closes **C1** (subresource APIs ignored Premium tier gate — Premium was UI-only) and **L2** (duplicated `getDealForUser` across 5+ routes).
+- New `src/lib/deal-access.ts` exports `getInvestorDeal` (tier-gated, scoped to user's application), `getAdminDeal` (no constraints), `getDealForViewer` (role-aware shortcut).
+- 7 portal subresource routes migrated to the helper: offer, response, viewings, documents (list + per-doc URL/DELETE), messages, favourite. ~80 LoC deduplicated.
+- Favourite endpoint is now tier-gated (was previously bypassable for FREE users).
+- New tests: `tests/lib/deal-access.test.ts` (10). Migrated 5 existing test suites (offer, viewing, response, deal-messages, favourite-interest) to mock the helper rather than prisma directly.
+- 311/311 pass; build clean
+- Next: PR #3 (C8 — REJECTED → counter-offer flow)
+
 ## [2026-05-19] feature | PR #1 — Phase 7 leak plugs (audit followup)
 
 - Created: `obsidian/Projects/2026-05-19-pr1-phase7-leak-plugs.md`

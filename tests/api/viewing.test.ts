@@ -9,6 +9,7 @@ const mockViewingCreate = vi.fn()
 const mockViewingFindMany = vi.fn()
 const mockNotificationCreate = vi.fn().mockResolvedValue({})
 const mockHasPof = vi.fn()
+const mockGetDealForViewer = vi.fn()
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
@@ -21,6 +22,11 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
 vi.mock('@/lib/notifications', () => ({ createNotification: mockNotificationCreate }))
 vi.mock('@/lib/proof-of-funds', () => ({ hasActiveProofOfFunds: mockHasPof }))
+vi.mock('@/lib/deal-access', () => ({
+  getInvestorDeal: mockGetDealForViewer,
+  getAdminDeal: mockGetDealForViewer,
+  getDealForViewer: mockGetDealForViewer,
+}))
 
 async function getAdminHandler() {
   const mod = await import('@/app/api/admin/viewings/[viewingId]/route')
@@ -142,7 +148,7 @@ describe('POST /api/portal/deals/[dealId]/viewings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1', role: 'investor' } })
-    mockDealFindFirst.mockResolvedValue({
+    mockGetDealForViewer.mockResolvedValue({
       id: 'd1', applicationId: 'app1', address: '12 High St', title: 'Cosy 2-bed',
       application: { id: 'app1', investorProfile: { firstName: 'Jane', user: { email: 'jane@example.com' } } },
     })
@@ -166,7 +172,7 @@ describe('POST /api/portal/deals/[dealId]/viewings', () => {
 
   it('rejects when admin tries to request', async () => {
     mockAuth.mockResolvedValue({ user: { id: 'a1', role: 'admin' } })
-    mockDealFindUnique.mockResolvedValue({
+    mockGetDealForViewer.mockResolvedValue({
       id: 'd1', applicationId: 'app1', address: 'X', title: 'T',
       application: { id: 'app1', investorProfile: { firstName: 'Jane', user: { email: 'jane@example.com' } } },
     })

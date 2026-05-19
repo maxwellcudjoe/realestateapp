@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const {
-  mockAuth, mockUserFindUnique, mockDealFindUnique, mockDealResponseCreate, mockDealResponseUpdate, mockDealResponseDelete,
+  mockAuth, mockUserFindUnique, mockDealFindUnique, mockGetInvestorDeal, mockDealResponseCreate, mockDealResponseUpdate, mockDealResponseDelete,
 } = vi.hoisted(() => ({
   mockAuth: vi.fn(),
   mockUserFindUnique: vi.fn(),
   mockDealFindUnique: vi.fn(),
+  mockGetInvestorDeal: vi.fn(),
   mockDealResponseCreate: vi.fn(),
   mockDealResponseUpdate: vi.fn(),
   mockDealResponseDelete: vi.fn(),
@@ -20,6 +21,11 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
+vi.mock('@/lib/deal-access', () => ({
+  getInvestorDeal: mockGetInvestorDeal,
+  getAdminDeal: vi.fn(),
+  getDealForViewer: mockGetInvestorDeal,
+}))
 
 async function getHandlers() {
   return await import('@/app/api/portal/deals/[dealId]/response/route')
@@ -39,9 +45,9 @@ describe('POST /api/portal/deals/[dealId]/response', () => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1', email: 'jane@x' } })
     mockUserFindUnique.mockResolvedValue({
-      id: 'u1', investorProfile: { application: { id: 'app1' }, firstName: 'Jane', lastName: 'Doe' },
+      id: 'u1', investorProfile: { firstName: 'Jane', lastName: 'Doe' },
     })
-    mockDealFindUnique.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', applicationId: 'app1', title: 'X', address: 'Y', response: null,
     })
   })
@@ -60,14 +66,14 @@ describe('POST /api/portal/deals/[dealId]/response', () => {
     expect((await POST(req({ intent: 'ACCEPT' }), ctx())).status).toBe(401)
   })
 
-  it('returns 404 for foreign deal', async () => {
-    mockDealFindUnique.mockResolvedValue({ id: 'd1', applicationId: 'OTHER', response: null })
+  it('returns 404 for foreign deal (or tier-hidden)', async () => {
+    mockGetInvestorDeal.mockResolvedValue(null)
     const { POST } = await getHandlers()
     expect((await POST(req({ intent: 'ACCEPT' }), ctx())).status).toBe(404)
   })
 
   it('returns 409 when response already exists (in-memory check)', async () => {
-    mockDealFindUnique.mockResolvedValue({ id: 'd1', applicationId: 'app1', response: { intent: 'PASS' } })
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', applicationId: 'app1', response: { intent: 'PASS' } })
     const { POST } = await getHandlers()
     expect((await POST(req({ intent: 'ACCEPT' }), ctx())).status).toBe(409)
   })

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { createNotification } from '@/lib/notifications'
+import { getDealForViewer } from '@/lib/deal-access'
 import { z } from 'zod'
 
 const sendSchema = z.object({
@@ -10,12 +11,9 @@ const sendSchema = z.object({
   body: z.string().min(1).max(5000),
 })
 
-async function getDealForUser(dealId: string, userId: string) {
-  return prisma.deal.findFirst({
-    where: { id: dealId, application: { investorProfile: { userId } } },
-    include: { application: { include: { investorProfile: { include: { user: true } } } } },
-  })
-}
+const MESSAGE_INCLUDE = {
+  application: { include: { investorProfile: { include: { user: true } } } },
+} as const
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ dealId: string }> }) {
   const session = await auth()
@@ -23,14 +21,8 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ dealId: st
 
   const { dealId } = await ctx.params
 
-  // Either investor on the deal OR admin role can read
-  const isAdmin = session.user.role === 'admin'
-  let deal = null
-  if (isAdmin) {
-    deal = await prisma.deal.findUnique({ where: { id: dealId }, select: { id: true } })
-  } else {
-    deal = await getDealForUser(dealId, session.user.id)
-  }
+  // Either investor on the deal (tier-gated) OR admin role can read
+  const deal = await getDealForViewer(dealId, session.user.id, session.user.role)
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
 
   const messages = await prisma.message.findMany({
@@ -67,15 +59,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
   }
 
   const isAdmin = session.user.role === 'admin'
-  let deal = null
-  if (isAdmin) {
-    deal = await prisma.deal.findUnique({
-      where: { id: dealId },
-      include: { application: { include: { investorProfile: { include: { user: true } } } } },
-    })
-  } else {
-    deal = await getDealForUser(dealId, session.user.id)
-  }
+  const deal = await getDealForViewer(dealId, session.user.id, session.user.role, { include: MESSAGE_INCLUDE })
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
 
   await prisma.message.create({

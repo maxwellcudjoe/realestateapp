@@ -9,6 +9,7 @@ const mockInterestFind = vi.fn()
 const mockInterestFindMany = vi.fn()
 const mockInterestDelete = vi.fn()
 const mockUserFindUnique = vi.fn()
+const mockGetInvestorDeal = vi.fn()
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
@@ -25,6 +26,11 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
+vi.mock('@/lib/deal-access', () => ({
+  getInvestorDeal: mockGetInvestorDeal,
+  getAdminDeal: vi.fn(),
+  getDealForViewer: mockGetInvestorDeal,
+}))
 
 const ctxDeal = (dealId = 'd1') => ({ params: Promise.resolve({ dealId }) })
 
@@ -32,7 +38,7 @@ describe('Favourite toggle', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
-    mockDealFindFirst.mockResolvedValue({ id: 'd1' })
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1' })
   })
 
   it('POST favourites the deal for the owning investor', async () => {
@@ -44,8 +50,8 @@ describe('Favourite toggle', () => {
     }))
   })
 
-  it('POST returns 404 if deal does not belong to the user', async () => {
-    mockDealFindFirst.mockResolvedValue(null)
+  it('POST returns 404 if deal does not belong to the user (or tier-hidden)', async () => {
+    mockGetInvestorDeal.mockResolvedValue(null)
     const { POST } = await import('@/app/api/portal/deals/[dealId]/favourite/route')
     const res = await POST(new Request('http://x') as any, ctxDeal())
     expect(res.status).toBe(404)

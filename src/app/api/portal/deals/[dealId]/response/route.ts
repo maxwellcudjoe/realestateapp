@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { getInvestorDeal } from '@/lib/deal-access'
 import { z } from 'zod'
 
 const VALID_INTENTS = ['ACCEPT', 'MORE_INFO', 'PASS'] as const
@@ -17,24 +18,8 @@ const INTENT_LABEL: Record<string, string> = {
   PASS: 'Not interested — passing',
 }
 
-async function getDealForUser(dealId: string, userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      investorProfile: {
-        include: { application: { select: { id: true } } },
-      },
-    },
-  })
-  const applicationId = user?.investorProfile?.application?.id
-  if (!applicationId) return null
-
-  const deal = await prisma.deal.findUnique({
-    where: { id: dealId },
-    include: { response: true },
-  })
-  if (!deal || deal.applicationId !== applicationId) return null
-  return deal
+function getDealForUser(dealId: string, userId: string) {
+  return getInvestorDeal(dealId, userId, { include: { response: true } })
 }
 
 export async function POST(

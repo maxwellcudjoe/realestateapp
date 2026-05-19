@@ -45,6 +45,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-task-7-3-invoicing](Projects/2026-05-17-task-7-3-invoicing.md) | Phase 7 Task 7.3 — Invoice model (SOURCING / SUCCESS / SUBSCRIPTION, RB-YYYY-NNNN numbering), `@react-pdf/renderer` PDF generation, admin + investor UI, deal-page quick-actions with auto success-fee suggestion. 27 new tests. |
 | [2026-05-17-task-7-4-premium-tier](Projects/2026-05-17-task-7-4-premium-tier.md) | Phase 7 Task 7.4 — Subscription model + User.tier (FREE/PREMIUM), 48h Premium-preview gate on deal queries (publishedAt), admin SubscriptionPanel, investor /portal/subscription, manual renewal-invoice generator. 23 new tests. |
 | [2026-05-19-pr1-phase7-leak-plugs](Projects/2026-05-19-pr1-phase7-leak-plugs.md) | Audit-followup PR #1 — plugs 5 Phase 7 leaks: batch-post publishedAt (C5), offer requires intent=ACCEPT (C4), PoF gate on offer PATCH (C3), subscription cancel preserves tier via new effectiveTier helper (C7), P2002→409 on Offer/Response races (H6/H7). +19 tests; 301/301 pass. |
+| [2026-05-19-pr2-deal-access-helper](Projects/2026-05-19-pr2-deal-access-helper.md) | Audit-followup PR #2 — closes C1 + L2. New `src/lib/deal-access.ts` with `getInvestorDeal` (tier-gated) + `getAdminDeal` + `getDealForViewer`. 7 portal subresource routes migrated; ~80 lines deduplicated; Premium gate is now uniform by construction. Favourite endpoint also gets gated (was bypassable). +10 tests; 311/311 pass. |
 
 ## Bug Fixes
 

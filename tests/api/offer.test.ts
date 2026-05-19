@@ -7,6 +7,7 @@ const mockTransaction = vi.fn()
 const mockOfferCreate = vi.fn()
 const mockOfferUpdate = vi.fn()
 const mockHasPof = vi.fn()
+const mockGetInvestorDeal = vi.fn()
 
 vi.mock('@/lib/auth', () => ({ auth: mockAuth }))
 vi.mock('@/lib/prisma', () => ({
@@ -19,6 +20,11 @@ vi.mock('@/lib/prisma', () => ({
 }))
 vi.mock('@/lib/resend', () => ({ sendEmail: vi.fn().mockResolvedValue({ id: 'm' }) }))
 vi.mock('@/lib/proof-of-funds', () => ({ hasActiveProofOfFunds: mockHasPof }))
+vi.mock('@/lib/deal-access', () => ({
+  getInvestorDeal: mockGetInvestorDeal,
+  getAdminDeal: vi.fn(),
+  getDealForViewer: mockGetInvestorDeal,
+}))
 
 async function getPortalHandlers() {
   return await import('@/app/api/portal/deals/[dealId]/offer/route')
@@ -42,7 +48,7 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
-    mockFindFirst.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
       offer: null,
       response: { intent: 'ACCEPT' },
@@ -64,13 +70,13 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
   })
 
   it('returns 404 when deal not found / wrong owner', async () => {
-    mockFindFirst.mockResolvedValue(null)
+    mockGetInvestorDeal.mockResolvedValue(null)
     const { POST } = await getPortalHandlers()
     expect((await POST(req(VALID), ctx())).status).toBe(404)
   })
 
   it('rejects when offer already exists', async () => {
-    mockFindFirst.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1' }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', stage: 'OFFER_PENDING', offer: { id: 'o1' }, response: { intent: 'ACCEPT' }, application: { investorProfile: { firstName: 'Jane' } } })
     const { POST } = await getPortalHandlers()
     expect((await POST(req(VALID), ctx())).status).toBe(409)
   })
@@ -93,7 +99,7 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
   })
 
   it('rejects offer when investor has not responded with intent=ACCEPT', async () => {
-    mockFindFirst.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
       offer: null,
       response: { intent: 'PASS' },
@@ -108,7 +114,7 @@ describe('POST /api/portal/deals/[dealId]/offer', () => {
   })
 
   it('rejects offer when investor has no DealResponse at all', async () => {
-    mockFindFirst.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', applicationId: 'app1', stage: 'PROPOSED', title: 'X', address: 'Y',
       offer: null,
       response: null,
@@ -133,7 +139,7 @@ describe('PATCH /api/portal/deals/[dealId]/offer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
-    mockFindFirst.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', applicationId: 'app1', stage: 'OFFER_PENDING', title: 'X', address: 'Y',
       offer: { id: 'o1', status: 'PENDING' },
       response: { intent: 'ACCEPT' },
@@ -144,7 +150,7 @@ describe('PATCH /api/portal/deals/[dealId]/offer', () => {
   })
 
   it('refuses to edit a decided offer', async () => {
-    mockFindFirst.mockResolvedValue({ id: 'd1', applicationId: 'app1', offer: { id: 'o1', status: 'ACCEPTED' }, application: { id: 'app1', investorProfile: { firstName: 'Jane' } } })
+    mockGetInvestorDeal.mockResolvedValue({ id: 'd1', applicationId: 'app1', offer: { id: 'o1', status: 'ACCEPTED' }, application: { id: 'app1', investorProfile: { firstName: 'Jane' } } })
     const { PATCH } = await getPortalHandlers()
     expect((await PATCH(req(VALID, 'PATCH'), ctx())).status).toBe(409)
   })
@@ -170,7 +176,7 @@ describe('DELETE /api/portal/deals/[dealId]/offer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAuth.mockResolvedValue({ user: { id: 'u1' } })
-    mockFindFirst.mockResolvedValue({
+    mockGetInvestorDeal.mockResolvedValue({
       id: 'd1', stage: 'OFFER_PENDING',
       offer: { id: 'o1', status: 'PENDING' },
       application: { investorProfile: { firstName: 'Jane' } },

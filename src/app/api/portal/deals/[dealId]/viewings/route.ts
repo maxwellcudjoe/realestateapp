@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { hasActiveProofOfFunds } from '@/lib/proof-of-funds'
+import { getDealForViewer } from '@/lib/deal-access'
 import { z } from 'zod'
 
 const requestSchema = z.object({
@@ -11,15 +12,8 @@ const requestSchema = z.object({
   investorNote: z.string().max(1000).optional().default(''),
 })
 
-async function loadDealForUser(dealId: string, userId: string, role: string) {
-  if (role === 'admin') {
-    return prisma.deal.findUnique({
-      where: { id: dealId },
-      include: { application: { include: { investorProfile: { include: { user: true } } } } },
-    })
-  }
-  return prisma.deal.findFirst({
-    where: { id: dealId, application: { investorProfile: { userId } } },
+function loadDealForUser(dealId: string, userId: string, role: string) {
+  return getDealForViewer(dealId, userId, role, {
     include: { application: { include: { investorProfile: { include: { user: true } } } } },
   })
 }

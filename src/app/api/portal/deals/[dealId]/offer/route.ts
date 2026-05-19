@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
 import { hasActiveProofOfFunds } from '@/lib/proof-of-funds'
+import { getInvestorDeal } from '@/lib/deal-access'
 import { z } from 'zod'
 
 const offerSchema = z.object({
@@ -13,11 +14,14 @@ const offerSchema = z.object({
   conditions: z.string().max(2000).optional().default(''),
 })
 
-async function getDealForUser(dealId: string, userId: string) {
-  return prisma.deal.findFirst({
-    where: { id: dealId, application: { investorProfile: { userId } } },
-    include: { offer: true, response: true, application: { include: { investorProfile: true } } },
-  })
+const OFFER_INCLUDE = {
+  offer: true,
+  response: true,
+  application: { include: { investorProfile: true } },
+} as const
+
+function loadOfferDeal(dealId: string, userId: string) {
+  return getInvestorDeal(dealId, userId, { include: OFFER_INCLUDE })
 }
 
 async function notifyAdminOnOffer(action: 'submitted' | 'updated' | 'withdrawn', deal: { title: string; address: string }, amount: number | null, firstName: string) {
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ dealId: st
     return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
   }
 
-  const deal = await getDealForUser(dealId, session.user.id)
+  const deal = await loadOfferDeal(dealId, session.user.id)
   if (!deal) return NextResponse.json({ error: 'Deal not found' }, { status: 404 })
   if (deal.offer) return NextResponse.json({ error: 'An offer already exists for this deal. Use update.' }, { status: 409 })
 
@@ -118,7 +122,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ dealId: s
     return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 })
   }
 
-  const deal = await getDealForUser(dealId, session.user.id)
+  const deal = await loadOfferDeal(dealId, session.user.id)
   if (!deal?.offer) return NextResponse.json({ error: 'No offer to update' }, { status: 404 })
   if (deal.offer.status !== 'PENDING') {
     return NextResponse.json({ error: 'This offer has already been decided and cannot be edited.' }, { status: 409 })
@@ -155,7 +159,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: Promise<{ dealId:
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { dealId } = await ctx.params
-  const deal = await getDealForUser(dealId, session.user.id)
+  const deal = await loadOfferDeal(dealId, session.user.id)
   if (!deal?.offer) return NextResponse.json({ error: 'No offer to withdraw' }, { status: 404 })
   if (deal.offer.status !== 'PENDING') {
     return NextResponse.json({ error: 'This offer has already been decided.' }, { status: 409 })

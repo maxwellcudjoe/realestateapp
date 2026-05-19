@@ -3,18 +3,14 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { uploadDocument } from '@/lib/azure-blob'
 import { VALID_DEAL_DOC_TYPES } from '@/lib/deal-documents'
+import { getDealForViewer } from '@/lib/deal-access'
 import crypto from 'crypto'
 
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
 const MAX_SIZE = 20 * 1024 * 1024 // 20 MB — bigger than KYC because contracts can be large
 
-async function loadDeal(dealId: string, userId: string, role: string) {
-  if (role === 'admin') {
-    return prisma.deal.findUnique({ where: { id: dealId } })
-  }
-  return prisma.deal.findFirst({
-    where: { id: dealId, application: { investorProfile: { userId } } },
-  })
+function loadDeal(dealId: string, userId: string, role: string) {
+  return getDealForViewer(dealId, userId, role)
 }
 
 export async function GET(_req: NextRequest, ctx: { params: Promise<{ dealId: string }> }) {
