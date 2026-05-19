@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 const ADMIN_LINKS = [
   { href: '/admin/investors', label: 'Investors' },
+  { href: '/admin/subscriptions', label: 'Subscriptions' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

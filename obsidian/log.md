@@ -2,6 +2,30 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | PR #5 — Subscription polish A1 + A2
+
+- Created: `obsidian/Projects/2026-05-19-pr5-subscription-polish-a1-a2.md`
+- Updated: `obsidian/index.md`
+- **A1**: `POST /api/admin/subscriptions/generate-renewals` accepts `?dryRun=true`; response includes `investorName` + `userEmail` per entry. New `src/components/admin/RenewalGeneratorButton.tsx` with horizon input + Preview + Send flow. New `/admin/subscriptions` page with MRR stat, active subscriber table (sorted by renewal date, overdue rows in red), cancelled list, recent SUBSCRIPTION invoices. Admin nav link added.
+- **A2**: `POST /api/admin/subscriptions/[userId]` now preserves `nextRenewalAt` when reactivating a cancelled-but-still-paid-up sub or changing plan mid-period. Fresh period only when prior expired or no subscription. Removes refund/trust risk.
+- Tests: +11 (4 A2 cases, 5 A1 cases, 2 housekeeping for renewal mock setup); 356/356 pass; build clean
+- Adopted `NextRequest` from `next/server` for tests that need `req.nextUrl.searchParams` parsing
+
+## [2026-05-19] knowledge | Subscription workflow doc + implementation plan
+
+- Created: `obsidian/Knowledge/2026-05-19-subscription-workflow.md`
+- Updated: `obsidian/index.md` — added entry
+- End-to-end documentation of the 5 subscription workflows (upgrade, downgrade, plan-change, renewal, investor-side view)
+- Effective-tier truth table for the C7 fix (stored intent vs runtime effective tier)
+- Code surface map: subscriptions.ts, deal-access.ts, /api/admin/subscriptions/[userId], /api/admin/subscriptions/generate-renewals, SubscriptionPanel, /portal/subscription
+- 5 gaps identified, sequenced as Phase A (no-schema quick wins ~1.5h), Phase B (UX completeness ~1d), Phase C (cron, deferred)
+  - A1 admin button for "Generate renewals" + dry-run (~30 min, HIGH leverage)
+  - A2 plan-change preserves in-period nextRenewalAt (~1h, fixes refund risk)
+  - B1 investor-side request flow via Messages (~½d)
+  - B2 per-investor selective billing (~½d, only if needed)
+  - C1 Azure Functions cron (deferred until subscriber count justifies)
+- Recommendation: A1 + A2 ship together as a single ~1.5h PR
+
 ## [2026-05-19] feature | PR #4 — Audit hardening (H1, H2, H4, H8)
 
 - Created: `obsidian/Projects/2026-05-19-pr4-audit-hardening.md`

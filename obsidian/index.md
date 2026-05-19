@@ -12,6 +12,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-17-handoff-prompt](Knowledge/2026-05-17-handoff-prompt.md) | Handoff prompt for next session — 36-commit summary, phase status, external setup pending, deferred work (6.8 Passkeys), key files, mandatory workflow notes. |
 | [2026-05-17-post-viewing-flow-and-money-handling](Knowledge/2026-05-17-post-viewing-flow-and-money-handling.md) | Process-gap analysis + locked product decisions: solicitor-only money flow, Rêve Bâtir invoices for sourcing/success/subscription fees. Proposes Phase 7 build. |
 | [2026-05-18-deal-workflow-audit](Knowledge/2026-05-18-deal-workflow-audit.md) | End-to-end audit of deal lifecycle after Phase 7 ship. 8 CRITICAL (Premium gate bypassable via API; batch-post no publishedAt; offer-no-intent-check; cancellation drops tier; REJECTED dead-ends; PoF gate missing on PATCH; invoice numbering race; vendor-decline auto-FALLEN_THROUGH) + 5 HIGH + 8 MEDIUM + 7 LOW. Suggested fix sequence at the bottom. |
+| [2026-05-19-subscription-workflow](Knowledge/2026-05-19-subscription-workflow.md) | End-to-end subscription workflow doc — upgrade/downgrade/plan-change/renewal flows, effective-tier truth table, schema + code surface map, 5 known gaps with sequenced implementation plan (A1 generate-renewals button ~30min; A2 plan-change preserves period ~1h; B1 investor-side requests via Messages; B2 selective billing; C1 cron). |
 
 ## Projects
 
@@ -48,6 +49,7 @@ Master index for project knowledge captured in this vault.
 | [2026-05-19-pr2-deal-access-helper](Projects/2026-05-19-pr2-deal-access-helper.md) | Audit-followup PR #2 — closes C1 + L2. New `src/lib/deal-access.ts` with `getInvestorDeal` (tier-gated) + `getAdminDeal` + `getDealForViewer`. 7 portal subresource routes migrated; ~80 lines deduplicated; Premium gate is now uniform by construction. Favourite endpoint also gets gated (was bypassable). +10 tests; 311/311 pass. |
 | [2026-05-19-pr3-counter-offer-flow](Projects/2026-05-19-pr3-counter-offer-flow.md) | Audit-followup PR #3 — closes C8. REJECTED stage reverts to PROPOSED (was FALLEN_THROUGH); offer POST now replaces a prior REJECTED/WITHDRAWN offer in a transaction; OfferForm UI shows "Submit revised offer" CTA with prior offer summary + vendor's decision note. +4 tests; 315/315 pass. |
 | [2026-05-19-pr4-audit-hardening](Projects/2026-05-19-pr4-audit-hardening.md) | Audit-followup PR #4 — closes 4 HIGH items: H1 (session callback re-validates User.deletedAt), H4 (stage transition matrix + override flag), H2 (Property cleanup guard + admin DELETE endpoint), H8 (bank reference regex + HTML escape on email templates). C6 schema deferred (Azure SQL firewall blocked schema push). +30 tests; 345/345 pass. |
+| [2026-05-19-pr5-subscription-polish-a1-a2](Projects/2026-05-19-pr5-subscription-polish-a1-a2.md) | Subscription polish PR #5 — A1 (admin /admin/subscriptions page + RenewalGeneratorButton with dry-run preview) + A2 (POST subscriptions preserves in-period nextRenewalAt on reactivation/plan-change). MRR stat, active/cancelled lists, recent invoices on the page. +11 tests; 356/356 pass. |
 
 ## Bug Fixes
 

@@ -7,11 +7,16 @@ import { nextInvoiceNumber } from '@/lib/invoice-numbering'
 import { nextRenewalDate, BILLING_PERIOD_LABEL, type BillingPeriod } from '@/lib/subscriptions'
 
 /**
- * POST /api/admin/subscriptions/generate-renewals
+ * POST /api/admin/subscriptions/generate-renewals?days=N&dryRun=true
+ *
  * Finds active subscriptions whose nextRenewalAt is within the next N days
  * (default 7) and creates a SENT subscription invoice for each, advancing
  * nextRenewalAt by one billing period. Idempotent: skips users who already
- * have a SENT subscription invoice for the current period.
+ * have a SENT/PAID subscription invoice issued in the last 25 days.
+ *
+ * `dryRun=true` runs the same query + skip logic but does NOT create
+ * invoices, advance renewal dates, or send emails — returns a preview list
+ * with the same shape so the admin can review before committing.
  */
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -20,6 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const horizon = Number(req.nextUrl.searchParams.get('days') ?? '7')
+  const dryRun = req.nextUrl.searchParams.get('dryRun') === 'true'
   const now = new Date()
   const cutoff = new Date(now)
   cutoff.setDate(cutoff.getDate() + horizon)
@@ -29,10 +35,13 @@ export async function POST(req: NextRequest) {
     include: { user: { include: { investorProfile: true } } },
   })
 
-  const created: { userId: string; invoiceNumber: string; amount: number }[] = []
-  const skipped: { userId: string; reason: string }[] = []
+  const created: { userId: string; userEmail: string; investorName: string; invoiceNumber: string; amount: number; dueAt: string }[] = []
+  const skipped: { userId: string; userEmail: string; investorName: string; reason: string }[] = []
 
   for (const sub of subs) {
+    const investorName = sub.user.investorProfile
+      ? `${sub.user.investorProfile.firstName} ${sub.user.investorProfile.lastName}`.trim()
+      : sub.user.email
     // Avoid double-billing: skip if any subscription invoice issued in the last 25 days
     const recent = await prisma.invoice.findFirst({
       where: {
@@ -44,7 +53,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     })
     if (recent) {
-      skipped.push({ userId: sub.userId, reason: 'recent invoice exists' })
+      skipped.push({ userId: sub.userId, userEmail: sub.user.email, investorName, reason: 'recent invoice exists' })
       continue
     }
 
@@ -54,6 +63,19 @@ export async function POST(req: NextRequest) {
     const issuedAt = now
     const dueAt = defaultDueDate(issuedAt)
     const nextRenewal = nextRenewalDate(sub.nextRenewalAt, period)
+
+    if (dryRun) {
+      // Preview-only: report what WOULD be created with a placeholder number.
+      created.push({
+        userId: sub.userId,
+        userEmail: sub.user.email,
+        investorName,
+        invoiceNumber: '(preview)',
+        amount,
+        dueAt: dueAt.toISOString(),
+      })
+      continue
+    }
 
     // Retry once on invoice-number collision
     let invoice
@@ -80,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!invoice) {
-      skipped.push({ userId: sub.userId, reason: 'invoice creation failed' })
+      skipped.push({ userId: sub.userId, userEmail: sub.user.email, investorName, reason: 'invoice creation failed' })
       continue
     }
 
@@ -89,7 +111,14 @@ export async function POST(req: NextRequest) {
       data: { nextRenewalAt: nextRenewal },
     })
 
-    created.push({ userId: sub.userId, invoiceNumber: invoice.invoiceNumber, amount })
+    created.push({
+      userId: sub.userId,
+      userEmail: sub.user.email,
+      investorName,
+      invoiceNumber: invoice.invoiceNumber,
+      amount,
+      dueAt: dueAt.toISOString(),
+    })
 
     try {
       await sendEmail({
@@ -106,5 +135,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true, created, skipped, total: subs.length })
+  return NextResponse.json({ success: true, dryRun, created, skipped, total: subs.length })
 }

@@ -45,7 +45,15 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ userId: st
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
   const now = new Date()
-  const renewal = nextRenewalDate(now, period)
+  const freshRenewal = nextRenewalDate(now, period)
+
+  // A2 fix — never set nextRenewalAt backwards. If admin is reactivating a
+  // still-paid-up cancellation, or changing plan mid-period, preserve the
+  // existing renewal date so the investor doesn't lose paid days. Only set a
+  // fresh period when there's no prior subscription, or the prior period has
+  // already lapsed.
+  const stillInPeriod = user.subscription && user.subscription.nextRenewalAt > now
+  const renewal = stillInPeriod ? user.subscription!.nextRenewalAt : freshRenewal
 
   await prisma.$transaction([
     prisma.user.update({ where: { id: userId }, data: { tier: 'PREMIUM' } }),
