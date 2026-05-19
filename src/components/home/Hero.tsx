@@ -25,28 +25,53 @@ export function Hero() {
       />
 
       <div className="relative z-10 flex flex-col items-center gap-6 max-w-4xl">
-        <Logo className="mb-4" />
+        {/* The wordmark itself is now the visual centerpiece — ink-settle entry */}
+        <div className="animate-ink-settle mb-2">
+          <Logo size="xl" href={null} />
+        </div>
 
-        <p className="font-sans text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold">
+        {/* Calligraphy-style underline that shimmers with gold */}
+        <div
+          className="h-px w-40 bg-gold/40 animate-gold-shimmer animate-ink-settle"
+          style={{ animationDelay: '0.3s' }}
+          aria-hidden="true"
+        />
+
+        <p
+          className="font-sans text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-gold animate-ink-settle"
+          style={{ animationDelay: '0.5s' }}
+        >
           HMRC MLR · ICO Registered · UK-Wide
         </p>
 
-        <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-ivory leading-[1.05]">
+        <h1
+          className="font-serif text-4xl md:text-5xl lg:text-6xl font-light text-ivory leading-[1.1] animate-ink-settle"
+          style={{ animationDelay: '0.7s' }}
+        >
           The UK Property Deal Platform<br />
-          <span className="text-gold">Built For Investors.</span>
+          <span className="text-gold italic">Built For Investors.</span>
         </h1>
 
-        <p className="font-sans text-base md:text-lg font-light tracking-wide text-stone max-w-2xl leading-relaxed">
+        <p
+          className="font-sans text-base md:text-lg font-light tracking-wide text-stone max-w-2xl leading-relaxed animate-ink-settle"
+          style={{ animationDelay: '0.9s' }}
+        >
           Verified below-market-value deals. Pipeline tracking from offer to completion. KYC, AML, and audit trail
           built in. All in one fully-compliant investor portal.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 mt-2">
+        <div
+          className="flex flex-col sm:flex-row gap-4 mt-2 animate-ink-settle"
+          style={{ animationDelay: '1.1s' }}
+        >
           <Button href="/deals">Browse Current Deals</Button>
           <Button href="/onboarding" variant="secondary">Register Free</Button>
         </div>
 
-        <p className="font-sans text-xs text-stone/60 mt-2">
+        <p
+          className="font-sans text-xs text-stone/60 mt-2 animate-ink-settle"
+          style={{ animationDelay: '1.3s' }}
+        >
           Premium tier from £20/month — 48-hour head start on every new deal
         </p>
       </div>

@@ -8,6 +8,7 @@ import { FeaturedDeal }       from '@/components/home/FeaturedDeal'
 import { PlatformProof }      from '@/components/home/PlatformProof'
 import { Faq }                from '@/components/home/Faq'
 import { CtaBanner }          from '@/components/home/CtaBanner'
+import { BrandDivider }       from '@/components/ui/BrandDivider'
 import { getFeaturedDeal }    from '@/lib/contentful'
 
 export const revalidate = 60
@@ -25,9 +26,11 @@ export default async function HomePage() {
       <Hero />
       <TrustStrip />
       <PlatformFeatures />
+      <BrandDivider className="bg-obsidian" />
       <HowItWorks />
       <FeaturedDeal deal={featuredDeal} />
       <PricingBlock />
+      <BrandDivider className="bg-obsidian" />
       <WhyReveBatir />
       <PlatformProof />
       <Faq />

@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { SectionLabel } from '@/components/ui/SectionLabel'
+import { Logo } from '@/components/ui/Logo'
 import { Button } from '@/components/ui/Button'
 
 function VerifyEmailSentInner() {
@@ -34,6 +35,9 @@ function VerifyEmailSentInner() {
 
   return (
     <div className="w-full max-w-md text-center">
+      <div className="flex justify-center mb-8 animate-ink-settle">
+        <Logo size="lg" href="/" />
+      </div>
       <SectionLabel className="mb-4">Almost There</SectionLabel>
       <h1 className="font-serif text-4xl font-light text-ivory mb-6">Check Your Inbox</h1>
       <p className="font-sans text-sm text-stone mb-2">

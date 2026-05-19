@@ -25,4 +25,40 @@
   .animate-gold-pulse {
     animation: goldPulse 5s ease-in-out infinite;
   }
+
+  /* Calligraphy-style entrance — gentle fade with a hint of horizontal
+     drift, as if the ink is settling onto the page. */
+  @keyframes inkSettle {
+    0%   { opacity: 0; transform: translateX(-12px) scale(0.97); filter: blur(2px); }
+    60%  { opacity: 1; transform: translateX(0)     scale(1);    filter: blur(0); }
+    100% { opacity: 1; transform: translateX(0)     scale(1);    filter: blur(0); }
+  }
+
+  .animate-ink-settle {
+    animation: inkSettle 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Slow shimmer that traces along the gold accent line. Subtle. */
+  @keyframes goldShimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-gold-shimmer {
+    background-image: linear-gradient(
+      90deg,
+      rgba(201, 168, 76, 0.0) 0%,
+      rgba(201, 168, 76, 0.0) 40%,
+      rgba(201, 168, 76, 0.6) 50%,
+      rgba(201, 168, 76, 0.0) 60%,
+      rgba(201, 168, 76, 0.0) 100%
+    );
+    background-size: 200% 100%;
+    animation: goldShimmer 4s ease-in-out infinite;
+  }
+
+  /* Reveal-on-scroll utility paired with `data-reveal` element + IntersectionObserver
+     in components that opt in. Defaults to invisible until activated. */
+  .reveal-init { opacity: 0; transform: translateY(12px); }
+  .reveal-shown { opacity: 1; transform: translateY(0); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 }

@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SectionLabel } from '@/components/ui/SectionLabel'
+import { Logo } from '@/components/ui/Logo'
 import { Button } from '@/components/ui/Button'
 
 const FIELD_CLASS =
@@ -110,6 +111,9 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-obsidian pt-[72px] flex items-center justify-center px-8">
       <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-8 animate-ink-settle">
+          <Logo size="lg" href="/" />
+        </div>
         <SectionLabel className="mb-4">Investor Portal</SectionLabel>
         <h1 className="font-serif text-4xl font-light text-ivory mb-8">Set New Password</h1>
         <Suspense fallback={<p className="font-sans text-sm text-stone">Loading…</p>}>

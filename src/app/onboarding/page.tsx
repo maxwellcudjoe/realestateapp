@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SectionLabel } from '@/components/ui/SectionLabel'
+import { Logo } from '@/components/ui/Logo'
 import { WizardProgress } from '@/components/onboarding/WizardProgress'
 import { StepAccount } from '@/components/onboarding/StepAccount'
 import { StepPersonal } from '@/components/onboarding/StepPersonal'
@@ -143,6 +144,9 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-obsidian pt-[72px]">
       <div className="max-w-2xl mx-auto px-8 py-16">
+        <div className="flex justify-center mb-10 animate-ink-settle">
+          <Logo size="lg" href="/" />
+        </div>
         <SectionLabel className="mb-4">Investor Onboarding</SectionLabel>
         <h1 className="font-serif text-5xl font-light text-ivory mb-8">
           {step === 0 && 'Create Your Account'}

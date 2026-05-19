@@ -2,6 +2,20 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | Brand logo integration — wordmark + variants + animated entry
+
+- Created: `obsidian/Projects/2026-05-19-logo-integration.md`
+- User provided actual hand-drawn calligraphic logo (Rêve Bâtir wordmark + architectural roof motif)
+- Built `scripts/generate-logo-variants.js` using sharp to generate 11 derived assets from the JPG: full wordmark (black + ivory transparent PNGs), icon (square crops), mark-only (architectural sketch in 3 colours: black/ivory/gold), favicon-32, favicon-180, `src/app/icon.png`, `src/app/apple-icon.png`, `src/app/opengraph-image.png` (1200x630 with logo composited on dark canvas + gold radial glow + tagline), `src/app/twitter-image.png`
+- Rewrote `src/components/ui/Logo.tsx` to use `next/image` with `size: sm|md|lg|xl` + `variant: light|dark` + optional `href` props
+- Added 4 new CSS utilities to `globals.css`: `animate-ink-settle` (1.8s ink-arriving entrance), `animate-gold-shimmer` (horizontal gold sweep), `reveal-init`/`reveal-shown` (IO-friendly scroll reveal)
+- `Hero.tsx` now leads with XL logo + shimmer underline, staggered ink-settle on every element (3.5s total choreography). H1 demoted slightly so the wordmark carries the brand
+- New `src/components/ui/BrandDivider.tsx` — gold-tinted architectural mark between two faint gradient lines. Wired into homepage at 2 section breaks
+- Added the lg-size logo with ink-settle entry to login, onboarding, forgot-password, reset-password, verify-email-sent
+- Deleted: old `icon.tsx`, `opengraph-image.tsx`, `twitter-image.tsx` (text-based, now replaced by static PNGs)
+- Dependency: `sharp` added as devDep — only runs in the generation script, never imported by app code
+- Tests: 520/520 pass. Build clean.
+
 ## [2026-05-19] feature | Write-mode impersonation + homepage Sprints 1-8
 
 - Created: `obsidian/Projects/2026-05-19-write-mode-impersonation-and-homepage-rebuild.md`
@@ -675,3 +689,11 @@ Append-only record of vault updates.
 - Created: obsidian/Knowledge/admin-workflow-investor-lifecycle.md
 - Updated: obsidian/index.md — added Knowledge entry
 - Documents the full 7-stage investor lifecycle and all admin panel actions
+
+
+## [2026-05-19] query | Homepage deferred items - full implementation plan
+
+- Created: `obsidian/Projects/2026-05-19-homepage-deferred-items-plan.md`
+- Updated: `obsidian/index.md` - added Projects entry
+- Key points: 5-PR plan closing the deferred items from [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]]. PR 1 Insights (Contentful insight type + /insights routes + InsightsTeaser); PR 2 City landing pages (24 combos with area-stats lib + area_landing Contentful type); PR 3 real portal screenshots (8 WebP via seed-tour-demo + next/image); PR 4 real testimonials (consent-gated Contentful type + Review JSON-LD); PR 5 OG images. ~3-4 dev-days, +32 tests, zero schema delta, sequenced for parallel content + engineering work.
+- Source: [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]], [[2026-05-19-homepage-assessment]]

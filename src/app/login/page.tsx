@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { Button } from '@/components/ui/Button'
+import { Logo } from '@/components/ui/Logo'
 
 const FIELD_CLASS =
   'w-full bg-charcoal border border-carbon px-4 py-3 font-sans text-sm text-ivory focus:outline-none focus:border-gold focus-visible:ring-1 focus-visible:ring-gold transition-colors'
@@ -121,6 +122,9 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-sm">
+      <div className="flex justify-center mb-8 animate-ink-settle">
+        <Logo size="lg" href="/" />
+      </div>
       <SectionLabel className="mb-4">Investor Portal</SectionLabel>
       <h1 className="font-serif text-4xl font-light text-ivory mb-8">Sign In</h1>
 
