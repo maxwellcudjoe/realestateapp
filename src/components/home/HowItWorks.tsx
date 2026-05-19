@@ -3,23 +3,43 @@ import { SectionLabel } from '@/components/ui/SectionLabel'
 const STEPS = [
   {
     num: '01',
-    title: 'Register as an Investor',
-    body: 'Complete the investor registration form with your contact details and compliance information.',
+    title: 'Register',
+    body: '5-step wizard captures KYC + AML compliance: identity, address, source of funds, PEP status, buyer entity (individual, Ltd, LLP, trust).',
   },
   {
     num: '02',
-    title: 'Tell Us Your Criteria',
-    body: 'Share your budget, preferred strategy (BTL, HMO, Flip), and target locations.',
+    title: 'Set Criteria',
+    body: 'Budget, strategy (BTL · HMO · Flip · Commercial · Serviced Accom), target areas (54 UK regions), timeline, mortgage status.',
   },
   {
     num: '03',
-    title: 'Receive Matched Deal Packs',
-    body: 'We send you verified, below-market-value deal packs matched to your exact criteria.',
+    title: 'Matched Deals',
+    body: 'Email alerts when a property matches your criteria. Premium tier sees new deals 48 hours before the free tier.',
   },
   {
     num: '04',
-    title: 'Review & Respond',
-    body: 'Review each deal pack in your portal and respond — accept, request more info, or pass.',
+    title: 'Respond',
+    body: 'Accept, Request More Info, or Pass. Favourite deals for later. Every response is logged in your portal.',
+  },
+  {
+    num: '05',
+    title: 'Viewing',
+    body: 'Request a viewing through the portal. We coordinate with the vendor. Confirmed slots show up in your calendar.',
+  },
+  {
+    num: '06',
+    title: 'Offer',
+    body: 'Submit a structured offer: amount, deposit %, cash/mortgage/mixed financing, target exchange date, conditions.',
+  },
+  {
+    num: '07',
+    title: 'Pipeline',
+    body: 'Watch your deal progress through Memo of Sale → Conveyancing → Survey → Mortgage → Exchanged → Completed. Deal team named at every step.',
+  },
+  {
+    num: '08',
+    title: 'Portfolio',
+    body: 'Your completed property auto-enters your portfolio with document archive: title deed, EPC, gas safety, EICR, tenancy.',
   },
 ]
 
@@ -28,20 +48,23 @@ export function HowItWorks() {
     <section className="bg-[#1a1a1a] py-24 px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <SectionLabel className="mb-4">The Process</SectionLabel>
-          <h2 className="font-serif text-4xl font-light text-ivory">How It Works</h2>
+          <SectionLabel className="mb-4">The Full Lifecycle</SectionLabel>
+          <h2 className="font-serif text-4xl font-light text-ivory">From signup to completion</h2>
+          <p className="font-sans text-sm font-light text-stone mt-4 max-w-2xl mx-auto">
+            Most sourcers stop after the deal pack. We track every step through to the keys in your hand.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-carbon">
           {STEPS.map(({ num, title, body }) => (
-            <div key={num} className="bg-[#1a1a1a] p-8 flex flex-col gap-4">
+            <div key={num} className="bg-[#1a1a1a] p-6 flex flex-col gap-3">
               <span className="font-serif text-5xl font-light text-carbon leading-none select-none">
                 {num}
               </span>
               <h3 className="font-sans text-xs font-semibold uppercase tracking-widest text-ivory">
                 {title}
               </h3>
-              <p className="font-sans text-sm font-light text-stone leading-relaxed">{body}</p>
+              <p className="font-sans text-xs font-light text-stone leading-relaxed">{body}</p>
             </div>
           ))}
         </div>

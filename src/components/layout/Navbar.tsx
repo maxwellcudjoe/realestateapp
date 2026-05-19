@@ -7,10 +7,12 @@ import { Logo } from '@/components/ui/Logo'
 import { Button } from '@/components/ui/Button'
 
 const NAV_LINKS = [
-  { href: '/',        label: 'Home' },
-  { href: '/about',   label: 'About' },
-  { href: '/deals',   label: 'Deals' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/',         label: 'Home' },
+  { href: '/about',    label: 'About' },
+  { href: '/deals',    label: 'Deals' },
+  { href: '/pricing',  label: 'Pricing' },
+  { href: '/tour',     label: 'Tour' },
+  { href: '/contact',  label: 'Contact' },
 ]
 
 export function Navbar() {

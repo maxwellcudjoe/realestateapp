@@ -4,7 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 
-type ActionKey = 'resend-verification' | 'disable-2fa' | 'force-password-reset' | 'soft-delete' | 'restore' | 'impersonate'
+type ActionKey =
+  | 'resend-verification'
+  | 'disable-2fa'
+  | 'force-password-reset'
+  | 'soft-delete'
+  | 'restore'
+  | 'impersonate-read'
+  | 'impersonate-write'
 
 interface Props {
   userId: string
@@ -36,7 +43,11 @@ export function UserActionsPanel({ userId, email, emailVerified, totpEnabled, is
     setError('')
     setMessage('')
     try {
-      const res = await fetch(`/api/admin/users/${userId}/${action}`, {
+      // Both impersonate-read and impersonate-write hit the same endpoint
+      // with different bodies. Strip the suffix when building the URL.
+      const isImpersonate = action === 'impersonate-read' || action === 'impersonate-write'
+      const endpoint = isImpersonate ? 'impersonate' : action
+      const res = await fetch(`/api/admin/users/${userId}/${endpoint}`, {
         method: 'POST',
         headers: body ? { 'Content-Type': 'application/json' } : undefined,
         body: body ? JSON.stringify(body) : undefined,
@@ -48,7 +59,7 @@ export function UserActionsPanel({ userId, email, emailVerified, totpEnabled, is
       }
       setMessage('Done')
       reset()
-      if (action === 'impersonate') {
+      if (isImpersonate) {
         // Navigate to the investor portal — cookie is set, banner will render.
         router.push('/portal')
         router.refresh()
@@ -71,12 +82,20 @@ export function UserActionsPanel({ userId, email, emailVerified, totpEnabled, is
         return
       }
       call(open, { reason: reason.trim() })
+    } else if (open === 'impersonate-read') {
+      call(open, { mode: 'read' })
+    } else if (open === 'impersonate-write') {
+      if (reason.trim().length < 3) {
+        setError('Reason required for write-mode (3+ chars)')
+        return
+      }
+      call(open, { mode: 'write', reason: reason.trim() })
     } else {
       call(open)
     }
   }
 
-  const isDestructive = (k: ActionKey) => k === 'disable-2fa' || k === 'soft-delete'
+  const isDestructive = (k: ActionKey) => k === 'disable-2fa' || k === 'soft-delete' || k === 'impersonate-write'
   const promptCopy: Record<ActionKey, { title: string; description: string; cta: string }> = {
     'resend-verification': {
       title: 'Resend verification email',
@@ -103,10 +122,15 @@ export function UserActionsPanel({ userId, email, emailVerified, totpEnabled, is
       description: 'Clears the deletion flag. Only valid before anonymisation cron has run.',
       cta: 'Restore',
     },
-    'impersonate': {
+    'impersonate-read': {
       title: 'Impersonate user (read-only)',
       description: 'View the portal as this investor sees it for 30 minutes. All writes are blocked by middleware. Both start and end are recorded in the audit log.',
-      cta: 'Start impersonation',
+      cta: 'Start read-only impersonation',
+    },
+    'impersonate-write': {
+      title: 'Impersonate user (write-mode)',
+      description: 'Perform actions on behalf of this investor. Every action is recorded with your admin id in the audit metadata. Use only with explicit investor consent — e.g. "they asked me to upload this on the phone".',
+      cta: 'Start write-mode impersonation',
     },
   }
 
@@ -154,10 +178,18 @@ export function UserActionsPanel({ userId, email, emailVerified, totpEnabled, is
         )}
         {!isDeleted && (
           <button
-            onClick={() => setOpen('impersonate')}
+            onClick={() => setOpen('impersonate-read')}
             className="px-4 py-2 border border-carbon text-stone hover:border-gold hover:text-gold font-sans text-[0.6rem] uppercase tracking-widest transition-colors text-left"
           >
             Impersonate (read-only)
+          </button>
+        )}
+        {!isDeleted && (
+          <button
+            onClick={() => setOpen('impersonate-write')}
+            className="px-4 py-2 border border-red-500/30 text-red-400 hover:border-red-500 font-sans text-[0.6rem] uppercase tracking-widest transition-colors text-left"
+          >
+            Impersonate (write-mode)
           </button>
         )}
       </div>

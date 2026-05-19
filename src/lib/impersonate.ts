@@ -15,11 +15,23 @@ export const IMPERSONATE_TTL_MS = 30 * 60 * 1000           // 30-minute idle win
 export const IMPERSONATE_REFRESH_MS = 5 * 60 * 1000        // refresh when remaining < 5 min
 export const IMPERSONATE_MAX_SESSION_MS = 4 * 60 * 60 * 1000 // absolute cap of 4 hours
 
+/**
+ * Read mode: middleware blocks all `/api/*` mutations.
+ * Write mode: mutations are allowed, but every AuditEvent records the
+ *   `impersonator` (admin) in metadata so the admin's identity is preserved
+ *   on every action taken under the investor's identity.
+ *
+ * Write mode requires a reason at activation time and a more prominent banner.
+ */
+export type ImpersonateMode = 'read' | 'write'
+
 export interface ImpersonatePayload {
   adminId: string
   targetUserId: string
   issuedAt: number
   expiresAt: number
+  mode: ImpersonateMode
+  reason?: string
 }
 
 function b64urlEncode(bytes: Uint8Array): string {
@@ -69,18 +81,25 @@ async function verifySig(secret: string, message: string, signature: string): Pr
 /**
  * Build a signed cookie value for a new impersonation session. Returns the
  * full payload alongside the cookie string so the caller can record both.
+ *
+ * `mode` defaults to 'read' for backwards compatibility. Write-mode callers
+ * should pass a non-empty `reason`.
  */
 export async function signImpersonateCookie(
   secret: string,
   adminId: string,
   targetUserId: string,
   now: Date = new Date(),
+  mode: ImpersonateMode = 'read',
+  reason?: string,
 ): Promise<{ value: string; payload: ImpersonatePayload }> {
   const payload: ImpersonatePayload = {
     adminId,
     targetUserId,
     issuedAt: now.getTime(),
     expiresAt: now.getTime() + IMPERSONATE_TTL_MS,
+    mode,
+    ...(reason ? { reason } : {}),
   }
   const encoded = b64urlEncode(new TextEncoder().encode(JSON.stringify(payload)))
   const signature = await sign(secret, encoded)
@@ -111,6 +130,10 @@ export async function verifyImpersonateCookie(
   }
   if (typeof payload.expiresAt !== 'number' || payload.expiresAt < now.getTime()) return null
   if (!payload.adminId || !payload.targetUserId) return null
+  // Default to 'read' when mode is missing — pre-write-mode cookies stay safe.
+  if (payload.mode !== 'read' && payload.mode !== 'write') {
+    payload.mode = 'read'
+  }
   return payload
 }
 
@@ -140,6 +163,8 @@ export async function maybeRefreshImpersonateCookie(
     targetUserId: payload.targetUserId,
     issuedAt: payload.issuedAt,   // preserve original — caps absolute age
     expiresAt: now.getTime() + IMPERSONATE_TTL_MS,
+    mode: payload.mode,
+    ...(payload.reason ? { reason: payload.reason } : {}),
   }
   const encoded = b64urlEncode(new TextEncoder().encode(JSON.stringify(newPayload)))
   const signature = await sign(secret, encoded)
@@ -154,8 +179,17 @@ export const MUTATION_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE'])
 /**
  * Returns true when the method+path combination must be blocked during
  * impersonation. The stop endpoint must always be reachable.
+ *
+ * In write-mode (`mode = 'write'`) nothing is blocked here — mutations go
+ * through, but every AuditEvent records the impersonator in its metadata
+ * (see `recordAudit`). Read-mode (default) blocks all mutations.
  */
-export function isBlockedDuringImpersonation(method: string, pathname: string): boolean {
+export function isBlockedDuringImpersonation(
+  method: string,
+  pathname: string,
+  mode: ImpersonateMode = 'read',
+): boolean {
+  if (mode === 'write') return false
   if (!MUTATION_METHODS.has(method.toUpperCase())) return false
   if (!pathname.startsWith('/api/')) return false
   // The exit endpoint must always be reachable so the admin can leave.

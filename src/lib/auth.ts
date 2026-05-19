@@ -71,6 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     email: target.email,
                     role: target.role,
                     impersonator: payload.adminId,
+                    impersonationMode: payload.mode,
                   },
                 }
               }

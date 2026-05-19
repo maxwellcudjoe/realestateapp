@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import { cookies } from 'next/headers'
+import { IMPERSONATE_COOKIE, verifyImpersonateCookie } from '@/lib/impersonate'
 
 /**
  * Canonical action codes — keep stable, additive. Used to filter the admin
@@ -71,8 +73,31 @@ export interface AuditEventInput {
 /**
  * Persist an audit event. Never throws — auditing should never fail the
  * underlying action. Use when something material happens (not on read).
+ *
+ * Write-mode impersonation hook: when an impersonation cookie is present
+ * and valid, the impersonating admin's id is auto-injected into the
+ * metadata as `impersonator`. This preserves the admin's identity on
+ * every action taken under the investor's session — critical for the
+ * audit trail. Read-mode impersonation can't reach this code path (writes
+ * are blocked by middleware), but we still inject for defence-in-depth.
  */
 export async function recordAudit(event: AuditEventInput): Promise<void> {
+  let metadata = event.metadata
+  try {
+    const secret = process.env.NEXTAUTH_SECRET
+    if (secret) {
+      const cookieValue = cookies().get(IMPERSONATE_COOKIE)?.value
+      const payload = cookieValue ? await verifyImpersonateCookie(secret, cookieValue) : null
+      if (payload) {
+        metadata = {
+          ...(metadata ?? {}),
+          impersonator: payload.adminId,
+          impersonationMode: payload.mode,
+        }
+      }
+    }
+  } catch { /* never let audit-injection break the surrounding write */ }
+
   try {
     await prisma.auditEvent.create({
       data: {
@@ -81,7 +106,7 @@ export async function recordAudit(event: AuditEventInput): Promise<void> {
         action: event.action,
         resourceType: event.resourceType,
         resourceId: event.resourceId ?? null,
-        metadata: event.metadata ? JSON.stringify(event.metadata) : null,
+        metadata: metadata ? JSON.stringify(metadata) : null,
         ipAddress: event.ipAddress ?? null,
       },
     })

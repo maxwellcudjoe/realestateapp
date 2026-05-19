@@ -1,11 +1,14 @@
-import { Hero }           from '@/components/home/Hero'
-import { WhatWeDo }       from '@/components/home/WhatWeDo'
-import { WhyReveBatir }  from '@/components/home/WhyReveBatir'
-import { HowItWorks }     from '@/components/home/HowItWorks'
-import { FeaturedDeal }   from '@/components/home/FeaturedDeal'
-import { Testimonials }   from '@/components/home/Testimonials'
-import { CtaBanner }      from '@/components/home/CtaBanner'
-import { getFeaturedDeal } from '@/lib/contentful'
+import { Hero }              from '@/components/home/Hero'
+import { TrustStrip }         from '@/components/home/TrustStrip'
+import { PlatformFeatures }   from '@/components/home/PlatformFeatures'
+import { WhyReveBatir }       from '@/components/home/WhyReveBatir'
+import { HowItWorks }         from '@/components/home/HowItWorks'
+import { PricingBlock }       from '@/components/home/PricingBlock'
+import { FeaturedDeal }       from '@/components/home/FeaturedDeal'
+import { PlatformProof }      from '@/components/home/PlatformProof'
+import { Faq }                from '@/components/home/Faq'
+import { CtaBanner }          from '@/components/home/CtaBanner'
+import { getFeaturedDeal }    from '@/lib/contentful'
 
 export const revalidate = 60
 
@@ -20,11 +23,14 @@ export default async function HomePage() {
   return (
     <>
       <Hero />
-      <WhatWeDo />
-      <WhyReveBatir />
+      <TrustStrip />
+      <PlatformFeatures />
       <HowItWorks />
       <FeaturedDeal deal={featuredDeal} />
-      <Testimonials />
+      <PricingBlock />
+      <WhyReveBatir />
+      <PlatformProof />
+      <Faq />
       <CtaBanner />
     </>
   )

@@ -59,6 +59,19 @@ describe('signImpersonateCookie / verifyImpersonateCookie', () => {
     expect(payload.expiresAt).toBeGreaterThan(payload.issuedAt)
     expect(payload.expiresAt - payload.issuedAt).toBe(IMPERSONATE_TTL_MS)
   })
+
+  it('defaults to read mode', async () => {
+    const { payload } = await signImpersonateCookie(SECRET, 'admin1', 'investor1')
+    expect(payload.mode).toBe('read')
+    expect(payload.reason).toBeUndefined()
+  })
+
+  it('round-trips write mode + reason', async () => {
+    const { value } = await signImpersonateCookie(SECRET, 'admin1', 'investor1', new Date(), 'write', 'investor asked to upload on the phone')
+    const verified = await verifyImpersonateCookie(SECRET, value)
+    expect(verified?.mode).toBe('write')
+    expect(verified?.reason).toBe('investor asked to upload on the phone')
+  })
 })
 
 describe('maybeRefreshImpersonateCookie', () => {
@@ -132,7 +145,7 @@ describe('isBlockedDuringImpersonation', () => {
     expect(isBlockedDuringImpersonation('GET', '/api/admin/investors')).toBe(false)
   })
 
-  it('blocks POST / PATCH / PUT / DELETE on /api/*', () => {
+  it('blocks POST / PATCH / PUT / DELETE on /api/* (default read-mode)', () => {
     expect(isBlockedDuringImpersonation('POST', '/api/portal/messages')).toBe(true)
     expect(isBlockedDuringImpersonation('PATCH', '/api/admin/applications/x/profile')).toBe(true)
     expect(isBlockedDuringImpersonation('PUT', '/api/portal/x')).toBe(true)
@@ -150,5 +163,11 @@ describe('isBlockedDuringImpersonation', () => {
 
   it('case-insensitive on method', () => {
     expect(isBlockedDuringImpersonation('post', '/api/x')).toBe(true)
+  })
+
+  it('write-mode does NOT block any mutation', () => {
+    expect(isBlockedDuringImpersonation('POST', '/api/portal/messages', 'write')).toBe(false)
+    expect(isBlockedDuringImpersonation('PATCH', '/api/admin/applications/x/profile', 'write')).toBe(false)
+    expect(isBlockedDuringImpersonation('DELETE', '/api/admin/something', 'write')).toBe(false)
   })
 })

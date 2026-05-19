@@ -43,7 +43,11 @@ export default auth(async (req) => {
     return res
   }
 
-  if (impersonatePayload && isApi && isBlockedDuringImpersonation(req.method, pathname)) {
+  if (
+    impersonatePayload &&
+    isApi &&
+    isBlockedDuringImpersonation(req.method, pathname, impersonatePayload.mode)
+  ) {
     return attachRefresh(NextResponse.json(
       { error: 'IMPERSONATION_READ_ONLY', message: 'Writes are blocked while impersonating.' },
       { status: 403 },

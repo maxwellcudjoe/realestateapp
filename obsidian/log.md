@@ -2,6 +2,37 @@
 
 Append-only record of vault updates.
 
+## [2026-05-19] feature | Write-mode impersonation + homepage Sprints 1-8
+
+- Created: `obsidian/Projects/2026-05-19-write-mode-impersonation-and-homepage-rebuild.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- **Write-mode impersonation**: extended impersonate cookie with `mode: 'read'|'write'` + optional `reason`. POST endpoint accepts body `{ mode, reason }` and Zod-refines write-mode to require `reason ≥ 3 chars`. **The critical bit** — `recordAudit` in `src/lib/audit.ts` now reads `cookies()` and auto-injects `impersonator: adminId` + `impersonationMode` into every audit event's metadata. All 28+ existing audit call sites pick this up for free, no per-site change needed. Banner copy + styling differentiate read (lighter) vs write (red-600/30 + border-y-2 + bold "WRITE-MODE" label). UserActionsPanel splits into "Impersonate (read-only)" + "Impersonate (write-mode)" buttons, latter opens reason modal.
+- **Homepage rebuild Sprints 1-8** — implementation of [[2026-05-19-homepage-assessment]]:
+  - S1 Hero: category-naming headline + `TrustStrip` server component (live metrics from `getHomepageMetrics()` + 3 registry-linking compliance chips)
+  - S2 Platform: new `PlatformFeatures` 6-card grid replaces `WhatWeDo`; `HowItWorks` rewritten from 4 to 8 steps showing the full lifecycle through to portfolio entry
+  - S3 Pricing: new `PricingBlock` with side-by-side Free vs Premium, 11 feature rows, live amounts from env, annual saving % auto-calculated
+  - S4 FeaturedDeal: converted to async server component, auth-aware CTA (View Full Pack vs Register to View Pack), "Premium sees this 48h early" overlay chip, "+N more deals" live counter
+  - S5 PlatformProof: new section replaces fake testimonials with real DB-queried stats (last 12 months); self-hides when no activity yet
+  - S6 FAQ: 10 questions covering regulation/cost/KYC/BMV/SPVs/GDPR/Premium-cancel with `FAQPage` JSON-LD for rich-result eligibility
+  - S7 `/pricing` standalone page: hero + embedded PricingBlock + per-deal-fees table + payment-flow steps + embedded FAQ + closing CTA
+  - S8 `/tour` standalone page: 8 alternating-layout stops mirroring the 8-step lifecycle, screenshot placeholders ready to swap
+  - Cross-cutting: `CtaBanner` rewritten "Three minutes to register. A lifetime of compounding." with side-by-side Free + Premium buttons; navbar gains Pricing + Tour links; new `src/lib/homepage-metrics.ts` with `formatTrustNumber()` + `formatTrustGbp()` rounded-down for credibility.
+- Tests: 502 → 520 (+18) — `tests/lib/homepage-metrics.test.ts` (9), `tests/lib/impersonate.test.ts` extended (+5), `tests/api/admin-impersonate.test.ts` extended (+4). Build clean.
+- Files: 10 new (8 components/pages, 1 lib, 1 test file) + ~14 modified. `WhatWeDo` and `Testimonials` components left in codebase but unused (can be re-introduced later with real testimonials).
+- Open: Sprint 9 (insights/blog) and Sprint 10 (city-specific landing pages) still deferred — need content team input. Portal screenshots needed for `/tour` (currently placeholders).
+
+## [2026-05-19] query | Homepage assessment — what it should be now
+
+- Created: `obsidian/Knowledge/2026-05-19-homepage-assessment.md`
+- Updated: `obsidian/index.md` — added Knowledge entry
+- Audited `src/app/page.tsx` + all 7 home components + Navbar + Footer
+- Headline finding: homepage sells a *"we email you deals"* newsletter; platform is now a full investor SaaS (KYC/AML/10-stage deal pipeline/viewings/offers/conveyancing tracking/Premium 48h gate/invoicing/portfolio/audit/2FA). Marketing surface is ~Phase 1 vintage; product is post-PR-I.
+- Specific gaps: (1) no Premium tier mention → biggest revenue lever buried; (2) "How It Works" stops at "Review & Respond" but the real value is the 8-step lifecycle through to completion; (3) fake-feeling testimonials when real platform metrics could substitute; (4) `Featured Deal` CTA goes to `/contact` not the actual `/deals` portal; (5) compliance is real now but homepage uses the same generic trust badges; (6) no FAQ → no objection handling; (7) no pricing page.
+- 11-section re-IA proposed: Hero refresh (category-naming headline + portal screenshot) → Live metrics strip → 6-card platform-features grid → 8-step lifecycle diagram → Free-vs-Premium pricing comparison → reworked Featured Deal with auth-aware CTAs + Premium chip → real trust strip with public-register links → 10-question FAQ with `FAQPage` JSON-LD → Insights teaser → real-metrics replacement for testimonials → decision-prompting close.
+- Supporting changes called out: Navbar gains Pricing link; `/pricing` page; `/tour` unauthenticated portal preview; FAQ + Service schema for SEO; area-specific landing pages for organic search.
+- Sprint plan: 10 sprints, Sprints 1-5 (Hero, features, pricing, deal-CTA, testimonials) fit in ~1 dev-day and capture most of the conversion win. Sprints 6-10 cover FAQ + dedicated pricing page + tour page + insights + city-specific landing pages.
+- Strategic positioning shift: from "we find deals" to "the UK property deal platform built for investors". Names the product category before the scroll.
+
 ## [2026-05-19] polish | Sliding-window TTL for impersonation + ANONYMISATION_ENDPOINT secret set
 
 - Updated: `obsidian/Projects/2026-05-19-admin-profile-deferred-items.md` — added "Follow-up — sliding-window TTL" section + struck through the resolved open items

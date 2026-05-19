@@ -22,6 +22,7 @@ export async function ImpersonationBanner() {
       adminEmail={admin?.email ?? 'admin'}
       targetEmail={session.user.email ?? 'investor'}
       targetUserId={session.user.id}
+      mode={session.user.impersonationMode ?? 'read'}
     />
   )
 }

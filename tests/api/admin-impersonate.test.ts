@@ -17,10 +17,14 @@ async function getHandlers() {
   return { POST: mod.POST, DELETE: mod.DELETE }
 }
 
-function makeRequest(method: string = 'POST', cookieHeader?: string) {
+function makeRequest(method: string = 'POST', cookieHeader?: string, body?: unknown) {
+  const headers: Record<string, string> = {}
+  if (cookieHeader) headers.cookie = cookieHeader
+  if (body !== undefined) headers['content-type'] = 'application/json'
   return new Request('http://localhost/api/admin/users/u1/impersonate', {
     method,
-    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   }) as any
 }
 
@@ -87,18 +91,65 @@ describe('POST /api/admin/users/[userId]/impersonate', () => {
     expect(res.status).toBe(400)
   })
 
-  it('200 sets impersonate cookie + writes IMPERSONATION_STARTED', async () => {
+  it('200 sets impersonate cookie + writes IMPERSONATION_STARTED (default read mode)', async () => {
     mockAuth.mockResolvedValue({ user: { id: 'admin1', role: 'admin' } })
     mockUserFindUnique.mockResolvedValue({ id: 'u1', role: 'investor', deletedAt: null, email: 'jane@x.com' })
     const { POST } = await getHandlers()
     const res = await POST(makeRequest(), { params: { userId: 'u1' } })
     expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.mode).toBe('read')
     const setCookie = res.headers.get('set-cookie') ?? ''
     expect(setCookie).toContain('__impersonate=')
     expect(setCookie).toContain('HttpOnly')
     expect(mockAuditCreate).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ action: 'IMPERSONATION_STARTED', resourceId: 'u1' }),
     }))
+  })
+
+  it('400 when write-mode requested without reason', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'admin1', role: 'admin' } })
+    const { POST } = await getHandlers()
+    const res = await POST(makeRequest('POST', undefined, { mode: 'write' }), { params: { userId: 'u1' } })
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error).toBe('VALIDATION_ERROR')
+  })
+
+  it('400 when write-mode reason too short', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'admin1', role: 'admin' } })
+    const { POST } = await getHandlers()
+    const res = await POST(makeRequest('POST', undefined, { mode: 'write', reason: 'x' }), { params: { userId: 'u1' } })
+    expect(res.status).toBe(400)
+  })
+
+  it('200 write-mode with reason + audit metadata includes mode and reason', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'admin1', role: 'admin' } })
+    mockUserFindUnique.mockResolvedValue({ id: 'u1', role: 'investor', deletedAt: null, email: 'jane@x.com' })
+    const { POST } = await getHandlers()
+    const res = await POST(
+      makeRequest('POST', undefined, { mode: 'write', reason: 'Investor consented on call' }),
+      { params: { userId: 'u1' } },
+    )
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.mode).toBe('write')
+    expect(mockAuditCreate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        action: 'IMPERSONATION_STARTED',
+        metadata: expect.stringContaining('write'),
+      }),
+    }))
+  })
+
+  it('explicit read-mode body also works', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'admin1', role: 'admin' } })
+    mockUserFindUnique.mockResolvedValue({ id: 'u1', role: 'investor', deletedAt: null, email: 'jane@x.com' })
+    const { POST } = await getHandlers()
+    const res = await POST(makeRequest('POST', undefined, { mode: 'read' }), { params: { userId: 'u1' } })
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.mode).toBe('read')
   })
 })
 
