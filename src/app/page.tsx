@@ -7,6 +7,8 @@ import { PricingBlock }       from '@/components/home/PricingBlock'
 import { FeaturedDeal }       from '@/components/home/FeaturedDeal'
 import { PlatformProof }      from '@/components/home/PlatformProof'
 import { Faq }                from '@/components/home/Faq'
+import { Testimonials }       from '@/components/home/Testimonials'
+import { InsightsTeaser }     from '@/components/home/InsightsTeaser'
 import { CtaBanner }          from '@/components/home/CtaBanner'
 import { BrandDivider }       from '@/components/ui/BrandDivider'
 import { getFeaturedDeal }    from '@/lib/contentful'
@@ -33,7 +35,9 @@ export default async function HomePage() {
       <BrandDivider className="bg-obsidian" />
       <WhyReveBatir />
       <PlatformProof />
+      <Testimonials />
       <Faq />
+      <InsightsTeaser />
       <CtaBanner />
     </>
   )

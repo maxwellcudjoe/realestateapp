@@ -8,8 +8,18 @@ const FOOTER_LINKS = [
   { href: '/',         label: 'Home' },
   { href: '/about',    label: 'About' },
   { href: '/deals',    label: 'Deals' },
+  { href: '/insights', label: 'Insights' },
   { href: '/onboarding', label: 'Register' },
   { href: '/contact',  label: 'Contact' },
+]
+
+const REGIONAL_LINKS: Array<{ href: string; label: string }> = [
+  { href: '/btl/manchester',    label: 'BTL · Manchester' },
+  { href: '/btl/birmingham',    label: 'BTL · Birmingham' },
+  { href: '/btl/leeds',         label: 'BTL · Leeds' },
+  { href: '/hmo/liverpool',     label: 'HMO · Liverpool' },
+  { href: '/hmo/sheffield',     label: 'HMO · Sheffield' },
+  { href: '/flip/nottingham',   label: 'Flip · Nottingham' },
 ]
 
 const COMPLIANCE =
@@ -66,6 +76,25 @@ export function Footer() {
               ig
             </a>
           </div>
+        </div>
+
+        {/* Deals by region — SEO landing-page anchors */}
+        <div className="mt-8 pt-6 border-t border-carbon">
+          <p className="font-sans text-[0.55rem] font-semibold uppercase tracking-widest text-stone mb-3">
+            Deals by region
+          </p>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 list-none">
+            {REGIONAL_LINKS.map(({ href, label }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className="font-sans text-[0.6rem] text-stone hover:text-gold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
+                >
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Legal sub-nav */}

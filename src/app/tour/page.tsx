@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { Button } from '@/components/ui/Button'
 
@@ -8,6 +9,27 @@ export const metadata: Metadata = {
   description:
     'See inside the Rêve Bâtir investor portal before you register. Live pipeline tracking, structured offers, viewing requests, deal team handoff, portfolio archive, and full GDPR + AML compliance.',
   alternates: { canonical: '/tour' },
+  openGraph: {
+    title: 'Tour the Investor Portal · Rêve Bâtir',
+    description:
+      'See inside the investor portal before you register — pipeline tracking, structured offers, viewings, portfolio archive, and compliance built in.',
+    url: '/tour',
+    type: 'website',
+    images: [
+      {
+        url: '/og/tour.png',
+        width: 1200,
+        height: 630,
+        alt: 'Rêve Bâtir Tour — the investor portal',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Tour the Investor Portal · Rêve Bâtir',
+    description: 'See inside the investor portal before you register.',
+    images: ['/og/tour.png'],
+  },
 }
 
 interface TourStop {
@@ -15,6 +37,8 @@ interface TourStop {
   title: string
   body: string
   highlights: string[]
+  imageSrc?: string
+  imageAlt?: string
 }
 
 const TOUR: TourStop[] = [
@@ -137,28 +161,40 @@ export default function TourPage() {
             key={stop.badge}
             className={`grid grid-cols-1 md:grid-cols-2 gap-12 items-center ${i % 2 === 1 ? 'md:[&>div:first-child]:order-2' : ''}`}
           >
-            {/* Visual placeholder — could be replaced with real portal screenshots */}
-            <div className="border border-carbon bg-charcoal aspect-[4/3] flex items-center justify-center relative">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 50% 40% at 50% 50%, rgba(201,168,76,0.08) 0%, transparent 70%)',
-                }}
-              />
-              <div className="relative z-10 text-center">
-                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-gold mb-4">
-                  {stop.badge}
-                </p>
-                <p className="font-serif text-3xl font-light text-ivory leading-snug max-w-[280px] mx-auto">
-                  {stop.title}
-                </p>
-                <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/40 mt-6">
-                  Portal screenshot
-                </p>
+            {stop.imageSrc && stop.imageAlt ? (
+              <div className="relative border border-carbon bg-charcoal aspect-[4/3] overflow-hidden rounded-sm ring-1 ring-carbon">
+                <Image
+                  src={stop.imageSrc}
+                  alt={stop.imageAlt}
+                  fill
+                  priority={i < 2}
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  className="object-cover"
+                />
               </div>
-            </div>
+            ) : (
+              <div className="border border-carbon bg-charcoal aspect-[4/3] flex items-center justify-center relative">
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 50% 40% at 50% 50%, rgba(201,168,76,0.08) 0%, transparent 70%)',
+                  }}
+                />
+                <div className="relative z-10 text-center">
+                  <p className="font-sans text-[0.55rem] uppercase tracking-widest text-gold mb-4">
+                    {stop.badge}
+                  </p>
+                  <p className="font-serif text-3xl font-light text-ivory leading-snug max-w-[280px] mx-auto">
+                    {stop.title}
+                  </p>
+                  <p className="font-sans text-[0.55rem] uppercase tracking-widest text-stone/40 mt-6">
+                    Portal screenshot
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div>
               <p className="font-sans text-[0.55rem] uppercase tracking-widest text-gold mb-3">

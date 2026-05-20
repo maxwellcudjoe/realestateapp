@@ -10,10 +10,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "prisma generate",
-    "seed:admin": "npx tsx scripts/seed-admin.ts"
+    "seed:admin": "npx tsx scripts/seed-admin.ts",
+    "seed:tour": "npx tsx scripts/seed-tour-demo.ts"
   },
   "dependencies": {
     "@azure/storage-blob": "^12.31.0",
+    "@contentful/rich-text-react-renderer": "^16.2.1",
+    "@contentful/rich-text-types": "^17.2.7",
     "@marsidev/react-turnstile": "^1.5.2",
     "@prisma/adapter-mssql": "^7.8.0",
     "@prisma/client": "^7.8.0",

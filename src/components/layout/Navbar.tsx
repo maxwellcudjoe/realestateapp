@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: '/deals',    label: 'Deals' },
   { href: '/pricing',  label: 'Pricing' },
   { href: '/tour',     label: 'Tour' },
+  { href: '/insights', label: 'Insights' },
   { href: '/contact',  label: 'Contact' },
 ]
 

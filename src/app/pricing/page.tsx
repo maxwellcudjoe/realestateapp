@@ -11,6 +11,27 @@ export const metadata: Metadata = {
   description:
     'Free registration with full deal access. Premium tier from £20/month for a 48-hour head start on every new deal. Transparent per-deal sourcing and success fees, invoiced through your portal.',
   alternates: { canonical: '/pricing' },
+  openGraph: {
+    title: 'Pricing · Rêve Bâtir',
+    description:
+      'Free forever. Premium tier for a 48-hour head start on every new deal. Per-deal sourcing and success fees, invoiced through your portal.',
+    url: '/pricing',
+    type: 'website',
+    images: [
+      {
+        url: '/og/pricing.png',
+        width: 1200,
+        height: 630,
+        alt: 'Rêve Bâtir Pricing — Free or Premium',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pricing · Rêve Bâtir',
+    description: 'Free forever. Premium tier for a 48-hour head start on every new deal.',
+    images: ['/og/pricing.png'],
+  },
 }
 
 const FEE_SCHEDULE = [

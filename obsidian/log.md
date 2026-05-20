@@ -697,3 +697,11 @@ Append-only record of vault updates.
 - Updated: `obsidian/index.md` - added Projects entry
 - Key points: 5-PR plan closing the deferred items from [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]]. PR 1 Insights (Contentful insight type + /insights routes + InsightsTeaser); PR 2 City landing pages (24 combos with area-stats lib + area_landing Contentful type); PR 3 real portal screenshots (8 WebP via seed-tour-demo + next/image); PR 4 real testimonials (consent-gated Contentful type + Review JSON-LD); PR 5 OG images. ~3-4 dev-days, +32 tests, zero schema delta, sequenced for parallel content + engineering work.
 - Source: [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]], [[2026-05-19-homepage-assessment]]
+
+
+## [2026-05-20] feature | Homepage deferred items — full implementation (PRs 1-5)
+
+- Created: `obsidian/Projects/2026-05-20-homepage-deferred-items-implementation.md`
+- Updated: `obsidian/index.md` - added Projects entry
+- Key points: All 5 PRs from [[2026-05-19-homepage-deferred-items-plan]] shipped in one session. 15 new files (5 libs, 1 component, 3 routes, 1 seed script, 3 OG placeholders, 2 READMEs, 4 test files), 8 modified. 520 -> 558 tests (+38). Build clean, 98 static pages including 24 SSG entries for `/[strategy]/[city]`. Sitemap is now async. Footer has "Deals by region" anchor block. Testimonials rewritten as consent-gated server component with Review JSON-LD. Tour page image-ready with graceful fallback to gold-gradient placeholder. Zero schema delta. 3 small bug-fixes encountered during build: prefer-const (let -> const after mutation realisation), Contentful TS strict order-field typing (cast via Record<string, unknown>), vi.mock hoist-before-init (vi.hoisted escape hatch). External dependencies for full launch: 3 articles + city intros (content team), 8 portal screenshots (engineering capture day), 3+ investor consents (IR), 3 branded OG PNGs (design).
+- Source: [[2026-05-19-homepage-deferred-items-plan]], [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]]
