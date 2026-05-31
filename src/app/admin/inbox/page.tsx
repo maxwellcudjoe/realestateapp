@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { UnmatchedEmailRow } from '@/components/admin/UnmatchedEmailRow'
+import { BccRuleBanner } from '@/components/admin/BccRuleBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +34,7 @@ export default async function AdminInboxPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8 text-ivory">
-      {/* BccRuleBanner slot — wired in Task 14 */}
+      <BccRuleBanner />
 
       <header>
         <h1 className="text-2xl font-semibold">Dealer Inbox</h1>
