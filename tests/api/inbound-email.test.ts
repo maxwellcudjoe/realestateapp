@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
+vi.mock('@/lib/inbound/persist', () => ({
+  persist: vi.fn(),
+}))
+
 const envBackup = { ...process.env }
 beforeEach(() => {
   process.env = {
@@ -63,5 +67,75 @@ describe('POST /api/inbound/email (dry-run)', () => {
     const { POST } = await import('@/app/api/inbound/email/route')
     const res = await POST(makeRequest(dealerForm()))
     expect(res.status).toBe(500)
+  })
+})
+
+import * as persistModule from '@/lib/inbound/persist'
+
+describe('POST /api/inbound/email (persist mode)', () => {
+  beforeEach(() => {
+    process.env.INBOUND_DRY_RUN = 'false'
+    process.env.INBOUND_BLOB_CONTAINER = 'dealer-correspondence'
+    ;(persistModule.persist as ReturnType<typeof vi.fn>).mockReset()
+  })
+
+  it('returns persisted:true with metadata on KEPT email', async () => {
+    ;(persistModule.persist as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      emailId: 'email-1',
+      threadId: 'thread-1',
+      dealId: 'deal-1',
+      classification: 'KEPT',
+      direction: 'INBOUND',
+      duplicate: false,
+    })
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const res = await POST(makeRequest(dealerForm()))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({
+      ok: true,
+      persisted: true,
+      duplicate: false,
+      emailId: 'email-1',
+      threadId: 'thread-1',
+      dealId: 'deal-1',
+      classification: 'KEPT',
+      direction: 'INBOUND',
+    })
+    expect(persistModule.persist).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns duplicate:true and persisted:false on duplicate Message-ID', async () => {
+    ;(persistModule.persist as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      emailId: 'existing-id',
+      threadId: null,
+      dealId: null,
+      classification: 'KEPT',
+      direction: 'INBOUND',
+      duplicate: true,
+    })
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const res = await POST(makeRequest(dealerForm()))
+    const json = await res.json()
+    expect(json.duplicate).toBe(true)
+    expect(json.persisted).toBe(false)
+  })
+
+  it('returns 500 when persist throws', async () => {
+    ;(persistModule.persist as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('db down'))
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const res = await POST(makeRequest(dealerForm()))
+    expect(res.status).toBe(500)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: false, error: 'persist_failed' })
+  })
+
+  it('does NOT call persist in dry-run mode', async () => {
+    process.env.INBOUND_DRY_RUN = 'true'
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const res = await POST(makeRequest(dealerForm()))
+    const json = await res.json()
+    expect(json.dryRun).toBe(true)
+    expect(persistModule.persist).not.toHaveBeenCalled()
   })
 })

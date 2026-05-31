@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { parseSendgridForm } from '@/lib/inbound/parse'
 import { classify } from '@/lib/inbound/classify'
 import { detectDirection } from '@/lib/inbound/direction'
+import { persist } from '@/lib/inbound/persist'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -53,6 +54,24 @@ export async function POST(req: Request): Promise<Response> {
     })
   }
 
-  // Task 10 will replace this with persist()
-  return NextResponse.json({ ok: true, dryRun: false, classification, direction, persisted: false })
+  try {
+    const result = await persist(parsed, {
+      internalDomains: process.env.INTERNAL_DOMAINS ?? '',
+      blobContainer: process.env.INBOUND_BLOB_CONTAINER ?? 'dealer-correspondence',
+    })
+    return NextResponse.json({
+      ok: true,
+      persisted: !result.duplicate,
+      duplicate: result.duplicate,
+      messageId: parsed.messageId,
+      emailId: result.emailId,
+      threadId: result.threadId,
+      dealId: result.dealId,
+      classification: result.classification,
+      direction: result.direction,
+    })
+  } catch (e) {
+    console.error('[inbound] persist failed', e)
+    return NextResponse.json({ ok: false, error: 'persist_failed' }, { status: 500 })
+  }
 }
