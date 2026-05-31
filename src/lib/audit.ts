@@ -56,6 +56,9 @@ export const AUDIT_ACTIONS = {
   IMPERSONATION_STARTED: 'Admin started impersonating user',
   IMPERSONATION_ENDED: 'Admin ended impersonation',
   IMPERSONATION_BLOCKED_WRITE: 'Impersonation blocked a write attempt',
+  // Task 11 — inbound dealer email admin actions
+  INBOX_ASSIGN: 'Admin assigned inbound email to deal',
+  INBOX_DROP: 'Admin dropped inbound email',
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS
