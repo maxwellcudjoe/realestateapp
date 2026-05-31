@@ -513,17 +513,8 @@ model KycCheck {
 
 // --- Inbound dealer email ---
 
-enum EmailDirection {
-  INBOUND
-  OUTBOUND
-}
-
-enum EmailClass {
-  KEPT
-  DROPPED_MARKETING
-  DROPPED_AUTO
-  MANUAL_DROP
-}
+// EmailDirection: 'INBOUND' | 'OUTBOUND' (string — SQL Server connector has no enums)
+// EmailClass: 'KEPT' | 'DROPPED_MARKETING' | 'DROPPED_AUTO' | 'MANUAL_DROP'
 
 model DealerContact {
   id        String         @id @default(cuid())
@@ -554,8 +545,8 @@ model EmailMessage {
   inReplyTo        String?
   referencesJson   String?        @db.NVarChar(Max)
   threadId         String
-  thread           DealerThread   @relation(fields: [threadId], references: [id])
-  direction        EmailDirection
+  thread           DealerThread   @relation(fields: [threadId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  direction        String
   fromId           String
   from             DealerContact  @relation(fields: [fromId], references: [id])
   toJson           String         @db.NVarChar(Max)
@@ -565,10 +556,10 @@ model EmailMessage {
   bodyHtml         String?        @db.NVarChar(Max)
   receivedAt       DateTime
   attachmentsJson  String?        @db.NVarChar(Max)
-  classification   EmailClass
+  classification   String
   matchConfidence  String?
   attributedUserId String?
-  attributedUser   User?          @relation(fields: [attributedUserId], references: [id])
+  attributedUser   User?          @relation(fields: [attributedUserId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   createdAt        DateTime       @default(now())
 
   @@index([threadId])
