@@ -44,6 +44,7 @@ describe('classify', () => {
       ...asEmail(lovelleHolly),
       subject: 'Weekly update from us',
       from: { email: 'someone@unknown.com', name: null },
+      inReplyTo: null,
     }
     expect(classify(e)).toBe('DROPPED_MARKETING')
   })
@@ -52,6 +53,22 @@ describe('classify', () => {
     const e: ParsedEmail = {
       ...asEmail(lovelleHolly),
       rawHeaders: { 'List-Unsubscribe': '<mailto:x@y>' },
+    }
+    expect(classify(e)).toBe('KEPT')
+  })
+
+  it('KEEPS a human reply that contains "unsubscribe" in the subject', () => {
+    const e: ParsedEmail = {
+      ...asEmail(lovelleHolly),
+      subject: 'Re: please unsubscribe me from your viewing list',
+    }
+    expect(classify(e)).toBe('KEPT')
+  })
+
+  it('KEEPS a reply whose subject mentions "newsletter" (subject regex gated by inReplyTo)', () => {
+    const e: ParsedEmail = {
+      ...asEmail(lovelleHolly), // has inReplyTo set
+      subject: 'Re: your newsletter about 16 Grimsby Rd',
     }
     expect(classify(e)).toBe('KEPT')
   })

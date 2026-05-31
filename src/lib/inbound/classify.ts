@@ -1,7 +1,7 @@
 import { isBlockedDomain, isBlockedLocalPart } from './blocklist'
 import type { EmailClassification, ParsedEmail } from './types'
 
-const NEWSLETTER_SUBJECT_RX = /\b(unsubscribe|newsletter|digest|weekly update|marketing)\b/i
+const NEWSLETTER_SUBJECT_RX = /\b(newsletter|digest|weekly update|marketing)\b/i
 
 function splitAddress(email: string): { local: string; domain: string } {
   const [local, domain] = email.toLowerCase().split('@')
@@ -22,7 +22,7 @@ export function classify(email: ParsedEmail): EmailClassification {
   const hasListUnsub = headerHas(email.rawHeaders, 'List-Unsubscribe')
   if (hasListUnsub && !email.inReplyTo) return 'DROPPED_MARKETING'
 
-  if (NEWSLETTER_SUBJECT_RX.test(email.subject)) return 'DROPPED_MARKETING'
+  if (!email.inReplyTo && NEWSLETTER_SUBJECT_RX.test(email.subject)) return 'DROPPED_MARKETING'
 
   return 'KEPT'
 }
