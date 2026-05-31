@@ -50,6 +50,24 @@ export async function deleteBlob(blobPath: string): Promise<void> {
   }
 }
 
+/** Read-only SAS URL good for 5 minutes. Used by admin attachment downloads. */
+export async function getSasUrl(blobPath: string): Promise<string> {
+  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
+  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME!
+  const credential = getCredential()
+  const sas = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName: blobPath,
+      permissions: BlobSASPermissions.parse('r'),
+      startsOn: new Date(Date.now() - 60_000),
+      expiresOn: new Date(Date.now() + 5 * 60_000),
+    },
+    credential,
+  ).toString()
+  return `https://${accountName}.blob.core.windows.net/${containerName}/${encodeURI(blobPath)}?${sas}`
+}
+
 export function generatePresignedUrl(blobPath: string): string {
   const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME!
