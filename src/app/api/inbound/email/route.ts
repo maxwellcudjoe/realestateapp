@@ -14,7 +14,15 @@ export async function POST(req: Request): Promise<Response> {
   if (!secret) return NextResponse.json({ ok: false, error: 'not_configured' }, { status: 500 })
 
   const auth = req.headers.get('authorization') ?? ''
-  if (auth !== `Bearer ${secret}`) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  const headerOk = auth === `Bearer ${secret}`
+  let querySecretOk = false
+  if (!auth) {
+    const url = new URL(req.url)
+    querySecretOk = url.searchParams.get('secret') === secret
+  }
+  if (!headerOk && !querySecretOk) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  }
 
   const contentLength = Number(req.headers.get('content-length') ?? 0)
   if (contentLength > MAX_BYTES) return NextResponse.json({ ok: false, error: 'too_large' }, { status: 413 })

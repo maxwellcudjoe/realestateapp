@@ -62,6 +62,39 @@ describe('POST /api/inbound/email (dry-run)', () => {
     expect(json.classification).toBe('DROPPED_MARKETING')
   })
 
+  it('200 with query-param secret when no Authorization header', async () => {
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const req = new Request('http://localhost/api/inbound/email?secret=test-secret', {
+      method: 'POST',
+      body: dealerForm(),
+      // no Authorization header
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+  })
+
+  it('401 with wrong query-param secret', async () => {
+    const { POST } = await import('@/app/api/inbound/email/route')
+    const req = new Request('http://localhost/api/inbound/email?secret=wrong', {
+      method: 'POST',
+      body: dealerForm(),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
+  it('ignores query secret when Authorization header is present (header wins)', async () => {
+    const { POST } = await import('@/app/api/inbound/email/route')
+    // Right query-secret but wrong Bearer → 401 (header takes precedence)
+    const req = new Request('http://localhost/api/inbound/email?secret=test-secret', {
+      method: 'POST',
+      body: dealerForm(),
+      headers: { Authorization: 'Bearer wrong' },
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+  })
+
   it('500 when INBOUND_SECRET not configured', async () => {
     delete process.env.INBOUND_SECRET
     const { POST } = await import('@/app/api/inbound/email/route')
