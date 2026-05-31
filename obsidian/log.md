@@ -2,6 +2,57 @@
 
 Append-only record of vault updates.
 
+## [2026-05-31] feature | Inbound dealer email organisation — shipped
+
+- Implemented per `docs/superpowers/plans/2026-05-31-inbound-dealer-email-organisation.md`
+- Library: `src/lib/inbound/` — blocklist, classify, direction, parse, match, thread, persist, types — pure functions with injected lookups so tests don't touch DB
+- API: `POST /api/inbound/email` (Bearer auth) + `POST /api/admin/inbox/{assign,drop}` + `GET /api/admin/inbox/attachment` (SAS redirect)
+- Admin surfaces: `/admin/inbox` (Unmatched + Recent + BccRuleBanner onboarding) and `/admin/deals/[id]/correspondence`; nav link added from existing `/admin/investors/[id]/deals/[dealId]` page
+- Schema: +3 models (`DealerContact`, `DealerThread`, `EmailMessage`) — enums became plain Strings (Prisma SQL Server connector limitation), `EmailMessage` relations use `NoAction` to break cyclic-cascade paths
+- Attachments live only in `EmailMessage.attachmentsJson` — neither `Document` (needs `applicationId`) nor `DealDocument` (needs `uploadedByUserId`) accepts webhook-origin rows
+- SAS download consolidated into existing `generatePresignedUrl` helper (clock-skew + URL encoding folded in)
+- AuditEvent actions: `EMAIL_RECEIVED`, `EMAIL_SENT_LOGGED`, `INBOX_ASSIGN`, `INBOX_DROP`
+- Outbound capture via Outlook BCC rule (recipe in `BccRuleBanner`)
+- Production-config still required (SendGrid Inbound Parse webhook URL, MX record, env vars) — see plan §Configuration-after-merge
+- Tests: 69 files / 640 passed; build clean
+- Commits: 6bfe34e..ae20188 (15-ish across the 4 phases)
+
+## [2026-05-31] feature | Inbound dealer email — Task 4 SendGrid parser (TDD)
+- Added `src/lib/inbound/parse.ts` and `tests/lib/inbound/parse.test.ts`
+- 6/6 tests pass; commit `95efd4c`
+- Note: `obsidian/Snippets/2026-05-31-sendgrid-inbound-parse-form-parser.md`
+
+## [2026-05-31] feature | Inbound dealer email — Task 2 classifier (TDD)
+
+- Created: `obsidian/Projects/2026-05-31-inbound-task-2-classifier.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- New: `src/lib/inbound/classify.ts`, `tests/lib/inbound/classify.test.ts`, 8 fixtures under `tests/fixtures/inbound/`
+- Order: domain blocklist → local-part blocklist → List-Unsubscribe + !inReplyTo → newsletter subject regex → KEPT
+- TDD: wrote fixtures + test → failing run (module not found) → implementation → 7/7 PASS
+- tsconfig already has `resolveJsonModule: true` — no change needed
+- One fixture's from-address adjusted from `newsletter@randomvendor.co.uk` to `campaigns@randomvendor.co.uk` to avoid Task 1's local-part regex pre-empting the List-Unsubscribe rule the test was named for
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## [2026-05-31] plan | Inbound dealer email organisation — implementation plan
+
+- Created: `docs/superpowers/plans/2026-05-31-inbound-dealer-email-organisation.md`
+- 15 tasks across 4 phases (dry-run classifier → schema+persist → admin surfaces → onboarding banner)
+- Each task is TDD-shaped (failing test → minimal impl → green → commit). All step code is concrete; no placeholders. Two intentional flex-points called out: `Document` model required-fields lookup in Task 9, and SendGrid auth mode in the post-merge config section.
+- Expected suite delta: 558 → ~603 tests
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## [2026-05-31] design | Inbound dealer email organisation — spec
+
+- Created: `obsidian/Projects/2026-05-31-inbound-dealer-email-organisation.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- Brainstormed inbound email handling from 3 user-supplied real examples (Lovelle x2, DDM Residential). All currently land at `info@revebatir.co.uk` with no platform capture.
+- Chose: alias + webhook (SendGrid Inbound Parse) + BCC-mirror for outbound (option b — admin replies from normal mailbox, Outlook auto-BCC rule pushes outbound to the same alias so threads stay complete without changing daily habit).
+- Schema additions: `DealerContact`, `DealerThread`, `EmailMessage` + 2 enums (`EmailDirection`, `EmailClass`).
+- Classifier blocklist covers facebook/linkedin/mailchimp/x/instagram/notion/github/atlassian/slack/medium/substack + noreply local-parts + List-Unsubscribe-without-In-Reply-To + newsletter subject regex.
+- Matcher: UK-postcode regex → Deal.address normalised match → thread inheritance via In-Reply-To → dealer-with-one-open-deal fallback → `/admin/inbox` Unmatched queue.
+- 4-phase rollout: dry-run classifier → schema+persist → surface (deal Correspondence tab + Unmatched queue) → onboarding banner.
+- Source: [[portal-messaging-feature]] (same surface pattern, investor-side) · [[2026-05-17-task-7-3-invoicing]] (Document/Blob reuse)
+
 ## [2026-05-19] feature | Brand logo integration — wordmark + variants + animated entry
 
 - Created: `obsidian/Projects/2026-05-19-logo-integration.md`
@@ -705,3 +756,58 @@ Append-only record of vault updates.
 - Updated: `obsidian/index.md` - added Projects entry
 - Key points: All 5 PRs from [[2026-05-19-homepage-deferred-items-plan]] shipped in one session. 15 new files (5 libs, 1 component, 3 routes, 1 seed script, 3 OG placeholders, 2 READMEs, 4 test files), 8 modified. 520 -> 558 tests (+38). Build clean, 98 static pages including 24 SSG entries for `/[strategy]/[city]`. Sitemap is now async. Footer has "Deals by region" anchor block. Testimonials rewritten as consent-gated server component with Review JSON-LD. Tour page image-ready with graceful fallback to gold-gradient placeholder. Zero schema delta. 3 small bug-fixes encountered during build: prefer-const (let -> const after mutation realisation), Contentful TS strict order-field typing (cast via Record<string, unknown>), vi.mock hoist-before-init (vi.hoisted escape hatch). External dependencies for full launch: 3 articles + city intros (content team), 8 portal screenshots (engineering capture day), 3+ investor consents (IR), 3 branded OG PNGs (design).
 - Source: [[2026-05-19-homepage-deferred-items-plan]], [[2026-05-19-write-mode-impersonation-and-homepage-rebuild]]
+
+
+## [2026-05-20] bugfix | Azure SWA deploy fixed - Next.js standalone (250MB functions limit)
+
+- Created: `obsidian/Bug_Fixes/2026-05-20-azure-swa-functions-deploy-250mb-limit.md`
+- Updated: `obsidian/index.md` - added Bug Fixes entry
+- Key points: Deploy had been failing since the logo commit (dc47751) with "Failed to deploy the Azure Functions" - deterministic, build OK but deploy rejected in 15s. Root cause: hybrid Next.js on Azure SWA has a hard 250MB managed-functions limit; the server bundle (full node_modules) grew past it. Fix per MS docs: output:'standalone' Output File Tracing + cross-platform postbuild copy (scripts/swa-standalone-postbuild.mjs) of .next/static + public into .next/standalone. Standalone bundle is 73MB (was 250MB+). Commit fe63c95. Deploy run 26144038925 = success in 2m44s. Verified live: /, /insights, /pricing, /tour, /btl/manchester, /hmo/liverpool all 200; sitemap includes new routes. Risks pre-checked before push: (1) Prisma uses @prisma/adapter-mssql driver-adapter = no native engine binary to drop in the trace; booted server.js locally and / returned 200 with prisma+next-auth resolving; (2) middleware matcher does not block SWA's /.swa/health.html probe. Side benefit: the previously-stranded logo commit also went live with this deploy.
+- Source: [[2026-05-20-homepage-deferred-items-implementation]]
+
+
+## [2026-05-20] knowledge | Handoff note - platform state @ end of session
+
+- Created: `obsidian/Knowledge/2026-05-20-handoff-prompt.md`
+- Updated: `obsidian/index.md` - added Knowledge entry
+- Key points: Single-file cold-read handoff for the next session. Product paragraph + stack table (Next 14 hybrid / Azure SWA / Azure SQL + Prisma driver-adapter / Resend / Azure Blob / NextAuth v5 + TOTP). Four process-flow diagrams: investor journey (registration -> KYC -> matched deals -> response -> viewing -> offer -> 10-stage pipeline -> portfolio), admin 7-stage lifecycle, deal-stage state machine, money flow (solicitor only). Premium effective-tier truth. Full live-status table per surface area showing what's shipped today (558 tests, /, /insights, /pricing, /tour, /[strategy]/[city] x24, full portal + admin + cron pipeline). Two-commit session recap (4f9b384 + fe63c95). 5 pending external deps (3 articles + 24 city intros + 8 screenshots + investor consents + branded OG PNGs + passkeys) all parallelisable. 16-item candidate roadmap ranked by leverage. 8 operational gotchas. TL;DR + default first-reads list for the next AI session at the bottom.
+- Source: [[2026-05-20-homepage-deferred-items-implementation]], [[2026-05-20-azure-swa-functions-deploy-250mb-limit]], [[2026-05-19-handoff-prompt]]
+- 2026-05-31 13:00 — Task 5: Dry-run inbound webhook route (POST /api/inbound/email) with bearer auth, classifier, direction detector. 5/5 tests pass. Commit 8a29c39.
+
+
+## [2026-05-31] query | Task 6: Prisma schema for inbound dealer email — blocked on Azure SQL firewall
+
+- Created: `obsidian/Projects/2026-05-31-inbound-task-6-prisma-schema.md`
+- Updated: `obsidian/index.md`, `prisma/schema.prisma` (+2 enums, +3 models, +2 reverse relations)
+- Key points: Schema valid + committed. `npx prisma db push` failed: dev IP 154.161.171.161 not in Azure SQL `gmxserver` firewall — same block as PR #8. Per task instructions, did NOT run `prisma generate` (would desync client from live DB). `Document.type` is String — no enum change needed.
+- Source: [[2026-05-19-pr8-schema-blocked-items]], [[2026-05-31-inbound-dealer-email-organisation]]
+
+## [2026-05-31] query | Task 8: Threader + subject normaliser (inbound dealer email)
+
+- Created: `src/lib/inbound/thread.ts`, `tests/lib/inbound/thread.test.ts`, `obsidian/Projects/2026-05-31-inbound-task-8-threader.md`
+- Updated: `obsidian/index.md`
+- Key points: Pure function with injected lookup. Single regex `PREFIX_RX` re-applied in `do/while` handles repeated RE:/FW:/Fwd: + `*EXTERNAL*` markers. In-Reply-To preferred over References. 8/8 tests pass. Commit `58b0b3b`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]], [[2026-05-31-inbound-task-6-prisma-schema]]
+
+## 2026-05-31 — Task 9: Persist orchestrator (KEPT inbound + DROPPED + OUTBOUND)
+- Created: `src/lib/inbound/persist.ts`, `tests/lib/inbound/persist.test.ts`
+- Updated: `prisma/schema.prisma` (enum → String; NoAction on EmailMessage.thread + .attributedUser to break cyclic cascade)
+- Key points: Transactional write — dealerContact.upsert → thread create/update → emailMessage.create → per-attachment blob upload → emailMessage.update with attachmentsJson → auditEvent.create. Single source of truth for attachments is `EmailMessage.attachmentsJson` (Document/DealDocument require fields the webhook cannot supply). Blob failures recorded inline as `BLOB_UPLOAD_FAILED`. Idempotent on duplicate Message-ID. Uses Deal.address (NVarChar(255)) for postcode `contains` matching. 9/9 tests pass. `tsc --noEmit` clean for new files (pre-existing errors unrelated). Commit `fe93880`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## 2026-05-31 — Task 11: Admin inbox page + assign/drop routes
+- Created: `src/app/admin/inbox/page.tsx`, `src/components/admin/UnmatchedEmailRow.tsx`, `src/app/api/admin/inbox/{assign,drop}/route.ts`, 2 vitest files, `obsidian/Projects/2026-05-31-inbound-task-11-admin-inbox.md`
+- Updated: `src/lib/audit.ts` (+INBOX_ASSIGN, +INBOX_DROP), `obsidian/index.md`
+- Key points: Spec example for `recordAudit` used `metadata: JSON.stringify(...)` — real signature takes object; lib stringifies internally. `AuditAction` is strict union so action codes had to be registered. Admin layout is client-side → page-level `auth()` gate added (same pattern as `/admin/subscriptions`). `vi.hoisted` used for mocks (project pattern). Component test skipped: `@testing-library/react` not installed; reported DONE_WITH_CONCERNS per spec. 10/10 new tests; 634/634 full suite. Commit `c62d5e5`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## 2026-05-31 — Task 12: Deal Correspondence tab + EmailThread component
+- Created: `src/components/admin/EmailThread.tsx`, `src/app/admin/deals/[id]/correspondence/page.tsx`
+- Key points: Next 14.2 uses sync `params: { id: string }` (NOT Promise) — confirmed by reading `src/app/admin/investors/[id]/deals/[dealId]/page.tsx`. Page admin-gated via `auth()` + redirect('/login'), `force-dynamic`. Threads scoped to dealId with `emails: { some: { classification: 'KEPT' } }`; inner emails filtered same way. Failed attachments (`error` field present, e.g. `BLOB_UPLOAD_FAILED`) filtered out before render — no broken download links. Direction badge uses emerald (INBOUND) / sky (OUTBOUND) per existing palette. No component test — `@testing-library/react` not in deps; deferred per spec. `tsc --noEmit` clean for new files. Commit `a60108e`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## 2026-05-31 — Cleanup: consolidate SAS helpers in azure-blob.ts
+- Removed duplicate `getSasUrl` added in Task 13; updated `src/app/api/admin/inbox/attachment/route.ts` and `tests/api/admin-inbox-attachment.test.ts` to use the pre-existing `generatePresignedUrl`.
+- Preserved two improvements onto `generatePresignedUrl`: 60s back-dated `startsOn` (clock-skew tolerance) and `encodeURI(blobPath)` in the returned URL (handles spaces / non-ASCII path segments). Kept it sync — existing callers already use both `await fn(...)` and bare `fn(...)`; awaiting a sync return is harmless.
+- Verified: all 6 attachment-route tests pass; `tsc --noEmit` shows no new errors (remaining errors are pre-existing in unrelated test files). Commit `4014462`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]

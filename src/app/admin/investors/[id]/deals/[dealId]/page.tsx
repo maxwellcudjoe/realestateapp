@@ -56,9 +56,14 @@ export default async function AdminDealDetailPage({ params }: { params: { id: st
   return (
     <div className="min-h-screen bg-obsidian pt-[72px]">
       <div className="max-w-6xl mx-auto px-8 py-12">
-        <Link href={`/admin/investors/${params.id}/deals`} className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors mb-4 inline-block">
-          ← All deals for this investor
-        </Link>
+        <div className="flex items-center justify-between mb-4">
+          <Link href={`/admin/investors/${params.id}/deals`} className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors inline-block">
+            ← All deals for this investor
+          </Link>
+          <Link href={`/admin/deals/${deal.id}/correspondence`} className="font-sans text-xs uppercase tracking-widest text-stone hover:text-gold transition-colors inline-block">
+            View correspondence →
+          </Link>
+        </div>
         <h1 className="font-serif text-4xl font-light text-ivory mb-2">{deal.title}</h1>
         <p className="font-sans text-sm text-stone mb-1">{deal.address}</p>
         <p className="font-sans text-sm text-gold mb-8">{fmt(Number(deal.askingPrice))}</p>
