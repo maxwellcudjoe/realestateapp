@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getSasUrl } from '@/lib/azure-blob'
+import { generatePresignedUrl } from '@/lib/azure-blob'
 
 const ALLOWED_PREFIX = 'dealer-correspondence/'
 
@@ -18,6 +18,6 @@ export async function GET(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'forbidden path' }, { status: 403 })
   }
 
-  const sas = await getSasUrl(path)
+  const sas = generatePresignedUrl(path)
   return NextResponse.redirect(sas, 302)
 }

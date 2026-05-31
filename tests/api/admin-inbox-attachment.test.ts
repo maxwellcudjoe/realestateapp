@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('@/lib/auth', () => ({ auth: vi.fn(async () => ({ user: { id: 'admin-1', role: 'admin' } })) }))
-vi.mock('@/lib/azure-blob', () => ({ getSasUrl: vi.fn(async () => 'https://blob.example/test?sig=abc') }))
+vi.mock('@/lib/azure-blob', () => ({ generatePresignedUrl: vi.fn(() => 'https://blob.example/test?sig=abc') }))
 
 import { GET } from '@/app/api/admin/inbox/attachment/route'
 

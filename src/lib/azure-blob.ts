@@ -50,12 +50,18 @@ export async function deleteBlob(blobPath: string): Promise<void> {
   }
 }
 
-/** Read-only SAS URL good for 5 minutes. Used by admin attachment downloads. */
-export async function getSasUrl(blobPath: string): Promise<string> {
+/**
+ * Read-only SAS URL good for 5 minutes. Used by admin and portal document
+ * downloads. `startsOn` is back-dated 60s to tolerate clock skew between this
+ * host and Azure Storage; the blob path is URI-encoded so segments containing
+ * spaces or non-ASCII characters resolve correctly.
+ */
+export function generatePresignedUrl(blobPath: string): string {
   const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME!
   const credential = getCredential()
-  const sas = generateBlobSASQueryParameters(
+
+  const sasToken = generateBlobSASQueryParameters(
     {
       containerName,
       blobName: blobPath,
@@ -65,27 +71,6 @@ export async function getSasUrl(blobPath: string): Promise<string> {
     },
     credential,
   ).toString()
-  return `https://${accountName}.blob.core.windows.net/${containerName}/${encodeURI(blobPath)}?${sas}`
-}
 
-export function generatePresignedUrl(blobPath: string): string {
-  const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME!
-  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME!
-  const credential = getCredential()
-
-  const expiresOn = new Date()
-  expiresOn.setMinutes(expiresOn.getMinutes() + 5)
-
-  const sasToken = generateBlobSASQueryParameters(
-    {
-      containerName,
-      blobName: blobPath,
-      permissions: BlobSASPermissions.parse('r'),
-      startsOn: new Date(),
-      expiresOn,
-    },
-    credential,
-  ).toString()
-
-  return `https://${accountName}.blob.core.windows.net/${containerName}/${blobPath}?${sasToken}`
+  return `https://${accountName}.blob.core.windows.net/${containerName}/${encodeURI(blobPath)}?${sasToken}`
 }
