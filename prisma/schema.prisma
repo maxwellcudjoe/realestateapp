@@ -37,6 +37,7 @@ model User {
   ledDeals                 Deal[]               @relation("DealLeads")
   invoices                 Invoice[]
   subscription             Subscription?
+  attributedEmails         EmailMessage[]
 }
 
 model RecoveryCode {
@@ -273,6 +274,7 @@ model Deal {
   viewings       Viewing[]
   favourites     DealFavourite[]
   invoices       Invoice[]
+  threads        DealerThread[]
 }
 
 model DealFavourite {
@@ -507,4 +509,70 @@ model KycCheck {
 
   @@index([applicationId, startedAt])
   @@index([externalCheckId])
+}
+
+// --- Inbound dealer email ---
+
+enum EmailDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum EmailClass {
+  KEPT
+  DROPPED_MARKETING
+  DROPPED_AUTO
+  MANUAL_DROP
+}
+
+model DealerContact {
+  id        String         @id @default(cuid())
+  name      String?
+  email     String         @unique
+  phone     String?
+  company   String?
+  createdAt DateTime       @default(now())
+  emails    EmailMessage[]
+}
+
+model DealerThread {
+  id        String         @id @default(cuid())
+  subject   String
+  dealId    String?
+  deal      Deal?          @relation(fields: [dealId], references: [id])
+  lastAt    DateTime
+  createdAt DateTime       @default(now())
+  emails    EmailMessage[]
+
+  @@index([dealId])
+  @@index([lastAt])
+}
+
+model EmailMessage {
+  id               String         @id @default(cuid())
+  messageId        String         @unique
+  inReplyTo        String?
+  referencesJson   String?        @db.NVarChar(Max)
+  threadId         String
+  thread           DealerThread   @relation(fields: [threadId], references: [id])
+  direction        EmailDirection
+  fromId           String
+  from             DealerContact  @relation(fields: [fromId], references: [id])
+  toJson           String         @db.NVarChar(Max)
+  ccJson           String?        @db.NVarChar(Max)
+  subject          String
+  bodyText         String         @db.NVarChar(Max)
+  bodyHtml         String?        @db.NVarChar(Max)
+  receivedAt       DateTime
+  attachmentsJson  String?        @db.NVarChar(Max)
+  classification   EmailClass
+  matchConfidence  String?
+  attributedUserId String?
+  attributedUser   User?          @relation(fields: [attributedUserId], references: [id])
+  createdAt        DateTime       @default(now())
+
+  @@index([threadId])
+  @@index([direction])
+  @@index([classification])
+  @@index([receivedAt])
 }
