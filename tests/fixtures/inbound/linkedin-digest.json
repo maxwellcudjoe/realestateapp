@@ -1,0 +1,14 @@
+{
+  "messageId": "<li-001@linkedin.com>",
+  "inReplyTo": null,
+  "references": [],
+  "from": { "email": "news@linkedin.com", "name": "LinkedIn" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "Your weekly digest",
+  "bodyText": "Top posts this week...",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T07:00:00.000Z",
+  "attachments": [],
+  "rawHeaders": {}
+}

@@ -1,0 +1,14 @@
+{
+  "messageId": "<mc-001@mailchi.mp>",
+  "inReplyTo": null,
+  "references": [],
+  "from": { "email": "campaign@mail.mailchimp.com", "name": "Some Vendor" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "Special offer this week",
+  "bodyText": "Limited time...",
+  "bodyHtml": "<p>Limited time...</p>",
+  "receivedAt": "2026-05-29T06:00:00.000Z",
+  "attachments": [],
+  "rawHeaders": { "List-Unsubscribe": "<mailto:u@x.com>" }
+}

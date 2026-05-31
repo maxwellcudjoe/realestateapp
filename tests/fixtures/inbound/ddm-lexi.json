@@ -1,0 +1,14 @@
+{
+  "messageId": "<ddm-001@ddmresidential.co.uk>",
+  "inReplyTo": "<rb-lead-leticia@revebatir.co.uk>",
+  "references": ["<rb-lead-leticia@revebatir.co.uk>"],
+  "from": { "email": "lexi@ddmresidential.co.uk", "name": "Lexi Collins" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "RE: RE: RE: New Lead: Leticia Cudjoe",
+  "bodyText": "Hi Leticia, Thank you for your email. To put an offer forward...",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T11:07:00.000Z",
+  "attachments": [],
+  "rawHeaders": {}
+}

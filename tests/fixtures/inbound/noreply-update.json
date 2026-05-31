@@ -1,0 +1,14 @@
+{
+  "messageId": "<noreply-001@somesite.com>",
+  "inReplyTo": null,
+  "references": [],
+  "from": { "email": "noreply@somesite.com", "name": "Some Site" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "Account update",
+  "bodyText": "Your account was updated.",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T05:00:00.000Z",
+  "attachments": [],
+  "rawHeaders": {}
+}

@@ -1,0 +1,14 @@
+{
+  "messageId": "<list-001@randomvendor.co.uk>",
+  "inReplyTo": null,
+  "references": [],
+  "from": { "email": "campaigns@randomvendor.co.uk", "name": "Random Vendor" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "Industry news",
+  "bodyText": "This week in property...",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T04:00:00.000Z",
+  "attachments": [],
+  "rawHeaders": { "List-Unsubscribe": "<mailto:u@x.com>" }
+}

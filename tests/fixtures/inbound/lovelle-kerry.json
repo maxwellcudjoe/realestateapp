@@ -1,0 +1,14 @@
+{
+  "messageId": "<lovelle-002@lovelle.co.uk>",
+  "inReplyTo": "<rb-enquiry-16grimsby@revebatir.co.uk>",
+  "references": ["<rb-enquiry-16grimsby@revebatir.co.uk>"],
+  "from": { "email": "kerry.telford@lovelle.co.uk", "name": "Kerry Telford" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "RE: RE: *EXTERNAL*16 Grimsby Road, Cleethorpes",
+  "bodyText": "Hi Leticia, That's ok not a problem, The EPC rating is C...",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T12:34:00.000Z",
+  "attachments": [],
+  "rawHeaders": {}
+}

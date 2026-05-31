@@ -1,0 +1,14 @@
+{
+  "messageId": "<fb-001@facebookmail.com>",
+  "inReplyTo": null,
+  "references": [],
+  "from": { "email": "notification@facebookmail.com", "name": "Facebook" },
+  "to": [{ "email": "info@revebatir.co.uk", "name": null }],
+  "cc": [],
+  "subject": "You have a new notification",
+  "bodyText": "Someone commented on your post.",
+  "bodyHtml": null,
+  "receivedAt": "2026-05-29T08:00:00.000Z",
+  "attachments": [],
+  "rawHeaders": {}
+}
