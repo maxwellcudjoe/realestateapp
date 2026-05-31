@@ -37,6 +37,32 @@ describe('inbound blocklist', () => {
 
   it('exposes BLOCKED_DOMAINS as an array for inspection', () => {
     expect(Array.isArray(BLOCKED_DOMAINS)).toBe(true)
-    expect(BLOCKED_DOMAINS.length).toBeGreaterThan(8)
+    expect(BLOCKED_DOMAINS.length).toBe(13)
+  })
+
+  it('trims and matches local-part case-insensitively', () => {
+    expect(isBlockedLocalPart(' NoReply ')).toBe(true)
+  })
+})
+
+describe('isBlockedDomain edge cases', () => {
+  it('matches subdomains of apex entries', () => {
+    expect(isBlockedDomain('mail.facebook.com')).toBe(true)
+    expect(isBlockedDomain('bounce.mailchimp.com')).toBe(true)
+    expect(isBlockedDomain('notifications.github.com')).toBe(true)
+    expect(isBlockedDomain('news.substack.com')).toBe(true)
+  })
+
+  it('still matches *.atlassian.net (regression)', () => {
+    expect(isBlockedDomain('acme.atlassian.net')).toBe(true)
+  })
+
+  it('strips a trailing dot before matching', () => {
+    expect(isBlockedDomain('facebook.com.')).toBe(true)
+    expect(isBlockedDomain('lovelle.co.uk.')).toBe(false)
+  })
+
+  it('returns false for empty string', () => {
+    expect(isBlockedDomain('')).toBe(false)
   })
 })
