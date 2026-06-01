@@ -33,6 +33,27 @@ Append-only record of vault updates.
 - One fixture's from-address adjusted from `newsletter@randomvendor.co.uk` to `campaigns@randomvendor.co.uk` to avoid Task 1's local-part regex pre-empting the List-Unsubscribe rule the test was named for
 - Source: [[2026-05-31-inbound-dealer-email-organisation]]
 
+## [2026-05-31] plan | Lead capture + Deal source — implementation plan
+
+- Created: `docs/superpowers/plans/2026-05-31-lead-capture-and-deal-source.md`
+- 13 tasks across 7 phases (schema+audit → pure-fn libs → admin CRUD API → conversion endpoint+page → auto-match hook+deal-source UI → admin Lead pages → final sweep)
+- TDD shape with concrete code in every step. Three intentional inspection points (User/Profile/Application required-field check in Task 5, existing onboarding route surface in Task 10, existing deal-create route in Task 11) — all framed as read-and-adapt with explicit fallback.
+- Expected suite delta: ~640 → ~710 tests (+70).
+- Source: [[2026-05-31-lead-capture-and-deal-source]]
+
+## [2026-05-31] design | Lead capture (admin-side intake) + Deal source tracking — spec
+
+- Created: `obsidian/Projects/2026-05-31-lead-capture-and-deal-source.md`
+- Updated: `obsidian/index.md` — added Projects entry
+- Brainstormed admin-side investor capture for cases where investors don't have time/willingness to self-register.
+- Chose Approach A (new `Lead` entity, no auth, lighter required fields) + hybrid conversion flow (iii): admin magic-link push AND auto-match when a self-registering email collides with an unconverted lead.
+- Schema: +3 models (`Lead`, `LeadNote`, `LeadConversionToken`); `Deal` gains `sourceChannel`/`sourceLeadId`/`sourceContactId`/`sourceNote`; `DealerContact` (from inbound-email feature) gains reverse relation `sourcedDeals`.
+- Intent (strategy/areas/budget/experience/timeline/funding) stored as JSON on Lead — mapped to typed `InvestorStrategy[]` + `TargetArea[]` rows during conversion. Union semantics for arrays; null-conflict resolution for scalars (user's self-submitted answer wins).
+- New audit actions: LEAD_CREATED, LEAD_UPDATED, LEAD_NOTE_ADDED, LEAD_CONVERT_INITIATED, LEAD_CONVERTED, LEAD_AUTO_MERGED, LEAD_STATUS_CHANGED, DEAL_SOURCE_ATTRIBUTED.
+- 4-phase rollout: schema+admin capture → conversion → deal-source UI → optional analytics. +60-75 tests targeted (640→~710).
+- Risks called out: email collision false-positives, GDPR for adopted captured data, token entropy/expiry, Deal source FK fragility on Lead deletion.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]] (DealerContact reused as source pointer) · [[2026-05-17-task-2-1-structured-target-areas]] · [[2026-05-17-task-2-2-multi-select-strategy]] · [[2026-05-17-task-1-2-email-verification]] (magic-link pattern reused).
+
 ## [2026-05-31] plan | Inbound dealer email organisation — implementation plan
 
 - Created: `docs/superpowers/plans/2026-05-31-inbound-dealer-email-organisation.md`
@@ -811,3 +832,17 @@ Append-only record of vault updates.
 - Preserved two improvements onto `generatePresignedUrl`: 60s back-dated `startsOn` (clock-skew tolerance) and `encodeURI(blobPath)` in the returned URL (handles spaces / non-ASCII path segments). Kept it sync — existing callers already use both `await fn(...)` and bare `fn(...)`; awaiting a sync return is harmless.
 - Verified: all 6 attachment-route tests pass; `tsc --noEmit` shows no new errors (remaining errors are pre-existing in unrelated test files). Commit `4014462`.
 - Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## 2026-06-01 — Leads Task 1: Prisma schema + audit actions
+- Added 3 models: `Lead`, `LeadNote`, `LeadConversionToken`. Added 4 source columns + 3 indexes to `Deal` (sourceChannel, sourceLeadId, sourceContactId, sourceNote + 3 relation-back indexes). Added reverse relations on `User` (capturedLeads, convertedFromLead) and `DealerContact` (sourcedDeals).
+- All User-referencing relations use `onDelete: NoAction, onUpdate: NoAction` (SQL Server cyclic-cascade safety). Status & sourceChannel are `String @db.NVarChar(N)` with allowed-values comment — no native enums on SQL Server connector.
+- Firewall hiccup: dev IP rotated to 154.161.18.186; added `dev-ip-2026-06-01` firewall rule on `gmxserver` in `gbhlogistics` RG via az CLI, then `prisma db push` succeeded in 9.74s; `prisma generate` produced Prisma Client 7.8.0.
+- 8 new audit actions registered in `src/lib/audit.ts` (LEAD_CREATED, LEAD_UPDATED, LEAD_NOTE_ADDED, LEAD_STATUS_CHANGED, LEAD_CONVERT_INITIATED, LEAD_CONVERTED, LEAD_AUTO_MERGED, DEAL_SOURCE_ATTRIBUTED).
+- `tsc --noEmit`: no new errors in touched files; only pre-existing failures in impersonate/login-tracking/user-activity test files. Commit `7dfd723`.
+- Source: [[2026-05-31-inbound-dealer-email-organisation]]
+
+## 2026-06-01 — Leads Task 6: admin leads POST + GET
+- Added `src/app/api/admin/leads/route.ts` with admin-only POST (create lead, audit LEAD_CREATED) and GET (list with optional ?status filter, capped at 200).
+- TDD: 11 new tests across `tests/api/admin-leads-create.test.ts` (7) and `tests/api/admin-leads-list.test.ts` (4) — all pass.
+- Zod body: name 1–120, email-or-phone required, sourceChannel must be a known enum; strategy/area codes encoded via `encodeCodesJson`.
+- Source: [[2026-06-01-leads-task-6-admin-leads-api]]
