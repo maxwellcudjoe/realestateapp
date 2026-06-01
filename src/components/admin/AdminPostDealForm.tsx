@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { PROPERTY_TYPES, TENURE_OPTIONS, EPC_RATINGS } from '@/lib/property'
+import { DealSourcePicker, type DealSourceValue } from './DealSourcePicker'
 
 interface Props {
   applicationId: string
@@ -25,6 +26,13 @@ export function AdminPostDealForm({ applicationId }: Props) {
   const [epcRating, setEpcRating] = useState<string>('')
   const [rentalAppraisalMonthly, setRentalAppraisalMonthly] = useState<string>('')
   const [floorAreaSqft, setFloorAreaSqft] = useState<string>('')
+  // Leads Task 11 — optional source attribution
+  const [source, setSource] = useState<DealSourceValue>({
+    sourceChannel: '',
+    sourceLeadId: '',
+    sourceContactId: '',
+    sourceNote: '',
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -65,6 +73,10 @@ export function AdminPostDealForm({ applicationId }: Props) {
           epcRating: epcRating || undefined,
           rentalAppraisalMonthly: num(rentalAppraisalMonthly),
           floorAreaSqft: int(floorAreaSqft),
+          sourceChannel: source.sourceChannel || undefined,
+          sourceLeadId: source.sourceLeadId.trim() || undefined,
+          sourceContactId: source.sourceContactId.trim() || undefined,
+          sourceNote: source.sourceNote.trim() || undefined,
         }),
       })
       if (!res.ok) throw new Error((await res.json()).error ?? 'Failed')
@@ -73,6 +85,7 @@ export function AdminPostDealForm({ applicationId }: Props) {
       setAskingPrice('')
       setSummary('')
       setBedrooms(''); setBathrooms(''); setPropertyType(''); setTenure(''); setEpcRating(''); setRentalAppraisalMonthly(''); setFloorAreaSqft('')
+      setSource({ sourceChannel: '', sourceLeadId: '', sourceContactId: '', sourceNote: '' })
       setSuccess(true)
       router.refresh()
     } catch (e) {
@@ -174,6 +187,7 @@ export function AdminPostDealForm({ applicationId }: Props) {
           className="w-full bg-carbon border border-carbon px-4 py-3 font-sans text-sm text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors resize-none"
         />
       </div>
+      <DealSourcePicker value={source} onChange={setSource} />
       {error && <p className="font-sans text-xs text-red-400">{error}</p>}
       {success && <p className="font-sans text-xs text-gold">Deal posted — investor notified by email.</p>}
       <Button type="submit" variant="primary" disabled={submitting}>

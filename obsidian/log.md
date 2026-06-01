@@ -846,3 +846,14 @@ Append-only record of vault updates.
 - TDD: 11 new tests across `tests/api/admin-leads-create.test.ts` (7) and `tests/api/admin-leads-list.test.ts` (4) — all pass.
 - Zod body: name 1–120, email-or-phone required, sourceChannel must be a known enum; strategy/area codes encoded via `encodeCodesJson`.
 - Source: [[2026-06-01-leads-task-6-admin-leads-api]]
+
+## 2026-06-01 — Leads Task 7: PATCH + notes routes
+- Added `src/app/api/admin/leads/[id]/route.ts` (PATCH with Zod partial update, status-change audit) and `src/app/api/admin/leads/[id]/notes/route.ts` (POST note).
+- Audit: `LEAD_STATUS_CHANGED` (metadata { from, to }) when status differs, else `LEAD_UPDATED` (fields list); notes emit `LEAD_NOTE_ADDED` with noteId+length.
+- TDD: 8 tests pass — `tests/api/admin-leads-update.test.ts` (5), `tests/api/admin-leads-notes.test.ts` (3). Commit 7861f53.
+
+## 2026-06-01 — Leads Task 11: Deal source attribution
+- Extended `src/app/api/admin/investors/[id]/deals/route.ts` with optional `sourceChannel` (enum), `sourceLeadId`, `sourceContactId`, `sourceNote` — FK pre-validation against `lead`/`dealerContact` (400 on miss); emits `DEAL_SOURCE_ATTRIBUTED` audit when any field is set.
+- New `src/components/admin/DealSourcePicker.tsx` (controlled value/onChange) slotted into `AdminPostDealForm`.
+- TDD: 5 tests in `tests/api/admin-deal-source.test.ts` — all pass. tsc clean for touched files.
+- Source: [[2026-06-01-leads-task-11-deal-source]]

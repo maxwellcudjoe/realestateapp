@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/resend'
+import { recordAudit } from '@/lib/audit'
+import { getClientIp } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const dealSchema = z.object({
@@ -17,6 +19,13 @@ const dealSchema = z.object({
   epcRating: z.string().max(2).optional(),
   rentalAppraisalMonthly: z.number().nonnegative().optional(),
   floorAreaSqft: z.number().int().nonnegative().optional(),
+  // Leads Task 11 — optional source attribution
+  sourceChannel: z
+    .enum(['AGENT_EMAIL', 'SOURCER', 'PARTNER_INTRO', 'LEAD_REQUEST', 'DIRECT_VENDOR', 'OTHER'])
+    .optional(),
+  sourceLeadId: z.string().optional().nullable(),
+  sourceContactId: z.string().optional().nullable(),
+  sourceNote: z.string().max(5000).optional().nullable(),
 })
 
 export async function GET(
@@ -60,25 +69,59 @@ export async function POST(
   })
   if (!app) return NextResponse.json({ error: 'Application not found' }, { status: 404 })
 
+  const d = parsed.data
+
+  // Leads Task 11 — validate optional source FKs
+  if (d.sourceLeadId) {
+    const lead = await prisma.lead.findUnique({ where: { id: d.sourceLeadId }, select: { id: true } })
+    if (!lead) return NextResponse.json({ error: 'sourceLeadId references unknown Lead' }, { status: 400 })
+  }
+  if (d.sourceContactId) {
+    const contact = await prisma.dealerContact.findUnique({ where: { id: d.sourceContactId }, select: { id: true } })
+    if (!contact) return NextResponse.json({ error: 'sourceContactId references unknown DealerContact' }, { status: 400 })
+  }
+
   const deal = await prisma.deal.create({
     data: {
       applicationId: params.id,
       postedByUserId: session.user.id,
-      title: parsed.data.title,
-      address: parsed.data.address,
-      askingPrice: parsed.data.askingPrice,
-      summary: parsed.data.summary,
-      bedrooms: parsed.data.bedrooms ?? null,
-      bathrooms: parsed.data.bathrooms ?? null,
-      propertyType: parsed.data.propertyType || null,
-      tenure: parsed.data.tenure || null,
-      epcRating: parsed.data.epcRating || null,
-      rentalAppraisalMonthly: parsed.data.rentalAppraisalMonthly ?? null,
-      floorAreaSqft: parsed.data.floorAreaSqft ?? null,
+      title: d.title,
+      address: d.address,
+      askingPrice: d.askingPrice,
+      summary: d.summary,
+      bedrooms: d.bedrooms ?? null,
+      bathrooms: d.bathrooms ?? null,
+      propertyType: d.propertyType || null,
+      tenure: d.tenure || null,
+      epcRating: d.epcRating || null,
+      rentalAppraisalMonthly: d.rentalAppraisalMonthly ?? null,
+      floorAreaSqft: d.floorAreaSqft ?? null,
+      // Leads Task 11 — optional source attribution
+      sourceChannel: d.sourceChannel ?? null,
+      sourceLeadId: d.sourceLeadId ?? null,
+      sourceContactId: d.sourceContactId ?? null,
+      sourceNote: d.sourceNote ?? null,
       // Task 7.4 — drives the FREE-tier 48h preview gate (PREMIUM bypasses)
       publishedAt: new Date(),
     },
   })
+
+  const hasSource = !!(d.sourceChannel || d.sourceLeadId || d.sourceContactId || d.sourceNote)
+  if (hasSource) {
+    await recordAudit({
+      actorUserId: session.user.id,
+      actorRole: session.user.role,
+      action: 'DEAL_SOURCE_ATTRIBUTED',
+      resourceType: 'Deal',
+      resourceId: deal.id,
+      metadata: {
+        sourceChannel: d.sourceChannel ?? null,
+        sourceLeadId: d.sourceLeadId ?? null,
+        sourceContactId: d.sourceContactId ?? null,
+      },
+      ipAddress: getClientIp(req as unknown as Request),
+    })
+  }
 
   try {
     const firstName = app.investorProfile.firstName
