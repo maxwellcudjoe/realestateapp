@@ -7,7 +7,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/lib/leads/convert', () => ({
   convertLead: vi.fn(async () => ({ userId: 'user-new', applicationId: 'app-new', email: 'alice@example.com', fromAutoMatch: false })),
 }))
-vi.mock('@/lib/password', () => ({ checkPasswordBreached: vi.fn(async () => false) }))
+vi.mock('@/lib/password', () => ({ checkPasswordBreached: vi.fn(async () => ({ pwned: false, count: 0 })) }))
 vi.mock('@/lib/auth', () => ({ signIn: vi.fn(async () => undefined) }))
 
 import { POST } from '@/app/api/auth/finish-setup/route'
@@ -83,7 +83,7 @@ describe('POST /api/auth/finish-setup', () => {
 
   it('400 on HIBP breached password', async () => {
     const { checkPasswordBreached } = await import('@/lib/password')
-    ;(checkPasswordBreached as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true)
+    ;(checkPasswordBreached as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ pwned: true, count: 42 })
     const res = await POST(makeReq(validBody))
     expect(res.status).toBe(400)
   })

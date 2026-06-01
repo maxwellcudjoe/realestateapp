@@ -20,7 +20,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!parsed.data.gdprConsent) return NextResponse.json({ error: 'GDPR consent required' }, { status: 400 })
 
   const breached = await checkPasswordBreached(parsed.data.password)
-  if (breached) return NextResponse.json({ error: 'Password has appeared in public breach data — please pick a different one' }, { status: 400 })
+  if (breached.pwned) return NextResponse.json({ error: 'Password has appeared in public breach data — please pick a different one' }, { status: 400 })
 
   const tokenRow = await prisma.leadConversionToken.findUnique({
     where: { token: parsed.data.token },
