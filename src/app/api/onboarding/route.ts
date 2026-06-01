@@ -6,6 +6,7 @@ import { verificationEmailHtml } from '@/lib/emails/verification'
 import { verifyTurnstile } from '@/lib/turnstile'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { checkPasswordBreached } from '@/lib/password'
+import { convertLead } from '@/lib/leads/convert'
 import { areaLabel } from '@/lib/target-areas'
 import { strategyLabel } from '@/lib/strategies'
 import { parsePhoneNumber } from 'libphonenumber-js'
@@ -183,7 +184,7 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      return { user, application, verificationToken }
+      return { user, application, profile, verificationToken }
     })
 
     const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email/${result.verificationToken}`
@@ -218,6 +219,25 @@ export async function POST(req: NextRequest) {
       ])
     } catch (emailErr) {
       console.error('Email send failed (non-fatal):', emailErr)
+    }
+
+    // Auto-match: if a Lead was previously captured with this email, merge its intent.
+    // Wrapped in try/catch so a Lead-side failure never blocks onboarding success.
+    try {
+      const matchedLead = await prisma.lead.findFirst({
+        where: { email: d.email.toLowerCase(), convertedUserId: null },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, email: true },
+      })
+      if (matchedLead) {
+        await convertLead(matchedLead.id, {
+          existingUserId: result.user.id,
+          existingApplicationId: result.application.id,
+          existingInvestorProfileId: result.profile.id,
+        })
+      }
+    } catch (e) {
+      console.error('[onboarding] lead auto-match failed (non-fatal)', e)
     }
 
     return NextResponse.json({ success: true })
