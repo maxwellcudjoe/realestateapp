@@ -889,3 +889,13 @@ Append-only record of vault updates.
 - `src/components/portal/WelcomeBanner.tsx`: NEW one-time client banner — emerald palette, localStorage dismiss, also strips `?welcome` query param. Wired into `src/app/portal/page.tsx`.
 - Tests: 16/16 pass (`tests/api/auth-finish-setup.test.ts` 9, `tests/lib/leads/convert.test.ts` 7). +2 new finish-setup tests (signIn called; throw is non-fatal). tsc clean for touched files.
 - Source: [[2026-06-01-leads-followups-autosignin-welcomebanner]]
+
+## [2026-06-01] style | Admin Lead UI brand retheme
+
+- 6 files restyled (LeadForm, LeadNoteThread, ConvertLeadButton, leads list page, new/, [id]/)
+- Mirrored existing `AdminPostDealForm`/`DealSourcePicker` convention: `bg-carbon` fields, `text-ivory`, `placeholder-stone/40`, `focus:border-gold`, uppercase-tracked stone labels, `bg-gold text-obsidian` primary buttons
+- Translucent overlays for fieldsets + table rows: `border-white/10`, `bg-white/[0.02]`, `hover:bg-white/[0.04]`
+- Banner palette: emerald-400/40 + emerald-500/10 + emerald-200 (success), rose-300 (error text)
+- Tests: 81 files / 718 tests pass. Build: clean.
+- DealSourcePicker untouched (already on-brand).
+- Source: [[2026-06-01-admin-lead-ui-brand-retheme]]

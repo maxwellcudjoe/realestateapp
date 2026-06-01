@@ -27,6 +27,9 @@ const TIMELINES = ['IMMEDIATE','3_MONTHS','6_MONTHS','12_MONTHS','EXPLORATORY']
 const EXPERIENCES = ['NONE','FIRST_TIME','1_2_DEALS','3_PLUS']
 const FUNDINGS = ['CASH','MORTGAGE_AGREED','MORTGAGE_LIKELY','UNCLEAR']
 
+const FIELD = 'mt-1 w-full bg-carbon border border-carbon rounded px-3 py-2 font-sans text-sm text-ivory placeholder-stone/40 focus:outline-none focus:border-gold transition-colors'
+const LABEL_TEXT = 'block font-sans text-[0.6rem] uppercase tracking-widest text-stone mb-1'
+
 export function LeadForm({ initial, mode }: { initial?: Lead; mode: 'create' | 'edit' }) {
   const router = useRouter()
   const [pending, start] = useTransition()
@@ -69,82 +72,82 @@ export function LeadForm({ initial, mode }: { initial?: Lead; mode: 'create' | '
 
   return (
     <form onSubmit={submit} className="space-y-4 max-w-2xl">
-      <label className="block text-sm"><span>Name *</span>
-        <input required value={lead.name ?? ''} onChange={(e) => set('name', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+      <label className="block"><span className={LABEL_TEXT}>Name *</span>
+        <input required value={lead.name ?? ''} onChange={(e) => set('name', e.target.value)} className={FIELD} />
       </label>
       <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm"><span>Email</span>
-          <input type="email" value={lead.email ?? ''} onChange={(e) => set('email', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+        <label className="block"><span className={LABEL_TEXT}>Email</span>
+          <input type="email" value={lead.email ?? ''} onChange={(e) => set('email', e.target.value)} className={FIELD} />
         </label>
-        <label className="block text-sm"><span>Phone</span>
-          <input value={lead.phone ?? ''} onChange={(e) => set('phone', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" placeholder="+447700900000" />
+        <label className="block"><span className={LABEL_TEXT}>Phone</span>
+          <input value={lead.phone ?? ''} onChange={(e) => set('phone', e.target.value)} className={FIELD} placeholder="+447700900000" />
         </label>
       </div>
-      <fieldset className="border border-stone-200 rounded p-3 space-y-2">
-        <legend className="text-sm font-medium px-2">Source</legend>
-        <label className="block text-sm"><span>Channel *</span>
-          <select required value={lead.sourceChannel ?? ''} onChange={(e) => set('sourceChannel', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2">
+      <fieldset className="border border-white/10 rounded p-3 space-y-2 bg-white/[0.02]">
+        <legend className="font-sans text-[0.6rem] uppercase tracking-widest text-stone px-2">Source</legend>
+        <label className="block"><span className={LABEL_TEXT}>Channel *</span>
+          <select required value={lead.sourceChannel ?? ''} onChange={(e) => set('sourceChannel', e.target.value)} className={FIELD}>
             {CHANNELS.map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
           </select>
         </label>
-        <label className="block text-sm"><span>Referrer (who told us?)</span>
-          <input value={lead.sourceReferrer ?? ''} onChange={(e) => set('sourceReferrer', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+        <label className="block"><span className={LABEL_TEXT}>Referrer (who told us?)</span>
+          <input value={lead.sourceReferrer ?? ''} onChange={(e) => set('sourceReferrer', e.target.value)} className={FIELD} />
         </label>
-        <label className="block text-sm"><span>Context</span>
-          <textarea value={lead.sourceNote ?? ''} onChange={(e) => set('sourceNote', e.target.value)} rows={2} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+        <label className="block"><span className={LABEL_TEXT}>Context</span>
+          <textarea value={lead.sourceNote ?? ''} onChange={(e) => set('sourceNote', e.target.value)} rows={2} className={`${FIELD} resize-none`} />
         </label>
       </fieldset>
-      <fieldset className="border border-stone-200 rounded p-3 space-y-2">
-        <legend className="text-sm font-medium px-2">Intent</legend>
-        <div className="text-sm">
-          <span>Strategies</span>
+      <fieldset className="border border-white/10 rounded p-3 space-y-2 bg-white/[0.02]">
+        <legend className="font-sans text-[0.6rem] uppercase tracking-widest text-stone px-2">Intent</legend>
+        <div>
+          <span className={LABEL_TEXT}>Strategies</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {STRATEGIES.map((s) => (
-              <label key={s} className="inline-flex items-center gap-1 text-xs border border-stone-300 rounded px-2 py-1 cursor-pointer">
-                <input type="checkbox" checked={(lead.strategyCodes ?? []).includes(s)} onChange={() => set('strategyCodes', toggleArray(lead.strategyCodes, s))} />
+              <label key={s} className="inline-flex items-center gap-1 text-xs border border-white/10 rounded px-2 py-1 cursor-pointer text-ivory hover:border-gold/40 transition-colors">
+                <input type="checkbox" checked={(lead.strategyCodes ?? []).includes(s)} onChange={() => set('strategyCodes', toggleArray(lead.strategyCodes, s))} className="accent-gold" />
                 {s}
               </label>
             ))}
           </div>
         </div>
-        <label className="block text-sm"><span>Target area codes (comma-separated)</span>
-          <input value={(lead.targetAreaCodes ?? []).join(', ')} onChange={(e) => set('targetAreaCodes', e.target.value.split(',').map((x) => x.trim()).filter(Boolean))} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" placeholder="LE1, LE2, LE3" />
+        <label className="block"><span className={LABEL_TEXT}>Target area codes (comma-separated)</span>
+          <input value={(lead.targetAreaCodes ?? []).join(', ')} onChange={(e) => set('targetAreaCodes', e.target.value.split(',').map((x) => x.trim()).filter(Boolean))} className={FIELD} placeholder="LE1, LE2, LE3" />
         </label>
         <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm"><span>Budget min (£)</span>
-            <input type="number" min={0} value={lead.budgetMin ?? ''} onChange={(e) => set('budgetMin', e.target.value === '' ? null : Number(e.target.value))} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+          <label className="block"><span className={LABEL_TEXT}>Budget min (£)</span>
+            <input type="number" min={0} value={lead.budgetMin ?? ''} onChange={(e) => set('budgetMin', e.target.value === '' ? null : Number(e.target.value))} className={FIELD} />
           </label>
-          <label className="block text-sm"><span>Budget max (£)</span>
-            <input type="number" min={0} value={lead.budgetMax ?? ''} onChange={(e) => set('budgetMax', e.target.value === '' ? null : Number(e.target.value))} className="mt-1 w-full border border-stone-300 rounded px-3 py-2" />
+          <label className="block"><span className={LABEL_TEXT}>Budget max (£)</span>
+            <input type="number" min={0} value={lead.budgetMax ?? ''} onChange={(e) => set('budgetMax', e.target.value === '' ? null : Number(e.target.value))} className={FIELD} />
           </label>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <label className="block text-sm"><span>Experience</span>
-            <select value={lead.experienceLevel ?? ''} onChange={(e) => set('experienceLevel', e.target.value || null)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2">
+          <label className="block"><span className={LABEL_TEXT}>Experience</span>
+            <select value={lead.experienceLevel ?? ''} onChange={(e) => set('experienceLevel', e.target.value || null)} className={FIELD}>
               <option value="">—</option>{EXPERIENCES.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
           </label>
-          <label className="block text-sm"><span>Timeline</span>
-            <select value={lead.timeline ?? ''} onChange={(e) => set('timeline', e.target.value || null)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2">
+          <label className="block"><span className={LABEL_TEXT}>Timeline</span>
+            <select value={lead.timeline ?? ''} onChange={(e) => set('timeline', e.target.value || null)} className={FIELD}>
               <option value="">—</option>{TIMELINES.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
           </label>
-          <label className="block text-sm"><span>Funding</span>
-            <select value={lead.fundingStatus ?? ''} onChange={(e) => set('fundingStatus', e.target.value || null)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2">
+          <label className="block"><span className={LABEL_TEXT}>Funding</span>
+            <select value={lead.fundingStatus ?? ''} onChange={(e) => set('fundingStatus', e.target.value || null)} className={FIELD}>
               <option value="">—</option>{FUNDINGS.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
           </label>
         </div>
       </fieldset>
       {mode === 'edit' && (
-        <label className="block text-sm"><span>Status</span>
-          <select value={lead.status ?? 'NEW'} onChange={(e) => set('status', e.target.value)} className="mt-1 w-full border border-stone-300 rounded px-3 py-2">
+        <label className="block"><span className={LABEL_TEXT}>Status</span>
+          <select value={lead.status ?? 'NEW'} onChange={(e) => set('status', e.target.value)} className={FIELD}>
             {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </label>
       )}
-      {error && <p className="text-rose-700 text-sm">{error}</p>}
-      <button type="submit" disabled={pending} className="bg-stone-900 text-white px-4 py-2 rounded disabled:opacity-50">
+      {error && <p className="text-rose-300 text-sm">{error}</p>}
+      <button type="submit" disabled={pending} className="bg-gold text-obsidian font-medium px-4 py-2 rounded hover:bg-gold-light transition-colors disabled:opacity-50">
         {pending ? 'Saving…' : mode === 'create' ? 'Create lead' : 'Save changes'}
       </button>
     </form>

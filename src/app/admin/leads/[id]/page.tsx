@@ -43,18 +43,18 @@ export default async function LeadDetailPage({ params }: PageProps) {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <Link href="/admin/leads" className="text-xs text-stone-500 hover:underline">← all leads</Link>
-          <h1 className="text-2xl font-semibold">{lead.name}</h1>
-          <p className="text-sm text-stone-600">Captured {new Date(lead.createdAt).toLocaleString('en-GB')}</p>
+          <Link href="/admin/leads" className="text-xs text-stone hover:text-ivory transition-colors">← all leads</Link>
+          <h1 className="text-2xl font-semibold text-ivory">{lead.name}</h1>
+          <p className="text-sm text-stone">Captured {new Date(lead.createdAt).toLocaleString('en-GB')}</p>
         </div>
         <ConvertLeadButton leadId={lead.id} alreadyConverted={!!lead.convertedUserId} leadEmail={lead.email} />
       </header>
       <section>
-        <h2 className="text-lg font-medium mb-2">Lead details</h2>
+        <h2 className="text-lg font-medium mb-2 text-ivory">Lead details</h2>
         <LeadForm mode="edit" initial={initial} />
       </section>
       <section>
-        <h2 className="text-lg font-medium mb-2">Notes</h2>
+        <h2 className="text-lg font-medium mb-2 text-ivory">Notes</h2>
         <LeadNoteThread
           leadId={lead.id}
           notes={lead.notes.map((n) => ({ id: n.id, body: n.body, createdAt: n.createdAt.toISOString(), authorUserId: n.authorUserId }))}
