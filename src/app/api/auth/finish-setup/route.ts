@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { convertLead } from '@/lib/leads/convert'
 import { checkPasswordBreached } from '@/lib/password'
 import { isTokenValid } from '@/lib/leads/token'
+import { signIn } from '@/lib/auth'
 
 const Body = z.object({
   token: z.string().min(1),
@@ -37,6 +38,20 @@ export async function POST(req: Request): Promise<Response> {
     where: { id: tokenRow.id },
     data: { usedAt: new Date() },
   })
+
+  // Auto-sign-in so the user lands on /portal already authenticated.
+  // Non-fatal: if NextAuth's authorize() rejects (e.g. unverified-email guard
+  // ever changes), the user falls back to the /login page with the password
+  // they just set.
+  try {
+    await signIn('credentials', {
+      email: result.email,
+      password: parsed.data.password,
+      redirect: false,
+    })
+  } catch (e) {
+    console.error('[finish-setup] auto-sign-in failed (non-fatal)', e)
+  }
 
   return NextResponse.json({ ok: true, userId: result.userId, applicationId: result.applicationId })
 }

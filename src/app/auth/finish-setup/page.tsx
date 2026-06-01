@@ -30,7 +30,7 @@ function Form() {
     })
     setPending(false)
     if (res.ok) {
-      router.push('/portal/dashboard?welcome=1')
+      router.push('/portal?welcome=1')
     } else {
       const json = await res.json().catch(() => ({}))
       setError(json.error ?? 'Setup failed')

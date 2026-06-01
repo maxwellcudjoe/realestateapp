@@ -42,6 +42,7 @@ export type ConvertOptions = ConvertOptionsMagicLink | ConvertOptionsAutoMatch
 export interface ConvertResult {
   userId: string
   applicationId: string
+  email: string
   fromAutoMatch: boolean
 }
 
@@ -69,10 +70,18 @@ export async function convertLead(leadId: string, opts: ConvertOptions): Promise
     let applicationId: string
     let investorProfileId: string
 
+    let resolvedEmail = leadEmail
+
     if (fromAutoMatch) {
       userId = opts.existingUserId
       applicationId = opts.existingApplicationId
       investorProfileId = opts.existingInvestorProfileId
+      // Fetch the existing user's email so callers can auto-sign-in / send mail.
+      const existingUser = await tx.user.findUnique({
+        where: { id: opts.existingUserId },
+        select: { email: true },
+      })
+      if (existingUser?.email) resolvedEmail = existingUser.email.toLowerCase()
     } else {
       const passwordHash = await bcrypt.hash(opts.password!, 12)
       const user = await tx.user.create({
@@ -187,6 +196,6 @@ export async function convertLead(leadId: string, opts: ConvertOptions): Promise
       },
     })
 
-    return { userId, applicationId, fromAutoMatch }
+    return { userId, applicationId, email: resolvedEmail, fromAutoMatch }
   })
 }

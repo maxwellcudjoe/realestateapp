@@ -5,9 +5,10 @@ const prismaMock = vi.hoisted(() => ({
 }))
 vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }))
 vi.mock('@/lib/leads/convert', () => ({
-  convertLead: vi.fn(async () => ({ userId: 'user-new', applicationId: 'app-new', fromAutoMatch: false })),
+  convertLead: vi.fn(async () => ({ userId: 'user-new', applicationId: 'app-new', email: 'alice@example.com', fromAutoMatch: false })),
 }))
 vi.mock('@/lib/password', () => ({ checkPasswordBreached: vi.fn(async () => false) }))
+vi.mock('@/lib/auth', () => ({ signIn: vi.fn(async () => undefined) }))
 
 import { POST } from '@/app/api/auth/finish-setup/route'
 
@@ -85,5 +86,23 @@ describe('POST /api/auth/finish-setup', () => {
     ;(checkPasswordBreached as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true)
     const res = await POST(makeReq(validBody))
     expect(res.status).toBe(400)
+  })
+
+  it('attempts auto-sign-in with the new credentials on success', async () => {
+    const { signIn } = await import('@/lib/auth')
+    const res = await POST(makeReq(validBody))
+    expect(res.status).toBe(200)
+    expect(signIn).toHaveBeenCalledWith('credentials', expect.objectContaining({
+      email: 'alice@example.com',
+      password: 'StrongPassw0rd!',
+      redirect: false,
+    }))
+  })
+
+  it('still returns 200 when auto-sign-in throws (non-fatal)', async () => {
+    const { signIn } = await import('@/lib/auth')
+    ;(signIn as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('credentials rejected'))
+    const res = await POST(makeReq(validBody))
+    expect(res.status).toBe(200)
   })
 })

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { dealStageLabel } from '@/lib/deal-stages'
+import { WelcomeBanner } from '@/components/portal/WelcomeBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +68,7 @@ export default async function PortalOverviewPage() {
 
   return (
     <div>
+      <WelcomeBanner />
       <h1 className="font-serif text-4xl font-light text-ivory mb-2">
         Welcome, {user.investorProfile.firstName}
       </h1>

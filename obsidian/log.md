@@ -880,3 +880,12 @@ Append-only record of vault updates.
 - Stone/emerald/sky/amber/rose palette; intent fields read from `Lead` columns; helpers from `@/lib/leads/source`
 - tsc: clean for new files (pre-existing errors in tests/* unrelated)
 - Commit 6762dec
+
+## [2026-06-01] feature | Leads follow-ups — auto-sign-in + welcome banner
+
+- `src/app/api/auth/finish-setup/route.ts`: added NextAuth v5 `signIn('credentials', { redirect: false })` after token redemption; wrapped in try/catch (non-fatal).
+- `src/lib/leads/convert.ts`: `ConvertResult` now includes `email` (resolved from lead on magic-link path; from existing user on auto-match path with leadEmail fallback).
+- `src/app/auth/finish-setup/page.tsx`: fixed broken redirect `/portal/dashboard` → `/portal?welcome=1`.
+- `src/components/portal/WelcomeBanner.tsx`: NEW one-time client banner — emerald palette, localStorage dismiss, also strips `?welcome` query param. Wired into `src/app/portal/page.tsx`.
+- Tests: 16/16 pass (`tests/api/auth-finish-setup.test.ts` 9, `tests/lib/leads/convert.test.ts` 7). +2 new finish-setup tests (signIn called; throw is non-fatal). tsc clean for touched files.
+- Source: [[2026-06-01-leads-followups-autosignin-welcomebanner]]
