@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 const ADMIN_LINKS = [
   { href: '/admin/investors', label: 'Investors' },
+  { href: '/admin/leads', label: 'Leads' },
   { href: '/admin/subscriptions', label: 'Subscriptions' },
 ]
 

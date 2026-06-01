@@ -2,6 +2,21 @@
 
 Append-only record of vault updates.
 
+## [2026-06-01] feature | Lead capture (admin-side intake) + Deal source tracking — shipped
+
+- Implemented per `docs/superpowers/plans/2026-05-31-lead-capture-and-deal-source.md`
+- Library: `src/lib/leads/` — types, source (validation + labels), token (24h TTL), match (email lookup), convert (orchestrator with magic-link + auto-match paths). Pure-fn with injected lookups for tests; mocked Prisma for convert.
+- API: `POST/GET /api/admin/leads`, `PATCH /api/admin/leads/[id]`, `POST /api/admin/leads/[id]/notes`, `POST /api/admin/leads/[id]/convert`, `POST /api/auth/finish-setup`
+- Auto-match hook in `/api/onboarding`: existing Lead with matching email merges intent into the new InvestorProfile (NOT Application — intent scalars live on Profile per the actual schema). Non-fatal on convert failure.
+- Schema: +3 models (`Lead`, `LeadNote`, `LeadConversionToken`), +4 columns on `Deal` (sourceChannel/sourceLeadId/sourceContactId/sourceNote), reverse relations on User + DealerContact. SQL Server enums → Strings (Prisma connector limitation).
+- Admin UI: `/admin/leads` (list + status filters), `/admin/leads/new`, `/admin/leads/[id]` (edit + notes + convert)
+- Public UI: `/auth/finish-setup` magic-link redemption page (password + GDPR consent)
+- Deal create form: `DealSourcePicker` (controlled component) slotted into AdminPostDealForm for channel + lead/contact ID + note
+- 8 new audit actions: LEAD_CREATED, LEAD_UPDATED, LEAD_NOTE_ADDED, LEAD_STATUS_CHANGED, LEAD_CONVERT_INITIATED, LEAD_CONVERTED, LEAD_AUTO_MERGED, DEAL_SOURCE_ATTRIBUTED
+- Tests: 81 files / 716 passed · Build: clean
+- Commits: 7dfd723..6762dec (12 feature commits)
+- Known follow-ups (non-blocking): magic-link redemption does NOT auto-sign-in (user must log in after). InvestorProfile placeholder fields (address, buyerType) need completion via `/portal/profile` after first login.
+
 ## [2026-05-31] feature | Inbound dealer email organisation — shipped
 
 - Implemented per `docs/superpowers/plans/2026-05-31-inbound-dealer-email-organisation.md`
@@ -857,3 +872,11 @@ Append-only record of vault updates.
 - New `src/components/admin/DealSourcePicker.tsx` (controlled value/onChange) slotted into `AdminPostDealForm`.
 - TDD: 5 tests in `tests/api/admin-deal-source.test.ts` — all pass. tsc clean for touched files.
 - Source: [[2026-06-01-leads-task-11-deal-source]]
+
+## [2026-06-01] feature | Leads Task 12 — admin Lead pages
+
+- Created 6 files: `LeadForm` (client, create/edit modes), `LeadNoteThread` (client, append notes), `ConvertLeadButton` (client, magic-link convert flow), `/admin/leads` (server, filterable list), `/admin/leads/new` (server wrapper), `/admin/leads/[id]` (server, detail with form + notes + convert)
+- Admin self-gating via `auth()` + role check; Next 14 sync `params: { id: string }`
+- Stone/emerald/sky/amber/rose palette; intent fields read from `Lead` columns; helpers from `@/lib/leads/source`
+- tsc: clean for new files (pre-existing errors in tests/* unrelated)
+- Commit 6762dec
