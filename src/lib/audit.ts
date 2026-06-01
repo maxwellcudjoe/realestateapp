@@ -59,6 +59,15 @@ export const AUDIT_ACTIONS = {
   // Task 11 — inbound dealer email admin actions
   INBOX_ASSIGN: 'Admin assigned inbound email to deal',
   INBOX_DROP: 'Admin dropped inbound email',
+  // Lead capture
+  LEAD_CREATED: 'Lead created',
+  LEAD_UPDATED: 'Lead updated',
+  LEAD_NOTE_ADDED: 'Lead note added',
+  LEAD_STATUS_CHANGED: 'Lead status changed',
+  LEAD_CONVERT_INITIATED: 'Lead conversion magic-link sent',
+  LEAD_CONVERTED: 'Lead converted to user',
+  LEAD_AUTO_MERGED: 'Lead auto-merged on self-register',
+  DEAL_SOURCE_ATTRIBUTED: 'Deal source attribution recorded',
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTIONS

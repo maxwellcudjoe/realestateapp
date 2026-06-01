@@ -38,6 +38,8 @@ model User {
   invoices                 Invoice[]
   subscription             Subscription?
   attributedEmails         EmailMessage[]
+  capturedLeads        Lead[] @relation("AdminCapturedLeads")
+  convertedFromLead    Lead?  @relation("ConvertedFromLead")
 }
 
 model RecoveryCode {
@@ -275,6 +277,17 @@ model Deal {
   favourites     DealFavourite[]
   invoices       Invoice[]
   threads        DealerThread[]
+
+  sourceChannel    String?        @db.NVarChar(30)
+  sourceLeadId     String?
+  sourceLead       Lead?          @relation("LeadSourcedDeals", fields: [sourceLeadId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceContactId  String?
+  sourceContact    DealerContact? @relation("ContactSourcedDeals", fields: [sourceContactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceNote       String?        @db.NVarChar(Max)
+
+  @@index([sourceLeadId])
+  @@index([sourceContactId])
+  @@index([sourceChannel])
 }
 
 model DealFavourite {
@@ -524,6 +537,7 @@ model DealerContact {
   company   String?
   createdAt DateTime       @default(now())
   emails    EmailMessage[]
+  sourcedDeals     Deal[]         @relation("ContactSourcedDeals")
 }
 
 model DealerThread {
@@ -566,4 +580,68 @@ model EmailMessage {
   @@index([direction])
   @@index([classification])
   @@index([receivedAt])
+}
+
+// --- Lead capture (admin-side intake) ---
+// Status: 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'CONVERTED' | 'DECLINED' | 'DORMANT' (string, not enum — SQL Server connector has no native enums)
+// SourceChannel: 'PHONE_CALL' | 'PARTNER_INTRO' | 'AGENT_REFERRAL' | 'WALK_IN' | 'EVENT' | 'WEB_ENQUIRY' | 'OTHER'
+
+model Lead {
+  id                  String                @id @default(cuid())
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  createdByUserId     String
+  createdByUser       User                  @relation("AdminCapturedLeads", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  name                String                @db.NVarChar(120)
+  email               String?               @db.NVarChar(255)
+  phone               String?               @db.NVarChar(40)
+
+  sourceChannel       String                @db.NVarChar(30)
+  sourceReferrer      String?               @db.NVarChar(120)
+  sourceNote          String?               @db.NVarChar(Max)
+
+  strategyCodesJson   String?               @db.NVarChar(500)
+  targetAreaCodesJson String?               @db.NVarChar(2000)
+  budgetMin           Decimal?              @db.Decimal(12, 2)
+  budgetMax           Decimal?              @db.Decimal(12, 2)
+  experienceLevel     String?               @db.NVarChar(20)
+  timeline            String?               @db.NVarChar(20)
+  fundingStatus       String?               @db.NVarChar(20)
+
+  status              String                @default("NEW") @db.NVarChar(20)
+  convertedUserId     String?               @unique
+  convertedUser       User?                 @relation("ConvertedFromLead", fields: [convertedUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  convertedAt         DateTime?
+
+  notes               LeadNote[]
+  conversionTokens    LeadConversionToken[]
+  sourcedDeals        Deal[]                @relation("LeadSourcedDeals")
+
+  @@index([email])
+  @@index([status, createdAt])
+  @@index([sourceChannel])
+}
+
+model LeadNote {
+  id           String   @id @default(cuid())
+  leadId       String
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorUserId String
+  body         String   @db.NVarChar(Max)
+  createdAt    DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+model LeadConversionToken {
+  id        String    @id @default(cuid())
+  leadId    String
+  lead      Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  token     String    @unique @db.NVarChar(128)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
 }
